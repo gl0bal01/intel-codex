@@ -9,7 +9,7 @@ tags:
   - social-media
   - osint
 created: 2023-02-05
-updated: 2025-08-24
+updated: 2025-10-08
 ---
 
 # Twitter/X OSINT SOP
@@ -158,7 +158,306 @@ place:"Specific Location" has:geo has:images since:YYYY-MM-DD until:YYYY-MM-DD
 (breaking OR urgent OR "just happened") has:images -is:retweet lang:en
 ```
 
-## 7) Collection & Evidence Integrity
+## 7) API-Based Collection
+
+### Twitter/X API v2 Setup
+
+**Authentication Requirements:**
+- **Free Tier**: Basic read access, 1,500 tweets/month
+- **Basic Tier ($100/mo)**: 10,000 tweets/month, enhanced features
+- **Pro/Enterprise**: Historical data, higher rate limits
+
+**API Key Setup:**
+```bash
+# Get API keys from: https://developer.x.com/en/portal/dashboard
+# Store in environment variables (never hardcode!)
+export TWITTER_BEARER_TOKEN="your_bearer_token_here"
+export TWITTER_API_KEY="your_api_key"
+export TWITTER_API_SECRET="your_api_secret"
+```
+
+### User Profile Collection
+
+**Get User by Username:**
+```bash
+# Basic profile information
+curl -X GET "https://api.x.com/2/users/by/username/crypto_alex" \
+     -H "Authorization: Bearer $TWITTER_BEARER_TOKEN" \
+     -H "Content-Type: application/json" \
+     > twitter_user_profile_$(date +%Y%m%d_%H%M%S).json
+
+# Enhanced profile with all fields
+curl -X GET "https://api.x.com/2/users/by/username/crypto_alex?user.fields=created_at,description,entities,id,location,name,pinned_tweet_id,profile_image_url,protected,public_metrics,url,username,verified,verified_type,withheld" \
+     -H "Authorization: Bearer $TWITTER_BEARER_TOKEN" \
+     > twitter_user_full_$(date +%Y%m%d_%H%M%S).json
+```
+
+**Get User by ID:**
+```bash
+curl -X GET "https://api.x.com/2/users/USER_ID?user.fields=created_at,description,location,public_metrics,verified" \
+     -H "Authorization: Bearer $TWITTER_BEARER_TOKEN" \
+     > twitter_user_id_$(date +%Y%m%d_%H%M%S).json
+```
+
+### Tweet Collection
+
+**Get User's Tweets (Timeline):**
+```bash
+# Recent tweets (last 7 days for free tier)
+curl -X GET "https://api.x.com/2/users/USER_ID/tweets?max_results=100&tweet.fields=created_at,author_id,conversation_id,public_metrics,referenced_tweets,entities,geo,in_reply_to_user_id,lang,source&expansions=author_id,referenced_tweets.id,attachments.media_keys&media.fields=url,preview_image_url,type,duration_ms" \
+     -H "Authorization: Bearer $TWITTER_BEARER_TOKEN" \
+     > twitter_tweets_$(date +%Y%m%d_%H%M%S).json
+
+# Pagination for large datasets
+curl -X GET "https://api.x.com/2/users/USER_ID/tweets?max_results=100&pagination_token=NEXT_TOKEN" \
+     -H "Authorization: Bearer $TWITTER_BEARER_TOKEN" \
+     >> twitter_tweets_page2_$(date +%Y%m%d_%H%M%S).json
+```
+
+**Get Specific Tweet:**
+```bash
+curl -X GET "https://api.x.com/2/tweets/TWEET_ID?tweet.fields=created_at,text,author_id,public_metrics,entities,geo,lang&expansions=author_id,attachments.media_keys&media.fields=url,type,preview_image_url" \
+     -H "Authorization: Bearer $TWITTER_BEARER_TOKEN" \
+     > tweet_$(date +%Y%m%d_%H%M%S).json
+```
+
+**Search Recent Tweets:**
+```bash
+# Search tweets from last 7 days (free tier)
+curl -X GET "https://api.x.com/2/tweets/search/recent?query=from:username%20-is:retweet&max_results=100&tweet.fields=created_at,public_metrics,entities&expansions=author_id" \
+     -H "Authorization: Bearer $TWITTER_BEARER_TOKEN" \
+     > twitter_search_$(date +%Y%m%d_%H%M%S).json
+
+# URL-encoded query example: "crypto scam" lang:en -is:retweet
+QUERY=$(echo '"crypto scam" lang:en -is:retweet' | jq -sRr @uri)
+curl -X GET "https://api.x.com/2/tweets/search/recent?query=$QUERY&max_results=100" \
+     -H "Authorization: Bearer $TWITTER_BEARER_TOKEN" \
+     > twitter_search_crypto_$(date +%Y%m%d_%H%M%S).json
+```
+
+**Full Archive Search (Academic/Enterprise only):**
+```bash
+# Search all historical tweets (requires Academic Research access)
+curl -X GET "https://api.x.com/2/tweets/search/all?query=from:username%20since:2020-01-01%20until:2025-01-01&max_results=500&tweet.fields=created_at,public_metrics,entities,geo,lang" \
+     -H "Authorization: Bearer $TWITTER_BEARER_TOKEN" \
+     > twitter_archive_search_$(date +%Y%m%d_%H%M%S).json
+```
+
+### Follower/Following Analysis
+
+**Get Followers:**
+```bash
+curl -X GET "https://api.x.com/2/users/USER_ID/followers?max_results=1000&user.fields=created_at,description,public_metrics,verified" \
+     -H "Authorization: Bearer $TWITTER_BEARER_TOKEN" \
+     > twitter_followers_$(date +%Y%m%d_%H%M%S).json
+```
+
+**Get Following:**
+```bash
+curl -X GET "https://api.x.com/2/users/USER_ID/following?max_results=1000&user.fields=created_at,public_metrics,verified" \
+     -H "Authorization: Bearer $TWITTER_BEARER_TOKEN" \
+     > twitter_following_$(date +%Y%m%d_%H%M%S).json
+```
+
+### Media Download
+
+**Extract Media URLs from JSON:**
+```bash
+# Extract image URLs from API response
+jq -r '.data[].attachments.media_keys[]' twitter_tweets.json
+
+# Download media files
+jq -r '.includes.media[] | select(.type=="photo") | .url' twitter_tweets.json | while read URL; do
+    wget "$URL" -P media/
+done
+
+# Download videos (extract video URLs)
+jq -r '.includes.media[] | select(.type=="video") | .variants[] | select(.content_type=="video/mp4") | .url' twitter_tweets.json | while read URL; do
+    wget "$URL" -P media/
+done
+```
+
+### Rate Limit Handling
+
+**Check Rate Limit Status:**
+```bash
+curl -X GET "https://api.x.com/2/users/by/username/twitter" \
+     -H "Authorization: Bearer $TWITTER_BEARER_TOKEN" \
+     -I | grep -i "x-rate-limit"
+
+# Output:
+# x-rate-limit-limit: 300
+# x-rate-limit-remaining: 299
+# x-rate-limit-reset: 1672531200
+```
+
+**Rate Limit Aware Script:**
+```bash
+#!/bin/bash
+# twitter_api_safe.sh - Respects rate limits
+
+BEARER_TOKEN="$TWITTER_BEARER_TOKEN"
+USER_ID="$1"
+
+# Check remaining rate limit
+REMAINING=$(curl -s -I -X GET "https://api.x.com/2/users/$USER_ID" \
+    -H "Authorization: Bearer $BEARER_TOKEN" | grep -i "x-rate-limit-remaining" | awk '{print $2}' | tr -d '\r')
+
+if [ "$REMAINING" -lt 10 ]; then
+    echo "⚠️ Rate limit low ($REMAINING remaining). Pausing 15 minutes..."
+    sleep 900
+fi
+
+# Proceed with request
+curl -X GET "https://api.x.com/2/users/$USER_ID/tweets?max_results=100" \
+    -H "Authorization: Bearer $BEARER_TOKEN" \
+    > tweets_$(date +%Y%m%d_%H%M%S).json
+```
+
+### Python API Collection Script
+
+**Using Tweepy Library:**
+```python
+#!/usr/bin/env python3
+# twitter_collector.py - Automated collection with Tweepy
+
+import tweepy
+import json
+from datetime import datetime
+
+# Authentication
+BEARER_TOKEN = "your_bearer_token_here"
+client = tweepy.Client(bearer_token=BEARER_TOKEN)
+
+# Collect user tweets
+def collect_user_tweets(username, max_results=100):
+    user = client.get_user(username=username)
+    user_id = user.data.id
+
+    tweets = client.get_users_tweets(
+        id=user_id,
+        max_results=max_results,
+        tweet_fields=['created_at', 'public_metrics', 'entities', 'geo'],
+        expansions=['author_id', 'attachments.media_keys'],
+        media_fields=['url', 'type', 'preview_image_url']
+    )
+
+    timestamp = datetime.utcnow().strftime('%Y%m%d_%H%M%S')
+    filename = f'twitter_tweets_{username}_{timestamp}.json'
+
+    with open(filename, 'w') as f:
+        json.dump({
+            'user': user.data.__dict__,
+            'tweets': [tweet.data for tweet in tweets.data]
+        }, f, indent=2, default=str)
+
+    print(f"✓ Collected {len(tweets.data)} tweets → {filename}")
+
+# Search tweets
+def search_tweets(query, max_results=100):
+    tweets = client.search_recent_tweets(
+        query=query,
+        max_results=max_results,
+        tweet_fields=['created_at', 'author_id', 'public_metrics', 'entities']
+    )
+
+    timestamp = datetime.utcnow().strftime('%Y%m%d_%H%M%S')
+    filename = f'twitter_search_{timestamp}.json'
+
+    with open(filename, 'w') as f:
+        json.dump([tweet.data for tweet in tweets.data], f, indent=2, default=str)
+
+    print(f"✓ Search complete: {len(tweets.data)} results → {filename}")
+
+if __name__ == "__main__":
+    # Example usage
+    collect_user_tweets("crypto_alex", max_results=100)
+    search_tweets('"scam" lang:en -is:retweet', max_results=100)
+```
+
+### API Query Examples
+
+**Complex Search Queries:**
+```bash
+# Cryptocurrency scam mentions
+QUERY="(bitcoin OR ethereum OR crypto) (scam OR fraud OR \"send back\") -is:retweet lang:en"
+curl -X GET "https://api.x.com/2/tweets/search/recent?query=$(echo $QUERY | jq -sRr @uri)&max_results=100" \
+     -H "Authorization: Bearer $TWITTER_BEARER_TOKEN"
+
+# Geotagged tweets in specific location
+QUERY="place:\"New York City\" has:geo has:images -is:retweet"
+curl -X GET "https://api.x.com/2/tweets/search/recent?query=$(echo $QUERY | jq -sRr @uri)" \
+     -H "Authorization: Bearer $TWITTER_BEARER_TOKEN"
+
+# High-engagement tweets about specific topic
+QUERY="Ukraine min_retweets:100 -is:retweet lang:en has:links"
+curl -X GET "https://api.x.com/2/tweets/search/recent?query=$(echo $QUERY | jq -sRr @uri)" \
+     -H "Authorization: Bearer $TWITTER_BEARER_TOKEN"
+```
+
+### Evidence Packaging (API Data)
+
+**Hash Calculation:**
+```bash
+# Calculate SHA-256 hash for API JSON response
+sha256sum twitter_tweets_20251005_143022.json > twitter_tweets_20251005_143022.json.sha256
+
+# Batch hash all JSON files
+find . -name "*.json" -type f -exec sha256sum {} \; > MANIFEST_SHA256SUMS.txt
+```
+
+**Metadata Extraction:**
+```bash
+# Extract key metadata from JSON
+jq '{
+  collection_timestamp: now | strftime("%Y-%m-%d %H:%M:%S UTC"),
+  user_id: .data[0].author_id,
+  tweet_count: (.data | length),
+  date_range: {
+    earliest: (.data | min_by(.created_at) | .created_at),
+    latest: (.data | max_by(.created_at) | .created_at)
+  },
+  total_engagement: (.data | map(.public_metrics.retweet_count + .public_metrics.like_count) | add)
+}' twitter_tweets.json > metadata.json
+```
+
+### API Best Practices
+
+**1. Always log requests:**
+```bash
+# Log all API calls for reproducibility
+echo "$(date -u): GET /users/by/username/crypto_alex" >> api_requests.log
+```
+
+**2. Store credentials securely:**
+```bash
+# Use environment variables, never hardcode
+export TWITTER_BEARER_TOKEN=$(cat ~/.twitter_api_token)
+
+# Or use credential manager
+# Windows: Credential Manager
+# Linux: gnome-keyring, pass
+# macOS: Keychain
+```
+
+**3. Respect rate limits:**
+- Free tier: 1,500 tweets/month
+- Track usage to avoid hitting limits mid-investigation
+- Implement backoff/retry logic
+
+**4. Preserve raw responses:**
+```bash
+# Always save raw JSON before processing
+curl [...] | tee raw_response.json | jq '.' > processed_response.json
+```
+
+**5. Document API version:**
+```bash
+# Include API version in filenames/logs
+# twitter_v2_tweets_20251005.json (not twitter_tweets_20251005.json)
+```
+
+## 8) Collection & Evidence Integrity
 
 ### Capture Methods
 - **Full thread archive**: Screenshot entire conversation with context
@@ -380,6 +679,6 @@ place:"Specific Location" has:geo has:images since:YYYY-MM-DD until:YYYY-MM-DD
 
 ---
 
-**Last Updated:** 2025-08-24
-**Version:** 3.0 (Expanded & Standardized)
+**Last Updated:** 2025-10-08
+**Version:** 3.0 
 **Review Frequency:** Yearly 
