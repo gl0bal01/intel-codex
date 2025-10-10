@@ -206,21 +206,21 @@ updated: 2025-10-01
 
 ## 9) Tools & Resources
 
-| Tool                | Purpose                               | Platform      | Access                                                                                              |
-| ------------------- | ------------------------------------- | ------------- | --------------------------------------------------------------------------------------------------- |
-| **Instagram Web**   | Native search interface               | Web           | https://www.instagram.com                                                                           |
-| **Nuclei**          | Username enumeration across platforms | CLI           | `nuclei -tags osint -var user=username`                                                             |
-| **Social-Analyzer** | Cross-platform username search        | CLI           | `pip install social-analyzer`                                                                       |
-| **ExifTool**        | Image metadata extraction             | CLI           | `exiftool image.jpg`                                                                                |
-| **InstaLoader**     | Download posts, stories, highlights   | CLI           | `pip install instaloader`                                                                           |
-| **4K Stogram**      | Instagram downloader                  | Desktop       | https://www.4kdownload.com/products/stogram                                                         |
-| **Wayback Machine** | Historical profile snapshots          | Web           | https://web.archive.org                                                                             |
-| **Google Images**   | Reverse image search                  | Web           | https://images.google.com                                                                           |
-| **Yandex Images**   | Reverse image search                  | Web           | https://yandex.com/images                                                                           |
-| **PimEyes**         | Facial recognition search             | Web           | https://pimeyes.com (paid, legal review)                                                            |
-| **TinEye**          | Reverse image search                  | Web           | https://tineye.com                                                                                  |
-| ==Search by image== | ==Reverse image search==              | ==Extension== | ==https://chromewebstore.google.com/detail/search-by-image/cnojnbdhbhnkbcieeekonklommdnndci?pli=1==== |
-| ==Toutatis==            | ==Instagram account extraction==          | ==CLI==           | ==https://github.com/megadose/toutatis==                                                                |
+| Tool                | Purpose                               | Platform      | Access                                                                                                |
+| ------------------- | ------------------------------------- | ------------- | ----------------------------------------------------------------------------------------------------- |
+| **Instagram Web**   | Native search interface               | Web           | https://www.instagram.com                                                                             |
+| **Nuclei**          | Username enumeration across platforms | CLI           | `nuclei -tags osint -var user=username`                                                               |
+| **Social-Analyzer** | Cross-platform username search        | CLI           | `pip install social-analyzer`                                                                         |
+| **ExifTool**        | Image metadata extraction             | CLI           | `exiftool image.jpg`                                                                                  |
+| **InstaLoader**     | Download posts, stories, highlights   | CLI           | `pip install instaloader`                                                                             |
+| **4K Stogram**      | Instagram downloader                  | Desktop       | https://www.4kdownload.com/products/stogram                                                           |
+| **Wayback Machine** | Historical profile snapshots          | Web           | https://web.archive.org                                                                               |
+| **Google Images**   | Reverse image search                  | Web           | https://images.google.com                                                                             |
+| **Yandex Images**   | Reverse image search                  | Web           | https://yandex.com/images                                                                             |
+| **PimEyes**         | Facial recognition search             | Web           | https://pimeyes.com (paid, legal review)                                                              |
+| **TinEye**          | Reverse image search                  | Web           | https://tineye.com                                                                                    |
+| **Search by image** | Reverse image search                  | Extension     | https://chromewebstore.google.com/detail/search-by-image/cnojnbdhbhnkbcieeekonklommdnndci?pli=1       |
+| **Toutatis**        | Instagram account extraction          | CLI           | https://github.com/megadose/toutatis                                                                  |
 
 ### Download Tools Commands
 ```bash
