@@ -1,5 +1,21 @@
 # Hash Generation Methods for Evidence Integrity
 
+## Table of Contents
+
+1. [Command Line Tools (Primary Methods)](#1-command-line-tools-primary-methods)
+2. [Forensic Tools (Professional Methods)](#2-forensic-tools-professional-methods)
+3. [Third-Party Tools](#3-third-party-tools)
+4. [Hash Algorithm Selection](#4-hash-algorithm-selection)
+5. [Evidence Collection Workflow](#5-evidence-collection-workflow)
+6. [Advanced Use Cases](#6-advanced-use-cases)
+7. [Troubleshooting & Common Issues](#7-troubleshooting--common-issues)
+8. [Chain of Custody Best Practices](#8-chain-of-custody-best-practices)
+9. [Integration with Forensic Tools](#9-integration-with-forensic-tools)
+10. [Tools Reference](#10-tools-reference)
+11. [Reference Resources](#11-reference-resources)
+
+---
+
 ## Overview
 
 **Purpose:** Hash values provide cryptographic fingerprints of digital evidence, ensuring integrity, authenticity, and non-repudiation throughout the investigation lifecycle. Any modification to the file will result in a completely different hash value, making tampering immediately detectable.
