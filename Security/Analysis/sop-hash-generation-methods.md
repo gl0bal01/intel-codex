@@ -719,3 +719,105 @@ vol.py -f memory.dmp --profile=Win10x64 pslist
 - ✅ Use multiple algorithms for critical evidence (SHA-256 + SHA-512)
 - ❌ Never rely on MD5 alone for court evidence
 - ❌ Never skip hash verification before analysis
+
+---
+
+## 11. Reference Resources
+
+### Hash Algorithm Standards & Documentation
+- **NIST FIPS 180-4** - [nvlpubs.nist.gov/nistpubs/FIPS/NIST.FIPS.180-4.pdf](https://nvlpubs.nist.gov/nistpubs/FIPS/NIST.FIPS.180-4.pdf)
+  - Official SHA-2 family specification (SHA-256, SHA-512)
+- **NIST FIPS 202** - [nvlpubs.nist.gov/nistpubs/FIPS/NIST.FIPS.202.pdf](https://nvlpubs.nist.gov/nistpubs/FIPS/NIST.FIPS.202.pdf)
+  - SHA-3 standard specification
+- **NIST Hash Functions Portal** - [csrc.nist.gov/projects/hash-functions](https://csrc.nist.gov/projects/hash-functions)
+  - Cryptographic hash function projects and research
+- **RFC 1321 (MD5)** - [tools.ietf.org/html/rfc1321](https://tools.ietf.org/html/rfc1321)
+  - MD5 specification (historical/deprecated)
+
+### Digital Forensics Standards
+- **NIST SP 800-86** - [csrc.nist.gov/publications/detail/sp/800-86/final](https://csrc.nist.gov/publications/detail/sp/800-86/final)
+  - Guide to Integrating Forensic Techniques into Incident Response
+- **ISO/IEC 27037:2012** - [iso.org](https://www.iso.org/standard/44381.html)
+  - Guidelines for identification, collection, acquisition, and preservation of digital evidence
+- **Scientific Working Group on Digital Evidence (SWGDE)** - [swgde.org](https://www.swgde.org/)
+  - Best practices for digital evidence handling
+- **National Institute of Justice (NIJ)** - [nij.ojp.gov/topics/forensics/digital-evidence](https://nij.ojp.gov/topics/forensics/digital-evidence)
+  - Digital evidence best practices
+
+### Hash Collision Research
+- **SHAttered Attack** - [shattered.io](https://shattered.io/)
+  - First practical SHA-1 collision (2017)
+  - Demonstrates why SHA-1 should be deprecated
+- **MD5 Collision Vulnerabilities** - [eprint.iacr.org/2004/199](https://eprint.iacr.org/2004/199)
+  - Wang et al. MD5 collision research (2004)
+- **HashClash Project** - [github.com/cr-marcstevens/hashclash](https://github.com/cr-marcstevens/hashclash)
+  - MD5 and SHA-1 collision tools (academic research)
+
+### Forensic Hashing Tools
+- **md5deep/hashdeep** - [github.com/jessek/hashdeep](https://github.com/jessek/hashdeep)
+  - Recursive hash computation and audit
+  - Cross-platform, forensically sound
+- **HashMyFiles (NirSoft)** - [nirsoft.net/utils/hash_my_files.html](https://www.nirsoft.net/utils/hash_my_files.html)
+  - Portable Windows hash calculator
+- **GtkHash** - [github.com/tristanheaven/gtkhash](https://github.com/tristanheaven/gtkhash)
+  - Linux GTK-based hash calculator
+
+### Forensic Imaging Tools (with Hash Verification)
+- **FTK Imager** - [exterro.com/ftk-imager](https://www.exterro.com/ftk-imager)
+  - Free forensic imaging tool with automatic hash verification
+  - Supports MD5, SHA1, SHA256
+- **dc3dd** - [sourceforge.net/projects/dc3dd](https://sourceforge.net/projects/dc3dd/)
+  - Enhanced dd with hashing on-the-fly
+  - Law enforcement standard
+- **Guymager** - [guymager.sourceforge.io](https://guymager.sourceforge.io/)
+  - Linux forensic imager with MD5/SHA verification
+- **ewfacquire (libewf)** - [github.com/libyal/libewf](https://github.com/libyal/libewf)
+  - Expert Witness Format (E01) imaging with hash verification
+
+### Online Hash Lookup Services
+- **VirusTotal** - [virustotal.com](https://www.virustotal.com/)
+  - Malware hash lookup (MD5, SHA1, SHA256)
+  - Submit samples or search by hash
+- **NSRL (National Software Reference Library)** - [nsrl.nist.gov](https://www.nsrl.nist.gov/)
+  - Reference hash database of known software
+  - Filter out known-good files from forensic analysis
+- **MalwareBazaar** - [bazaar.abuse.ch](https://bazaar.abuse.ch/)
+  - Malware sample hash database
+  - Community-driven malware intelligence
+- **ThreatFox** - [threatfox.abuse.ch](https://threatfox.abuse.ch/)
+  - IOC database including file hashes
+
+### Training & Certification
+- **SANS FOR500: Windows Forensic Analysis** - Hash verification techniques
+- **SANS FOR508: Advanced Incident Response** - Evidence integrity practices
+- **EnCase Certified Examiner (EnCE)** - Includes hash verification methodologies
+- **CHFI (Computer Hacking Forensic Investigator)** - EC-Council certification covering evidence handling
+
+### Community & Forums
+- **Forensic Focus Forums** - [forensicfocus.com](https://www.forensicfocus.com/)
+  - Digital forensics community
+- **Reddit r/computerforensics** - [reddit.com/r/computerforensics](https://www.reddit.com/r/computerforensics/)
+  - Forensic practitioners community
+
+### Automation Scripts & Tools
+- **PowerForensics** - [github.com/Invoke-IR/PowerForensics](https://github.com/Invoke-IR/PowerForensics)
+  - PowerShell framework for forensic analysis
+  - Includes hash verification modules
+- **Forensic Toolkit Scripts** - Various GitHub repositories
+  - Automated evidence hashing workflows
+- **Ansible Forensic Playbooks** - Automated evidence collection with hash verification
+
+---
+
+## Related SOPs
+
+**Analysis:**
+- [[sop-malware-analysis|Malware Analysis]] - Hash-based sample identification and deduplication
+- [[sop-cryptography-analysis|Cryptography Analysis]] - Understanding hash algorithm security
+- [[sop-reverse-engineering|Reverse Engineering]] - File integrity during binary analysis
+
+**Pentesting & Security:**
+- [[../Pentesting/sop-forensics-investigation|Forensics Investigation]] - Evidence acquisition and chain of custody
+- [[../Pentesting/sop-detection-evasion-testing|Detection Evasion Testing]] - Hash-based malware detection bypass techniques
+
+---
