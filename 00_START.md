@@ -54,25 +54,6 @@
 
 ---
 
-## 🎯 CTF (Capture The Flag)
-
-### Getting Started
-- [[CTF/Getting-Started|CTF Getting Started Guide]] 📘
-- [[CTF/CTF_Challenge_Methodology|Challenge Methodology]]
-- [[CTF/CTF_Cheat_Sheets|CTF Cheat Sheets]]
-- [[CTF/Tools|Essential CTF Tools]]
-
-### Team & Coordination
-- [[CTF/CTF_Team_Coordination|Team Coordination Guide]]
-
-### Example Writeups
-- [[CTF/Writeups/Sample_Web_SQLi_Writeup|Web: SQL Injection]]
-- [[CTF/Writeups/Sample_Crypto_Caesar_Writeup|Crypto: Caesar Cipher]]
-- [[CTF/Writeups/Sample_Forensics_Steganography_Writeup|Forensics: Steganography]]
-- [[CTF/Writeups/Sample_RevEng_Crackme_Writeup|Reverse Engineering: Crackme]]
-
----
-
 ## 🎯 Common Workflows
 
 ### Starting an Investigation
@@ -116,15 +97,17 @@
 ObsidianVault/
 ├── Investigations/
 │   ├── Platforms/          (7 platform-specific SOPs)
-│   ├── Techniques/         (9 investigation SOPs)
-│   └── Entity-Dossiers/    (Person/organization profiles)
+│   └── Techniques/         (9 investigation SOPs)
 ├── Security/
 │   ├── Analysis/           (4 analysis/research SOPs)
 │   └── Pentesting/         (9 pentesting SOPs)
 ├── CTF/
 │   ├── Writeups/           (4 example writeups)
 │   └── [Guides]            (5 methodology guides)
-└── Cases/                  (Active & example investigations)
+└── Cases/
+    ├── TEMPLATE/           (Empty case structure)
+    ├── Templates/          (Entity dossier templates)
+    └── [Examples]          (Complete investigation examples)
 ```
 
 ---

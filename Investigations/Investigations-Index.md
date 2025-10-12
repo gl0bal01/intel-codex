@@ -99,8 +99,8 @@ graph LR
 
 ### Entity Types
 
-- **Person:** [[Entity-Dossiers/entity-example-person|Example: Alex Rivera]] (crypto trader, tech influencer)
-- **Organization:** [[Entity-Dossiers/entity-example-organization|Example: CryptoVault Solutions]] (offshore company, high-risk)
+- **Person:** [[../Cases/Templates/entity-person|Example: Alex Rivera]] (crypto trader, tech influencer)
+- **Organization:** [[../Cases/Templates/entity-organization|Example: CryptoVault Solutions]] (offshore company, high-risk)
 - **Domain:** (Create using [[Techniques/sop-entity-dossier|Entity Dossier Template]])
 - **Cryptocurrency Wallet:** (Create using [[Techniques/sop-entity-dossier|Entity Dossier Template]])
 - **Asset:** (Create using [[Techniques/sop-entity-dossier|Entity Dossier Template]])
@@ -109,7 +109,7 @@ graph LR
 
 **To create a new entity:**
 1. Use [[Techniques/sop-entity-dossier|Entity Dossier Template]] as reference
-2. Save in `Investigations/Entity-Dossiers/` folder
+2. Copy template from [[../Cases/Templates/|Cases/Templates/]] folder
 3. Name format: `entity-[type]-[identifier].md` (e.g., `entity-person-john-doe.md`)
 4. Update entity type in frontmatter: `person | org | domain | wallet | asset`
 5. Set risk level: `low | medium | high | critical`
@@ -284,7 +284,7 @@ graph LR
 ### Active Cases
 ```dataview
 TABLE case_id, entity_type, risk, confidence, updated
-FROM "Investigations/Entity-Dossiers"
+FROM "Cases"
 WHERE type = "dossier"
 SORT updated DESC
 LIMIT 10
@@ -293,7 +293,7 @@ LIMIT 10
 ### High-Risk Entities
 ```dataview
 TABLE name, entity_type, risk, case_id, analyst
-FROM "Investigations/Entity-Dossiers"
+FROM "Cases"
 WHERE type = "dossier" AND risk = "high" OR risk = "critical"
 SORT updated DESC
 ```
@@ -301,7 +301,7 @@ SORT updated DESC
 ### Pending Review
 ```dataview
 TABLE name, entity_type, confidence, updated
-FROM "Investigations/Entity-Dossiers"
+FROM "Cases"
 WHERE type = "dossier" AND confidence = "low"
 SORT updated DESC
 ```

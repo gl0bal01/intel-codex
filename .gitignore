@@ -1,0 +1,33 @@
+# Obsidian
+.obsidian/workspace.json
+.obsidian/workspace-mobile.json
+.obsidian/cache
+.obsidian/plugins/*/data.json
+.obsidian/hotkeys.json
+.obsidian/graph.json
+.obsidian/workspace
+.obsidian/workspace.json.bak
+
+# OS
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Temporary files
+*.tmp
+*.temp
+*~
+.*.swp
+.*.swo
+
+# Personal/Private
+**/PRIVATE/
+**/private/
+**/Personal/
+**/personal/
+
+# Logs
+*.log
+
+# Trash
+.trash/
