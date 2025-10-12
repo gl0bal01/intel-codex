@@ -31,5 +31,5 @@ These SOPs provide standardized procedures for:
 
 ## Navigation
 
-- Return to [[99_Dashboard|Dashboard]]
+- Return to [[00_START|Start]]
 - See also: [[Security/Pentesting/Pentesting-Index|Pentesting SOPs]]
