@@ -1,0 +1,65 @@
+INVESTIGATION AUTHORIZATION
+
+Case ID: YYYY-NNN
+Case Name: [Case Name]
+
+===========================================
+
+This document authorizes the investigation described below.
+
+AUTHORIZATION DETAILS:
+
+Authorized By: [Name, Title]
+Organization: [Organization Name]
+Date of Authorization: YYYY-MM-DD
+Expiration Date: YYYY-MM-DD (if applicable)
+
+INVESTIGATOR:
+
+Name: [Your Name]
+Title/Role: [Your Title]
+Organization: [Your Organization]
+
+INVESTIGATION SCOPE:
+
+Authorized Platforms/Methods:
+- [Platform/method 1]
+- [Platform/method 2]
+- [Platform/method 3]
+
+Out of Scope (NOT Authorized):
+- [What you may NOT do]
+- [e.g., "No account access attempts"]
+- [e.g., "No social engineering"]
+
+LEGAL BASIS:
+
+[e.g., "Educational training exercise"]
+[e.g., "Client engagement dated YYYY-MM-DD"]
+[e.g., "Internal security investigation"]
+
+LIMITATIONS/RESTRICTIONS:
+
+[Any specific limitations on the investigation]
+
+REPORTING REQUIREMENTS:
+
+Report Due Date: YYYY-MM-DD
+Report Recipients: [Names/titles]
+
+===========================================
+
+SIGNATURE (if applicable):
+
+Authorizing Official: ___________________________
+Date: YYYY-MM-DD
+
+Investigator Acknowledgment: ___________________________
+Date: YYYY-MM-DD
+
+===========================================
+
+NOTES:
+
+[Any additional notes about the authorization]
+

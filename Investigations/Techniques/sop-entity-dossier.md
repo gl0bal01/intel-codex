@@ -572,7 +572,7 @@ theHarvester -d example.com -b all > evidence/theharvester_output.txt
 - Evidence repository: `/evidence/CASE-2025-1005-001/entity_name/`
 - Related entities:
   - [Example Investigation](../../Cases/2025-001-Example-Investigation/README.md)
-  - [Entity Dossier Templates](../../Cases/Templates/)
+  - [Case Template](../../Cases/Case-Template/README.md)
 
 
 ---

@@ -1,0 +1,58 @@
+# SHA-256 Evidence Hashes
+# Case ID: YYYY-NNN
+# Generated: YYYY-MM-DD
+#
+# This file contains SHA-256 hashes for all evidence files.
+# Use to verify evidence integrity.
+#
+# Verification command (Linux/Mac):
+#   sha256sum -c evidence-hashes.txt
+#
+# Verification command (Windows):
+#   CertUtil -hashfile filename.ext SHA256
+#
+# ==========================================
+
+# Format: HASH  FILEPATH
+
+# Screenshots - Twitter
+[hash]  03-Evidence/screenshots/twitter/example-file.png
+
+# Screenshots - Instagram
+[hash]  03-Evidence/screenshots/instagram/example-file.png
+
+# Screenshots - LinkedIn
+[hash]  03-Evidence/screenshots/linkedin/example-file.png
+
+# Screenshots - Reddit
+[hash]  03-Evidence/screenshots/reddit/example-file.png
+
+# Screenshots - Other
+[hash]  03-Evidence/screenshots/other/example-file.png
+
+# Domains - WHOIS/DNS
+[hash]  03-Evidence/domains/whois-example.txt
+[hash]  03-Evidence/domains/dns-records-example.txt
+
+# Social Media - Exports
+[hash]  03-Evidence/social-media/twitter-export.json
+[hash]  03-Evidence/social-media/instagram-archive.html
+
+# Blockchain - Transaction Data
+[hash]  03-Evidence/blockchain/wallet-transactions.json
+[hash]  03-Evidence/blockchain/tx-graph.png
+
+# Images - Profile Pictures / Photos
+[hash]  03-Evidence/images/profile-pic-example.jpg
+
+# Documents - PDFs, Text Files
+[hash]  03-Evidence/documents/example-doc.pdf
+
+# Network - Scan Results
+[hash]  03-Evidence/network/nmap-scan-example.txt
+
+# Victim Reports
+[hash]  03-Evidence/victim-reports/victim-statement-001.txt
+
+# ==========================================
+# END OF HASH FILE

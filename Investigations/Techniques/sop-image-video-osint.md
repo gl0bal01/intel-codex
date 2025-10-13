@@ -1182,3 +1182,9 @@ See also: [[sop-collection-log|Collection Log & Chain of Custody]]
 - [[sop-collection-log|Collection Log]]
 - [[sop-reporting-packaging-disclosure|Reporting]]
 - [Hash Generation](../../Security/Analysis/sop-hash-generation-methods.md)
+
+**Additional Resources:**
+- [Gral Hix](https://gralhix.com/) - OSINT tools and resources
+- [Bene Brown](https://www.youtube.com/c/bendobrown) - Geolocation and OSINT techniques
+- [GeoRainbolt](https://www.youtube.com/@georainbolt) - Expert geolocation content
+- [start.me OSINT Resources](https://start.me/u/gl0bal01) - Comprehensive OSINT tool directory

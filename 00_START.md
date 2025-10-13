@@ -29,6 +29,14 @@
 - [[Investigations/Techniques/sop-sensitive-crime-intake-escalation|Sensitive Crime Escalation]]
 - [[Investigations/Techniques/Techniques-Index|Full Techniques Index]]
 
+### Investigation Cases & Templates
+- [[Cases/README|Investigation Cases]] - Complete examples, templates, student exercises
+- [[Cases/Case-Template/README|Case Template]] - Blank case structure for new investigations
+- [[Cases/2025-001-Example-Investigation/README|Example Case]] - Full cryptocurrency scam investigation
+- [[Cases/Investigation-Workflow|Investigation Workflow]] - Visual process guide with flowcharts
+- [[Cases/Glossary|OSINT Glossary]] - 100+ terms defined
+- [[Cases/Student-Exercises/Exercise-01-Username-Investigation/README|Student Exercises]] - Hands-on practice (3 exercises)
+
 ---
 
 ## 🛡️ Security & Malware Analysis
@@ -105,7 +113,7 @@ ObsidianVault/
 │   ├── Writeups/           (4 example writeups)
 │   └── [Guides]            (5 methodology guides)
 └── Cases/
-    ├── TEMPLATE/           (Empty case structure)
+    ├── Case-Template/      (Empty case structure)
     ├── Templates/          (Entity dossier templates)
     └── [Examples]          (Complete investigation examples)
 ```

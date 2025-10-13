@@ -99,8 +99,8 @@ graph LR
 
 ### Entity Types
 
-- **Person:** [[../Cases/Templates/entity-person|Example: Alex Rivera]] (crypto trader, tech influencer)
-- **Organization:** [[../Cases/Templates/entity-organization|Example: CryptoVault Solutions]] (offshore company, high-risk)
+- **Person:** Example in [[../Cases/2025-001-Example-Investigation/01-Subject-Profiles|2025-001 Investigation]] (crypto scammer profile)
+- **Organization:** Example methodology in [[Techniques/sop-entity-dossier|Entity Dossier SOP]]
 - **Domain:** (Create using [[Techniques/sop-entity-dossier|Entity Dossier Template]])
 - **Cryptocurrency Wallet:** (Create using [[Techniques/sop-entity-dossier|Entity Dossier Template]])
 - **Asset:** (Create using [[Techniques/sop-entity-dossier|Entity Dossier Template]])
@@ -108,8 +108,8 @@ graph LR
 ### Entity Creation
 
 **To create a new entity:**
-1. Use [[Techniques/sop-entity-dossier|Entity Dossier Template]] as reference
-2. Copy template from [[../Cases/Templates/|Cases/Templates/]] folder
+1. Use [[Techniques/sop-entity-dossier|Entity Dossier SOP]] as reference
+2. Start from blank [[../Cases/Case-Template/01-Subject-Profiles|Subject Profiles template]]
 3. Name format: `entity-[type]-[identifier].md` (e.g., `entity-person-john-doe.md`)
 4. Update entity type in frontmatter: `person | org | domain | wallet | asset`
 5. Set risk level: `low | medium | high | critical`
