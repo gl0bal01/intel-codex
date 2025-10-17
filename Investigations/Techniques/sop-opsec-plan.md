@@ -1,6 +1,7 @@
 ---
 type: sop
 title: OPSEC Planning for OSINT Investigations
+description: "Protect yourself during investigations: VPN setup, burner accounts, browser isolation & operational security best practices for safe OSINT work."
 created: 2025-10-05
 tags: [sop, opsec, operational-security, investigation]
 ---

@@ -1,6 +1,7 @@
 ---
 type: sop
 title: Telegram SOP
+description: "Telegram investigation guide: channel monitoring, group analysis, bot tracking & encrypted messaging patterns for secure communication intelligence."
 tags:
   - sop
   - platform

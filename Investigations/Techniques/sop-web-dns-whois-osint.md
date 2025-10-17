@@ -1,6 +1,7 @@
 ---
 type: sop
 title: Web, DNS & WHOIS OSINT
+description: "Domain intelligence techniques: WHOIS lookups, DNS records, SSL certificates, subdomain enumeration & infrastructure mapping for web investigations."
 tags: [sop, webint, whois, dns]
 ---
 

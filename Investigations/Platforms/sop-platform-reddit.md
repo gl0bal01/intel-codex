@@ -1,6 +1,7 @@
 ---
 type: sop
 title: Reddit SOP
+description: "Reddit OSINT guide: user history analysis, subreddit investigation, comment tracking & archived content discovery for comprehensive digital investigations."
 tags:
   - sop
   - platform

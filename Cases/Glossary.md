@@ -1,3 +1,8 @@
+---
+title: "OSINT Investigation Glossary"
+description: "Complete OSINT terminology guide: 100+ terms from blockchain to WHOIS, platforms, legal concepts & acronyms. Essential reference for investigators."
+---
+
 # OSINT Investigation Glossary
 
 **Quick reference guide to terminology used in OSINT investigations.**

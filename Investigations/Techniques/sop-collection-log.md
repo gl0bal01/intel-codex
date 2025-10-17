@@ -1,6 +1,7 @@
 ---
 type: sop
 title: OSINT Collection Log & Chain of Custody
+description: "Evidence documentation guide: SHA-256 hashing, chain of custody, metadata preservation & forensically sound collection for legal admissibility."
 tags: [sop, log, chain-of-custody, evidence, documentation]
 template_version: 2025-10-05
 ---

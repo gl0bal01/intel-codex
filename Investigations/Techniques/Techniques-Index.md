@@ -1,6 +1,7 @@
 ---
 type: index
 title: OSINT Investigation Techniques
+description: "Advanced OSINT methods: social media intelligence, domain reconnaissance, geolocation, people search & comprehensive open-source investigation tactics."
 tags: [index, techniques, osint, investigation, sop]
 created: 2025-10-09
 updated: 2025-10-09

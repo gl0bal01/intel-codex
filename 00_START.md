@@ -1,3 +1,8 @@
+---
+title: "OSINT & Security Reference Library"
+description: "Your complete OSINT & security hub: 29+ SOPs for investigations, malware analysis, pentesting & CTF. Platform guides, learning paths & case templates included."
+---
+
 # OSINT & Security Reference Library
 
 **Quick access to investigation methods, malware analysis procedures, and CTF techniques.**

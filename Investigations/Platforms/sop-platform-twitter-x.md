@@ -1,6 +1,7 @@
 ---
 type: sop
 title: Twitter/X SOP
+description: "Master Twitter/X OSINT: profile analysis, tweet collection, advanced search operators, account verification & follower investigation for threat intelligence."
 tags:
   - sop
   - platform

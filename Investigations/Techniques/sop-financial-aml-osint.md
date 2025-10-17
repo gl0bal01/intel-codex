@@ -1,6 +1,7 @@
 ---
 type: sop
 title: Financial Crime & AML OSINT
+description: "Financial intelligence techniques: cryptocurrency tracing, sanctions screening, AML investigation & blockchain analysis for financial crime detection."
 tags: [sop, finance, aml, sanctions]
 ---
 

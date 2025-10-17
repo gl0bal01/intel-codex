@@ -1,3 +1,8 @@
+---
+title: "Cryptography Analysis SOP"
+description: "Crypto security assessment: cipher analysis, encryption audits, key management review & cryptographic vulnerability testing for secure implementations."
+---
+
 # Cryptography Analysis SOP
 
 ## Table of Contents

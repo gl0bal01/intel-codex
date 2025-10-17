@@ -1,3 +1,8 @@
+---
+title: "Platform Investigation SOPs"
+description: "Comprehensive platform OSINT guides: Twitter, Instagram, LinkedIn, Telegram, TikTok, Reddit & Bluesky. Master social media intelligence techniques."
+---
+
 # Platform Investigation SOPs
 
 This directory contains Standard Operating Procedures (SOPs) for investigating various social media and communication platforms.

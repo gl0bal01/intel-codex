@@ -1,6 +1,7 @@
 ---
 type: sop
 title: LinkedIn SOP
+description: "Professional LinkedIn OSINT: profile investigation, employment history tracking, connection mapping & corporate intelligence gathering techniques."
 tags: [sop, platform, linkedin, professional, osint]
 created: 2025-10-05
 updated: 2025-10-06

@@ -1,6 +1,7 @@
 ---
 type: sop
 title: Sensitive Crime Intake & Escalation
+description: "Critical incident protocols: CSAM reporting, violent threats, terrorism escalation & law enforcement referral procedures for sensitive investigations."
 created: 2024-11-16
 tags:
   - sop

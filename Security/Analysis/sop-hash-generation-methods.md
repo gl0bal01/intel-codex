@@ -1,3 +1,8 @@
+---
+title: "Hash Generation Methods for Evidence Integrity"
+description: "Forensic hashing guide: SHA-256, MD5, file integrity verification, chain of custody & cryptographic hashing for digital evidence preservation."
+---
+
 # Hash Generation Methods for Evidence Integrity
 
 ## Table of Contents

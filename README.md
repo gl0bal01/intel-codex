@@ -1,3 +1,8 @@
+---
+title: "OSINT & Security Reference Library"
+description: "Comprehensive Obsidian vault with SOPs for OSINT investigations, malware analysis, penetration testing & CTF challenges. Copy-paste ready commands included."
+---
+
 # OSINT & Security Reference Library
 
 A comprehensive Obsidian vault of Standard Operating Procedures (SOPs) for OSINT investigations, security analysis, penetration testing, and CTF challenges.

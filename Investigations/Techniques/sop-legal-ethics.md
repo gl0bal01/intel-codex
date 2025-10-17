@@ -1,6 +1,7 @@
 ---
 type: sop
 title: Legal, Ethics & Data Governance for OSINT
+description: "Essential legal & ethical boundaries for OSINT: GDPR compliance, authorization requirements, privacy laws & responsible disclosure protocols."
 created: 2025-10-05
 tags: [sop, legal, ethics, compliance, gdpr, privacy, data-governance]
 ---

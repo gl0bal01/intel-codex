@@ -1,6 +1,7 @@
 ---
 type: index
 title: Investigation Index
+description: "Complete OSINT investigation guide: platform techniques, entity profiling, evidence collection, legal compliance & professional reporting for intelligence ops."
 created: 2025-10-05
 tags: [index, investigations, osint, navigation]
 ---

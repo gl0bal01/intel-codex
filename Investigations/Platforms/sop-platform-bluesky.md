@@ -1,6 +1,7 @@
 ---
 type: sop
 title: Bluesky SOP
+description: "Bluesky OSINT techniques: decentralized profile investigation, post tracking, federated network analysis & AT Protocol intelligence gathering."
 tags:
   - sop
   - platform

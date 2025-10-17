@@ -1,3 +1,8 @@
+---
+title: "Case Template"
+description: "Blank OSINT investigation template with structured folders: evidence collection, profiling, reporting & chain of custody. Start investigations properly."
+---
+
 # Case Template
 
 **This is a blank case template for starting new OSINT investigations.**

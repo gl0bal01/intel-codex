@@ -1,3 +1,10 @@
+---
+type: index
+title: "Security Analysis SOPs"
+description: "Expert security analysis techniques: malware investigation, reverse engineering, cryptography audits, hash verification & threat intelligence research."
+tags: [index, security, analysis, malware, reverse-engineering]
+---
+
 # Security Analysis SOPs
 
 This directory contains Standard Operating Procedures (SOPs) for security analysis, reverse engineering, and cryptographic analysis.

@@ -1,6 +1,7 @@
 ---
 type: sop
 title: Reverse Engineering
+description: "Binary reverse engineering: Ghidra, IDA Pro, disassembly, decompilation, debugging & exploit development for security research and CTF challenges."
 created: 2025-10-11
 tags:
   - sop

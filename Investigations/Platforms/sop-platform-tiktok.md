@@ -1,6 +1,7 @@
 ---
 type: sop
 title: TikTok SOP
+description: "TikTok OSINT methods: video analysis, user profiling, hashtag tracking, sound investigation & viral content tracing for social media intelligence."
 tags:
   - sop
   - platform

@@ -1,6 +1,7 @@
 ---
 type: sop
 title: Reporting, Packaging & Disclosure
+description: "Professional OSINT reporting: executive summaries, evidence packaging, chain of custody, law enforcement disclosure & responsible reporting protocols."
 created: 2025-10-10
 tags: [sop, reporting, evidence, disclosure, documentation]
 ---

@@ -1,6 +1,7 @@
 ---
 type: sop
 title: Instagram SOP
+description: "Instagram investigation techniques: photo analysis, story tracking, location discovery, hashtag research & influencer network mapping for OSINT investigations."
 tags:
   - sop
   - platform

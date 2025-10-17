@@ -1,3 +1,8 @@
+---
+title: "OSINT Investigation Workflow Guide"
+description: "Complete OSINT investigation workflow from authorization to closure. Master evidence collection, analysis, reporting with checklists, timelines & best practices."
+---
+
 # OSINT Investigation Workflow Guide
 
 **Visual guide to the investigation process from start to finish.**

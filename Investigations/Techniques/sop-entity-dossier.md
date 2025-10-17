@@ -1,5 +1,7 @@
 ---
 type: dossier
+title: Entity Dossier Guide
+description: "Build comprehensive subject profiles: identity verification, digital footprint mapping, relationship analysis & intelligence dossier templates for OSINT."
 entity_type: person
 name: Entity Name
 aliases: []

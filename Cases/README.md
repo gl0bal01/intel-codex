@@ -1,3 +1,8 @@
+---
+title: "Investigation Cases"
+description: "Complete OSINT investigation workflows: case templates, student exercises & examples. Learn evidence collection, profiling & reporting with hands-on practice."
+---
+
 # Investigation Cases
 
 This directory contains investigation case files demonstrating complete OSINT investigation workflows from intake to reporting.

@@ -1,6 +1,7 @@
 ---
 type: sop
 title: Image & Video OSINT
+description: "Visual intelligence techniques: EXIF analysis, reverse image search, geolocation, video verification & deepfake detection for media investigations."
 tags: [sop, media, exif, reverse, geolocation, verification]
 template_version: 2025-10-05
 ---
