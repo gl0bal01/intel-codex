@@ -78,18 +78,14 @@ ObsidianVault/
 
 ## 🤝 Contributing
 
-Contributions welcome! To add or improve SOPs:
+Contributions welcome! See [CONTRIBUTING.md](CONTRIBUTING.md) for detailed guidelines on:
 
-1. Fork the repository
-2. Create a feature branch (`git checkout -b feature/new-sop`)
-3. Follow the [SOP template format](00_START.md#documentation-standards)
-4. Update `00_START.md` navigation
-5. Submit a pull request
+- How to submit changes
+- File naming and folder structure conventions
+- Content requirements and style guide
+- Review process
 
-**Naming Convention:**
-- Investigations: `sop-[topic].md`
-- Platforms: `sop-platform-[name].md`
-- Security: `sop-[topic].md`
+Quick summary: Fork → Create branch → Make changes → Update navigation → Submit PR
 
 ---
 
