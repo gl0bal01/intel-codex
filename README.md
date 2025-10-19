@@ -21,7 +21,7 @@ This vault provides battle-tested procedures for:
 - **Security Analysis** - Malware analysis, reverse engineering, cryptography, forensics
 - **Pentesting** - Web application security, mobile security, Active Directory, vulnerability research
 
-**[Start Here: 00_START.md](00_START.md)** - Main navigation hub with full SOP catalog and learning paths
+**[Start Here: START.md](START.md)** - Main navigation hub with full SOP catalog and learning paths
 
 ---
 
@@ -44,14 +44,14 @@ git clone https://github.com/gl0bal01/intel-codex.git
 ### First Steps
 
 1. Open the vault in [Obsidian](https://obsidian.md)
-2. Start at [00_START.md](00_START.md) - your navigation hub
+2. Start at [START.md](START.md) - your navigation hub
 3. Before any investigation, review [Legal & Ethics SOP](Investigations/Techniques/sop-legal-ethics.md)
 
 ### Repository Structure
 
 ```
 ObsidianVault/
-├── 00_START.md                    # ← Start here (main navigation hub)
+├── START.md                       # ← Start here (main navigation hub)
 ├── Investigations/                # OSINT techniques & platform guides
 │   ├── Platforms/                # Platform-specific SOPs (Twitter, Telegram, Instagram, etc.)
 │   └── Techniques/               # Investigation methods (OPSEC, legal, image analysis, etc.)
@@ -69,7 +69,7 @@ ObsidianVault/
 
 - **Copy-Paste Ready** - All commands provided for Windows/Linux/macOS
 - **Heavily Cross-Referenced** - SOPs link to related procedures and workflows
-- **Learning Paths Included** - 5 structured 6-week learning tracks (see [00_START.md](00_START.md))
+- **Learning Paths Included** - 5 structured 6-week learning tracks (see [START.md](START.md))
 - **Real Examples** - Complete [investigation case examples](Cases/)
 - **Templates Included** - [Blank case structure](Cases/Case-Template/) for starting investigations
 - **Legal/Ethical First** - Every SOP includes legal boundaries and ethical considerations
@@ -108,6 +108,6 @@ Licensed under the [MIT License](LICENSE). If you use or fork this vault, please
 
 ---
 
-**[🏠 Start Here: 00_START.md](00_START.md)**
+**[🏠 Start Here: START.md](START.md)**
 
 *Built with [Obsidian](https://obsidian.md) - A powerful knowledge base on top of plain text Markdown files.*

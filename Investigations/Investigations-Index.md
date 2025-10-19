@@ -229,14 +229,14 @@ graph LR
 **Comprehensive tool lists:**
 - Platform SOPs: Tool sections in each SOP
 - Technique SOPs: Specialized tool references
-- Main index: [[../00_START|00_START]] → Security section
+- Main index: [[../START|START]] → Security section
 
 ---
 
 ## 📚 Related Resources
 
 ### Internal References
-- **Main navigation:** [[../00_START|Vault Home (00_START)]]
+- **Main navigation:** [[../START|Vault Home (START)]]
 - **Security tools:** [[../Security/Analysis/sop-malware-analysis|Malware Analysis]] | [[../Security/Analysis/sop-hash-generation-methods|Hash Generation]]
 - **Pentesting:** [[../Security/Pentesting/sop-linux-pentest|Linux]] | [[../Security/Pentesting/sop-ad-pentest|Active Directory]]
 - **CTF guides:** [[../CTF/Getting-Started|CTF Getting Started]]
@@ -329,4 +329,4 @@ SORT updated DESC
 
 ---
 
-**Quick Links:** [[../00_START|🏠 Home]] | [[Techniques/sop-legal-ethics|⚖️ Legal]] | [[Techniques/sop-opsec-plan|🔒 OPSEC]] | [[Techniques/sop-entity-dossier|👤 Entity Template]] | [[Techniques/sop-reporting-packaging-disclosure|📄 Reporting]]
+**Quick Links:** [[../START|🏠 Home]] | [[Techniques/sop-legal-ethics|⚖️ Legal]] | [[Techniques/sop-opsec-plan|🔒 OPSEC]] | [[Techniques/sop-entity-dossier|👤 Entity Template]] | [[Techniques/sop-reporting-packaging-disclosure|📄 Reporting]]

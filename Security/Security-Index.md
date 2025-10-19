@@ -175,4 +175,4 @@ See individual SOP pages for detailed tool lists.
 
 ---
 
-**Navigation:** [[../00_START|🏠 Home]] | [[Analysis/Analysis-Index|🔬 Analysis]] | [[Pentesting/Pentesting-Index|🔓 Pentesting]] | [[../Investigations/Investigations-Index|🔍 Investigations]]
+**Navigation:** [[../START|🏠 Home]] | [[Analysis/Analysis-Index|🔬 Analysis]] | [[Pentesting/Pentesting-Index|🔓 Pentesting]] | [[../Investigations/Investigations-Index|🔍 Investigations]]

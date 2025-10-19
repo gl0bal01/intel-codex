@@ -212,7 +212,7 @@ After reviewing this case, you should understand:
 This example case is part of the OSINT & Security Reference Library.
 
 For more information:
-- Return to [[00_START|Main Index]]
+- Return to [[../../START|Main Index]]
 
 ---
 

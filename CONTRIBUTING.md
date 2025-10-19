@@ -17,7 +17,7 @@ We welcome contributions of all kinds: new SOPs (Standard Operating Procedures),
    git checkout -b feature/your-topic
    ```
 3. Make your changes (see “Style & Structure” below).
-4. Update the navigation index (`00_START.md`) if you add or change content.
+4. Update the navigation index (`START.md`) if you add or change content.
 5. Commit your changes with a meaningful commit message.
 6. Push your branch to your fork and open a Pull Request (PR) against `main`.
 
@@ -35,7 +35,7 @@ To keep the vault consistent and easy to navigate, please follow the naming and 
 ### Folder structure  
 ```
 ObsidianVault/
-├── 00_START.md                    # Start here – main navigation hub  
+├── START.md                       # Start here – main navigation hub  
 ├── Investigations/                # OSINT techniques & platform guides
 │   ├── Platforms/                 # Platform-specific SOPs (Twitter, Telegram, Instagram, etc.)
 │   └── Techniques/                # Investigation methods (OPSEC, legal/ethics, image-analysis, etc.)  
