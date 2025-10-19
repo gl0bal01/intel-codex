@@ -15,6 +15,7 @@ This directory contains Standard Operating Procedures (SOPs) for security analys
 - [[sop-reverse-engineering|Reverse Engineering]]
 - [[sop-cryptography-analysis|Cryptography Analysis]]
 - [[sop-hash-generation-methods|Hash Generation Methods]]
+- [[sop-forensics-investigation|Digital Forensics Investigation]]
 
 ## Purpose
 
@@ -23,6 +24,7 @@ These SOPs provide standardized procedures for:
 - Reverse engineering applications and protocols
 - Evaluating cryptographic implementations
 - Generating and verifying file hashes for integrity
+- Conducting digital forensics investigations and evidence preservation
 
 ## Common Workflows
 
@@ -35,6 +37,12 @@ These SOPs provide standardized procedures for:
 1. [[sop-reverse-engineering|Reverse Engineering]] - Disassembly and decompilation
 2. [[sop-cryptography-analysis|Cryptography Analysis]] - For crypto routines
 3. [[sop-hash-generation-methods|Hash Generation]] - For file verification
+
+### Incident Response & Forensics
+1. [[sop-forensics-investigation|Digital Forensics Investigation]] - Evidence collection and preservation
+2. [[sop-malware-analysis|Malware Analysis]] - Analyze malicious artifacts
+3. [[sop-reverse-engineering|Reverse Engineering]] - Deep dive on custom malware
+4. [[sop-hash-generation-methods|Hash Generation]] - Evidence integrity verification
 
 ## Navigation
 

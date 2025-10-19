@@ -20,6 +20,7 @@ Understanding threats, reverse engineering, cryptographic analysis, and AI/ML se
 - **Reverse Engineering** – Disassembly, decompilation, protocol analysis
 - **Cryptography Analysis** – Crypto implementation audit, weakness discovery
 - **Hash Generation** – File integrity verification, forensic hashing
+- **Forensics Investigation** – Evidence collection, incident response, timeline analysis
 - **AI/ML Vulnerability** – Adversarial attacks, prompt injection, model extraction
 
 ### [[Pentesting/Pentesting-Index|🔓 Pentesting SOPs]]
@@ -39,9 +40,6 @@ Security assessments across infrastructure, applications, and offensive research
 - **Bug Bounty Methodology** – Reconnaissance, vulnerability chaining, disclosure
 - **Detection Evasion** – AV/EDR/SIEM bypass techniques
 
-**Incident Response**
-- **Forensics Investigation** – Evidence collection, incident response, timeline analysis
-
 ---
 
 ## 🎯 Quick Start
@@ -54,7 +52,7 @@ Security assessments across infrastructure, applications, and offensive research
 | Test web application | Pentesting → Web Application Security |
 | Compromise Windows domain | Pentesting → AD Pentesting |
 | Find vulnerabilities | Pentesting → Vulnerability Research |
-| Investigate incident | Pentesting → Forensics Investigation |
+| Investigate incident | Analysis → Forensics Investigation |
 | Bypass detection | Pentesting → Detection Evasion |
 | Analyze encrypted protocol | Analysis → Reverse Engineering |
 | Test mobile app | Pentesting → Mobile Security |

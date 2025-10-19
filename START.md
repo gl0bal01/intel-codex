@@ -49,6 +49,7 @@ description: "Your complete OSINT & security hub: 29+ SOPs for investigations, m
 ### Core Analysis & Research
 - [[Security/Analysis/sop-malware-analysis|Malware Analysis]]
 - [[Security/Analysis/sop-reverse-engineering|Reverse Engineering]]
+- [[Security/Analysis/sop-forensics-investigation|Forensics Investigation]]
 - [[Security/Analysis/sop-cryptography-analysis|Cryptography Analysis]]
 - [[Security/Analysis/sop-hash-generation-methods|Hash Generation Methods]]
 - [[Security/Analysis/Analysis-Index|Full Analysis Index]]
@@ -62,7 +63,6 @@ description: "Your complete OSINT & security hub: 29+ SOPs for investigations, m
 - [[Security/Pentesting/sop-linux-pentest|Linux Pentesting]]
 - [[Security/Pentesting/sop-bug-bounty|Bug Bounty Methodology]]
 - [[Security/Pentesting/sop-detection-evasion-testing|Detection & Evasion Testing]]
-- [[Security/Pentesting/sop-forensics-investigation|Forensics Investigation]]
 - [[Security/Pentesting/Pentesting-Index|Full Pentesting Index]]
 
 ---
