@@ -5,8 +5,6 @@ sidebar_position: 1
 description: Comprehensive collection of OSINT investigation techniques, security procedures, and real-world case studies from the field.
 ---
 
-:::
-
 :::info What is Intel Codex?
 
 Intel Codex is an operational manual for digital investigators, security analysts, and OSINT practitioners, containing:
