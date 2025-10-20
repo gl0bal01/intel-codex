@@ -3,6 +3,12 @@ title: "OSINT & Security Reference Library"
 description: "Your complete OSINT & security hub: 29+ SOPs for investigations, malware analysis, pentesting & CTF. Platform guides, learning paths & case templates included."
 ---
 
+> 🏠 **Personal Dashboard** | [View Public Site](https://gl0bal01.com/intel-codex) | [GitHub Repo](https://github.com/gl0bal01/intel-codex)
+>
+> **About**: This is your personal dashboard for the Intel Codex vault - optimized for quick navigation within Obsidian. For the public-facing documentation, visit the website above.
+>
+> **Full Experience**: For the complete experience — including **linked research, knowledge graphs, and advanced modules** — download the vault locally from the [GitHub repository](https://github.com/gl0bal01/intel-codex).
+
 # OSINT & Security Reference Library
 
 **Quick access to investigation methods, malware analysis procedures, and CTF techniques.**
@@ -11,6 +17,20 @@ description: "Your complete OSINT & security hub: 29+ SOPs for investigations, m
 
 **Total SOPs:** 29
 **Categories:** Investigations (16) | Security (13) | CTF (9)
+
+---
+
+## 🎯 First Time Here?
+
+**Start with these essentials before any investigation:**
+1. [[Investigations/Techniques/sop-legal-ethics|Legal & Ethics]] ← **Must read** - Compliance and boundaries
+2. [[Investigations/Techniques/sop-opsec-plan|OPSEC Planning]] ← **Critical** - Protect your identity
+3. [[Cases/Investigation-Workflow|Investigation Workflow]] ← Visual guide to the complete process
+4. [[Cases/Glossary|OSINT Glossary]] ← Learn the terminology
+
+**Then explore:**
+- [[Investigations/Platforms/Platforms-Index|Platform Guides]] for specific social media investigations
+- [[Cases/README|Case Studies]] for real-world examples
 
 ---
 
@@ -81,6 +101,11 @@ description: "Your complete OSINT & security hub: 29+ SOPs for investigations, m
 2. [[Security/Analysis/sop-reverse-engineering|Reverse Engineering]] ← For deeper analysis
 3. [[Security/Analysis/sop-hash-generation-methods|Hash Generation]] ← For identification
 
+### Forensics Investigation
+1. [[Security/Analysis/sop-forensics-investigation|Forensics Investigation]] ← Full methodology
+2. [[Security/Analysis/sop-hash-generation-methods|Hash Generation]] ← Evidence integrity
+3. [[Security/Analysis/sop-malware-analysis|Malware Analysis]] ← If malware is found
+
 ### Web Pentesting
 1. [[Security/Pentesting/sop-web-application-security|Web App Security]] ← OWASP Top 10
 2. [[Security/Pentesting/sop-bug-bounty|Bug Bounty]] ← If reporting
@@ -137,7 +162,12 @@ Week 1-2: Malware Analysis fundamentals
 Week 3-4: Reverse Engineering basics
 Week 5-6: Advanced malware analysis, IOC generation
 
-### Path 3: Penetration Tester
+### Path 3: Forensics Investigator
+Week 1-2: Forensics Investigation fundamentals, evidence handling
+Week 3-4: Hash generation, data recovery, artifact analysis
+Week 5-6: Advanced forensics (memory, network), malware integration
+
+### Path 4: Penetration Tester
 Week 1-2: Web Application Security (OWASP Top 10)
 Week 3-4: Linux/AD pentesting
 Week 5-6: Mobile/Firmware security testing
@@ -154,4 +184,4 @@ Week 5-6: Practice CTFs (HTB, TryHackMe, picoCTF)
 
 ---
 
-**Last Updated**: 2025-10-12
+**Last Updated**: 2025-10-16

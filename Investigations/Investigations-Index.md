@@ -38,18 +38,18 @@ graph LR
 
 ### Social Media Platforms
 
-| Platform      | Primary Use Cases                                      | Difficulty | Link                              |                          |
-| ------------- | ------------------------------------------------------ | ---------- | --------------------------------- | ------------------------ |
-| **Twitter/X** | Real-time info, public discourse, journalists          | Medium     | [[Platforms/sop-platform-twitter-x | Twitter/X SOP]] |
-| **Instagram** | Visual content, influencers, location tracking         | Easy       | [[Platforms/sop-platform-instagram | Instagram SOP]] |
-| **TikTok**    | Youth demographics, viral trends, OSINT challenges     | Medium     | [[Platforms/sop-platform-tiktok    | TikTok SOP]]    |
-| **LinkedIn**  | Professional networks, employment history, B2B         | Easy       | [[Platforms/sop-platform-linkedin  | LinkedIn SOP]]  |
-| **Reddit**    | Anonymous communities, niche topics, AMAs              | Medium     | [[Platforms/sop-platform-reddit    | Reddit SOP]]    |
-| **Telegram**  | Encrypted messaging, groups, channels                  | Hard       | [[Platforms/sop-platform-telegram  | Telegram SOP]]  |
-| **Bluesky**   | Decentralized Twitter alternative, tech early adopters | Easy       | [[Platforms/sop-platform-bluesky   | Bluesky SOP]]   |
+| Platform      | Primary Use Cases                                      | Difficulty | Link                                                |
+| ------------- | ------------------------------------------------------ | ---------- | --------------------------------------------------- |
+| **Twitter/X** | Real-time info, public discourse, journalists          | Medium     | [[Platforms/sop-platform-twitter-x\|Twitter/X SOP]] |
+| **Instagram** | Visual content, influencers, location tracking         | Easy       | [[Platforms/sop-platform-instagram\|Instagram SOP]] |
+| **TikTok**    | Youth demographics, viral trends, OSINT challenges     | Medium     | [[Platforms/sop-platform-tiktok\|TikTok SOP]]       |
+| **LinkedIn**  | Professional networks, employment history, B2B         | Easy       | [[Platforms/sop-platform-linkedin\|LinkedIn SOP]]   |
+| **Reddit**    | Anonymous communities, niche topics, AMAs              | Medium     | [[Platforms/sop-platform-reddit\|Reddit SOP]]       |
+| **Telegram**  | Encrypted messaging, groups, channels                  | Hard       | [[Platforms/sop-platform-telegram\|Telegram SOP]]   |
+| **Bluesky**   | Decentralized Twitter alternative, tech early adopters | Easy       | [[Platforms/sop-platform-bluesky\|Bluesky SOP]]     |
 
 ### Quick Platform Comparison
-
+A
 **Best for:**
 - **Identity verification:** LinkedIn, Facebook
 - **Real-time events:** Twitter/X, Telegram
@@ -65,13 +65,13 @@ graph LR
 
 ### Core Techniques
 
-| Technique              | Description                                      | Difficulty | Link                               |                                |
-| ---------------------- | ------------------------------------------------ | ---------- | ---------------------------------- | ------------------------------ |
-| **Entity Dossier**     | Comprehensive person/org profiling               | Medium     | [[Techniques/sop-entity-dossier      | Entity Dossier Template]] |
-| **Image/Video OSINT**  | Reverse search, geolocation, metadata            | Medium     | [[Techniques/sop-image-video-osint   | Image/Video Analysis]]    |
-| **Web/DNS/WHOIS**      | Infrastructure attribution, domain pivoting      | Easy       | [[Techniques/sop-web-dns-whois-osint | Web Infrastructure]]      |
-| **Financial/AML**      | Blockchain, company records, sanctions screening | Hard       | [[Techniques/sop-financial-aml-osint | Financial Investigation]] |
-| **Collection Logging** | Evidence tracking, chain of custody              | Easy       | [[Techniques/sop-collection-log      | Collection Log]]          |
+| Technique              | Description                                      | Difficulty | Link                                                            |
+| ---------------------- | ------------------------------------------------ | ---------- | --------------------------------------------------------------- |
+| **Entity Dossier**     | Comprehensive person/org profiling               | Medium     | [[Techniques/sop-entity-dossier\|Entity Dossier Template]]      |
+| **Image/Video OSINT**  | Reverse search, geolocation, metadata            | Medium     | [[Techniques/sop-image-video-osint\|Image/Video Analysis]]      |
+| **Web/DNS/WHOIS**      | Infrastructure attribution, domain pivoting      | Easy       | [[Techniques/sop-web-dns-whois-osint\|Web Infrastructure]]      |
+| **Financial/AML**      | Blockchain, company records, sanctions screening | Hard       | [[Techniques/sop-financial-aml-osint\|Financial Investigation]] |
+| **Collection Logging** | Evidence tracking, chain of custody              | Easy       | [[Techniques/sop-collection-log\|Collection Log]]               |
 
 ### Specialized Techniques
 
@@ -79,20 +79,20 @@ graph LR
 - Image metadata (EXIF GPS coordinates)
 - Shadow analysis & sun position (SunCalc)
 - Landmark identification (Google Maps, OpenStreetMap)
-- Reference: [[Techniques/sop-image-video-osint#Geolocation Techniques|Image OSINT - Geolocation]]
+- Reference: [[Techniques/sop-image-video-osint|Image OSINT - Geolocation]]
 
 **Blockchain Analysis:**
 - Wallet clustering (Chainalysis, Elliptic)
 - Transaction tracing (Blockchain.info, Etherscan)
 - Mixer detection (Tornado Cash, Wasabi)
-- Reference: [[Techniques/sop-financial-aml-osint#Cryptocurrency Tracing|Financial OSINT - Crypto]]
+- Reference: [[Techniques/sop-financial-aml-osint|Financial OSINT - Crypto]]
 
 **Infrastructure Pivoting:**
 - WHOIS reverse lookup (registrant email)
 - DNS history (SecurityTrails, DomainTools)
 - IP reverse lookup (Shodan, Censys)
 - SSL certificate transparency (crt.sh)
-- Reference: [[Techniques/sop-web-dns-whois-osint#Infrastructure Pivoting|Web OSINT - Pivoting]]
+- Reference: [[Techniques/sop-web-dns-whois-osint|Web OSINT - Pivoting]]
 
 ---
 
@@ -239,7 +239,7 @@ graph LR
 - **Main navigation:** [[../START|Vault Home (START)]]
 - **Security tools:** [[../Security/Analysis/sop-malware-analysis|Malware Analysis]] | [[../Security/Analysis/sop-hash-generation-methods|Hash Generation]]
 - **Pentesting:** [[../Security/Pentesting/sop-linux-pentest|Linux]] | [[../Security/Pentesting/sop-ad-pentest|Active Directory]]
-- **CTF guides:** [[../CTF/Getting-Started|CTF Getting Started]]
+- **CTF guides:** [[../CTF/CTF-Index.md|CTF Getting Started]]
 
 ### External Resources
 - OSINT Framework: https://osintframework.com/

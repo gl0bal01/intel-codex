@@ -935,20 +935,20 @@ Digital Security:
 
 ## 9. Common Pitfalls
 
-❌ Working on original evidence instead of forensic copies
-❌ Not documenting system state before collection
-❌ Powering off live systems (losing volatile data)
-❌ Using untrusted/compromised system tools
-❌ Forgetting to use write blockers
-❌ Not verifying hash values throughout process
-❌ Incomplete chain of custody documentation
-❌ Analyzing without proper authorization
-❌ Not time-syncing analysis systems
-❌ Failing to document tool versions and commands
-❌ Not preserving metadata (incorrect file copy methods)
-❌ Inadequate privilege review (exposing attorney-client material)
-❌ Over-relying on automated tools without validation
-❌ Poor report writing (technical jargon for legal audience)
+- ❌ Working on original evidence instead of forensic copies
+- ❌ Not documenting system state before collection
+- ❌ Powering off live systems (losing volatile data)
+- ❌ Using untrusted/compromised system tools
+- ❌ Forgetting to use write blockers
+- ❌ Not verifying hash values throughout process
+- ❌ Incomplete chain of custody documentation
+- ❌ Analyzing without proper authorization
+- ❌ Not time-syncing analysis systems
+- ❌ Failing to document tool versions and commands
+- ❌ Not preserving metadata (incorrect file copy methods)
+- ❌ Inadequate privilege review (exposing attorney-client material)
+- ❌ Over-relying on automated tools without validation
+- ❌ Poor report writing (technical jargon for legal audience)
 
 ---
 

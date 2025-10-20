@@ -56,7 +56,7 @@ ObsidianVault/
 │   ├── Platforms/                # Platform-specific SOPs (Twitter, Telegram, Instagram, etc.)
 │   └── Techniques/               # Investigation methods (OPSEC, legal, image analysis, etc.)
 ├── Security/                      # Malware analysis & pentesting
-│   ├── Analysis/                 # Malware, reverse engineering, cryptography
+│   ├── Analysis/                 # Malware, forensic, reverse engineering, cryptography
 │   └── Pentesting/               # Web, mobile, AD, vulnerability research
 └── Cases/                        # Investigation management & examples
     ├── Case-Template/            # Blank case structure for new investigations

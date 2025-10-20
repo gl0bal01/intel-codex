@@ -406,10 +406,10 @@ site:news.com "Company Name" AND ("investigation" OR "charged" OR "lawsuit")
 
 ## 12. Common Pitfalls
 
-❌ Relying on single-source data (cross-verify across registries)
-❌ Missing historical changes (directors, addresses, ownership)
-❌ Not checking sanctions lists thoroughly (check all major lists)
-❌ Assuming privacy = guilt (legitimate reasons for offshore structures exist)
-❌ Transacting or interacting with suspect wallets/accounts
-❌ Not documenting sources and timestamps (breaks chain of custody)
-❌ Overlooking adverse media in non-English sources
+- ❌ Relying on single-source data (cross-verify across registries)
+- ❌ Missing historical changes (directors, addresses, ownership)
+- ❌ Not checking sanctions lists thoroughly (check all major lists)
+- ❌ Assuming privacy = guilt (legitimate reasons for offshore structures exist)
+- ❌ Transacting or interacting with suspect wallets/accounts
+- ❌ Not documenting sources and timestamps (breaks chain of custody)
+- ❌ Overlooking adverse media in non-English sources

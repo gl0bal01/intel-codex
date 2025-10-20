@@ -348,9 +348,9 @@ shodan search hostname:suspicious-site.com
 
 ## 11. Common Pitfalls
 
-❌ Forgetting to capture timestamps and resolver sources
-❌ Not hashing saved evidence files
-❌ Querying only current state (missing historical context)
-❌ Ignoring privacy shields (check historical WHOIS)
-❌ Not correlating across multiple data points
-❌ Assuming DNS/WHOIS data is always accurate (can be spoofed/outdated)
+- ❌ Forgetting to capture timestamps and resolver sources
+- ❌ Not hashing saved evidence files
+- ❌ Querying only current state (missing historical context)
+- ❌ Ignoring privacy shields (check historical WHOIS)
+- ❌ Not correlating across multiple data points
+- ❌ Assuming DNS/WHOIS data is always accurate (can be spoofed/outdated)
