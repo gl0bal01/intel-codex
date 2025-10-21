@@ -1,0 +1,23 @@
+name: Mirror to Codeberg
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: '30 0 * * 0'
+  push:
+    branches: [main]
+jobs:
+  codeberg:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Configure Git
+        run: |
+          git config --global user.name "GitHub Actions"
+          git config --global user.email "actions@github.com"
+      - name: Mirror repository
+        run: |
+          git remote add codeberg https://gl0bal01:${{ secrets.CODEBERG_TOKEN }}@codeberg.org/gl0bal01/intel-codex.git || true
+          git push codeberg --all --force
+          git push codeberg --tags --force
