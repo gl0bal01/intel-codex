@@ -31,12 +31,12 @@ All content reflects current best practices and is actively maintained.
 **Start with these essentials before any investigation:**
 1. [[intel-codex/Investigations/Techniques/sop-legal-ethics|Legal & Ethics]] ← **Must read** - Compliance and boundaries
 2. [[intel-codex/Investigations/Techniques/sop-opsec-plan|OPSEC Planning]] ← **Critical** - Protect your identity
-3. [[intel-codex/Cases/Investigation-Workflow|Investigation Workflow]] ← Visual guide to the complete process
-4. [[intel-codex/Cases/Glossary|OSINT Glossary]] ← Learn the terminology
+3. [Investigation Workflow](https://github.com/gl0bal01/intel-codex/blob/main/Cases/Investigation-Workflow.md) ← Visual guide to the complete process
+4. [OSINT Glossary](https://github.com/gl0bal01/intel-codex/blob/main/Cases/Glossary.md) ← Learn the terminology
 
 **Then explore:**
 - [[intel-codex/Investigations/Platforms/Platforms-Index|Platform Guides]] for specific social media investigations
-- [[intel-codex/Cases/README|Case Studies]] for real-world examples
+- [Case Studies](https://github.com/gl0bal01/intel-codex/blob/main/Cases/README.md) for real-world examples
 
 ---
 
@@ -61,12 +61,12 @@ All content reflects current best practices and is actively maintained.
 - [[intel-codex/Investigations/Techniques/Techniques-Index|Full Techniques Index]]
 
 ### Investigation Cases & Templates
-- [[intel-codex/Cases/README|Investigation Cases]] - Complete examples, templates, student exercises
-- [[intel-codex/Cases/Case-Template/README|Case Template]] - Blank case structure for new investigations
-- [[intel-codex/Cases/2025-001-Example-Investigation/README|Example Case]] - Full cryptocurrency scam investigation
-- [[intel-codex/Cases/Investigation-Workflow|Investigation Workflow]] - Visual process guide with flowcharts
-- [[intel-codex/Cases/Glossary|OSINT Glossary]] - 100+ terms defined
-- [[intel-codex/Cases/Student-Exercises/Exercise-01-Username-Investigation/README|Student Exercises]] - Hands-on practice (3 exercises)
+- [Investigation Cases](https://github.com/gl0bal01/intel-codex/blob/main/Cases/README.md) - Complete examples, templates, student exercises
+- [Case Template](https://github.com/gl0bal01/intel-codex/blob/main/Cases/Case-Template/README.md) - Blank case structure for new investigations
+- [Example Case](https://github.com/gl0bal01/intel-codex/blob/main/Cases/2025-001-Example-Investigation/README.md) - Full cryptocurrency scam investigation
+- [Investigation Workflow](https://github.com/gl0bal01/intel-codex/blob/main/Cases/Investigation-Workflow.md) - Visual process guide with flowcharts
+- [OSINT Glossary](https://github.com/gl0bal01/intel-codex/blob/main/Cases/Glossary.md) - 100+ terms defined
+- [Student Exercises](https://github.com/gl0bal01/intel-codex/tree/main/Cases/Student-Exercises/Exercise-01-Username-Investigation) - Hands-on practice (3 exercises)
 
 ---
 
