@@ -46,5 +46,5 @@ These SOPs provide standardized procedures for:
 
 ## Navigation
 
-- Return to [[../../START|Start]]
+- Return to [[../../README|Start]]
 - See also: [[Security/Pentesting/Pentesting-Index|Pentesting SOPs]]
