@@ -18,7 +18,7 @@ All content reflects current best practices and is actively maintained.
 
 ## 📊 By the Numbers
 
-**28+ SOPs** across all disciplines | **16 Investigation Guides** | **13 Security Procedures** | **9 CTF Resources**
+**30+ SOPs** across all disciplines | **16 Investigation Guides** | **14 Security Procedures** | **9 CTF Resources**
 
 ---
 
@@ -126,7 +126,7 @@ Resources for Capture The Flag competitions and practical skill development.
 1. **Foundations**: [Legal & Ethics](Investigations/Techniques/sop-legal-ethics.md) + [OPSEC](Investigations/Techniques/sop-opsec-plan.md) first
 2. **Platform**: Choose from [Platform SOPs](Investigations/Platforms/Platforms-Index.md)
 3. **Document**: Use [Collection Log](Investigations/Techniques/sop-collection-log.md) and [Entity Dossier](Investigations/Techniques/sop-entity-dossier.md)
-4. **Learn**: Study [Case Studies](Cases/README.md) and [Student Exercises](Cases/Student-Exercises.md)
+4. **Learn**: Study [Case Studies](Cases/README.md) and [Student Exercises](Cases/Student-Exercises/)
 
 ### For Security Analysts
 

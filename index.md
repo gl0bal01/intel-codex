@@ -21,8 +21,8 @@ All content reflects current best practices and is actively maintained.
 
 ## 📊 Quick Stats
 
-**Total SOPs:** 20+
-**Categories:** Investigations (16) | Security (13) | CTF (9)
+**Total SOPs:** 30+
+**Categories:** Investigations (16) | Security (14) | CTF (9)
 
 ---
 
