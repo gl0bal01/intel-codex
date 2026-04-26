@@ -3,6 +3,8 @@ type: sop
 title: Reverse Engineering
 description: "Binary reverse engineering: Ghidra, IDA Pro, disassembly, decompilation, debugging & exploit development for security research and CTF challenges."
 created: 2025-10-11
+updated: 2026-04-25
+template_version: 2026-04-25
 tags:
   - sop
   - reverse-engineering
@@ -826,7 +828,9 @@ rop                    # Search for ROP gadgets
 
 ### Bypassing Anti-Debugging
 
-**Anti-debugging techniques:**
+**MITRE ATT&CK: T1622 — Debugger Evasion**
+
+Anti-debug primitives appear in nearly every protected sample. The list below covers the checks you will encounter most often, with exact PEB offsets and `NtQueryInformationProcess` class numbers — these are stable across Windows 10 and 11 (x64) and pinned to Microsoft's documented `_PEB` and `PROCESSINFOCLASS` definitions. [verify 2026-04-25] for kernel build-specific PEB offsets above 0x100.
 
 **1. IsDebuggerPresent (Windows):**
 ```nasm
@@ -844,23 +848,108 @@ bp IsDebuggerPresent
 r rax = 0
 ```
 
-**2. PEB BeingDebugged flag:**
+**2. CheckRemoteDebuggerPresent:**
+
+Variant of `IsDebuggerPresent` that queries the kernel via `NtQueryInformationProcess(ProcessDebugPort)`. Patching `IsDebuggerPresent` alone does **not** defeat this — bypass `NtQueryInformationProcess` instead (see #4) or use **ScyllaHide**.
+
 ```nasm
-; Check PEB->BeingDebugged (offset 0x2 in PEB)
-mov eax, fs:[0x30]      ; PEB address (x86)
-movzx eax, byte ptr [eax+0x2]  ; BeingDebugged flag
+push offset isPresent      ; out BOOL
+push -1                    ; pseudo-handle for current process
+call CheckRemoteDebuggerPresent
+```
+
+**3. PEB BeingDebugged flag and NtGlobalFlag:**
+
+Both fields live inside the PEB (Process Environment Block) and are read directly without an API call, evading user-mode hooks on `IsDebuggerPresent`.
+
+```nasm
+; 32-bit: PEB via FS:[0x30]
+mov eax, fs:[0x30]
+movzx eax, byte ptr [eax+0x02]   ; PEB.BeingDebugged
 test eax, eax
-jnz debugger_detected
+jnz  debugger_detected
+
+mov eax, fs:[0x30]
+mov  eax, dword ptr [eax+0x68]   ; PEB.NtGlobalFlag (32-bit)
+and  eax, 0x70                   ; FLG_HEAP_ENABLE_TAIL_CHECK | FLG_HEAP_ENABLE_FREE_CHECK | FLG_HEAP_VALIDATE_PARAMETERS
+cmp  eax, 0x70                   ; All three set → debugger created the heap
+je   debugger_detected
 ```
 
-**Bypass:**
-```bash
-# x64dbg: Find PEB address, set BeingDebugged to 0
-# View → Memory Map → Find PEB
-# Set byte at PEB+0x2 to 0x00
+```nasm
+; 64-bit: PEB via GS:[0x60]
+mov rax, gs:[0x60]
+movzx eax, byte ptr [rax+0x02]   ; PEB.BeingDebugged (still offset 0x02)
+test eax, eax
+jnz  debugger_detected
+
+mov rax, gs:[0x60]
+mov eax, dword ptr [rax+0xBC]    ; PEB.NtGlobalFlag (64-bit)
+and eax, 0x70
+cmp eax, 0x70
+je  debugger_detected
 ```
 
-**3. Timing checks:**
+**Heap header flag derivative checks:** `PEB.ProcessHeap` → `Heap.Flags` (normally `0x2`, debugger sets `0x50000062`) and `Heap.ForceFlags` (normally `0x0`, debugger sets `0x40000060`).
+
+**Bypass (manual):**
+```
+# x64dbg: locate PEB (Memory Map → "PEB"), zero the relevant bytes
+# 32-bit: PEB+0x02 (BeingDebugged), PEB+0x68 (NtGlobalFlag)
+# 64-bit: PEB+0x02 (BeingDebugged), PEB+0xBC (NtGlobalFlag)
+```
+
+**Bypass (automated — preferred):** Install **ScyllaHide** plugin in x64dbg, OllyDbg, or IDA. Enable PEB BeingDebugged, PEB NtGlobalFlag, and PEB HeapFlags protections. ScyllaHide patches all three transparently and survives common detection retries.
+
+**4. NtQueryInformationProcess (kernel-query family):**
+
+```c
+// PROCESSINFOCLASS values commonly abused:
+#define ProcessDebugPort         0x07   // returns non-zero if debugged
+#define ProcessDebugObjectHandle 0x1E   // returns valid handle if debugged
+#define ProcessDebugFlags        0x1F   // returns 0 if debugged (NoDebugInherit inverted)
+```
+
+```c
+// Detection pattern (decompiled):
+HANDLE port = 0;
+NtQueryInformationProcess(GetCurrentProcess(), ProcessDebugPort, &port, sizeof(port), NULL);
+if (port) goto debugger_detected;
+
+DWORD flags = 0;
+NtQueryInformationProcess(GetCurrentProcess(), ProcessDebugFlags, &flags, sizeof(flags), NULL);
+if (flags == 0) goto debugger_detected;
+```
+
+**Bypass:** Set a breakpoint on `ntdll!NtQueryInformationProcess`. On entry, inspect the second argument (`ProcessInformationClass` register, RDX on x64). If it equals `0x07`, `0x1E`, or `0x1F`, let the call return then zero the output buffer (or for `ProcessDebugFlags`, write `1`). ScyllaHide's "NtQueryInformationProcess" hook does this automatically.
+
+**5. Hardware breakpoint detection (DR0–DR3):**
+
+Malware reads the debug registers via `GetThreadContext` and flags any non-zero value as a hardware breakpoint.
+
+```c
+CONTEXT ctx = { .ContextFlags = CONTEXT_DEBUG_REGISTERS };
+GetThreadContext(GetCurrentThread(), &ctx);
+if (ctx.Dr0 || ctx.Dr1 || ctx.Dr2 || ctx.Dr3) goto debugger_detected;
+```
+
+**Bypass:** Switch to software breakpoints (F2 in x64dbg sets a software INT3 — DR0–DR3 stay zero), or hook `GetThreadContext` via ScyllaHide to mask the debug-register fields before return.
+
+**6. Window/process enumeration:**
+
+Malware calls `FindWindow` / `EnumWindows` and `EnumProcesses` looking for known debugger and analyst tooling. Pattern-match these strings against your tool inventory and rename / hide accordingly:
+
+```
+Window classes: OLLYDBG, WinDbgFrameClass, ID, Qt5QWindowIcon (x64dbg),
+                Qt5152QWindowIcon, IDA — disassembler, GHIDRA
+Processes:      ollydbg.exe, x32dbg.exe, x64dbg.exe, windbg.exe,
+                ida.exe, ida64.exe, ghidra.exe, dnspy.exe, dnSpy-x86.exe,
+                cheatengine-x86_64.exe, scylla.exe, immunitydebugger.exe
+```
+
+ScyllaHide's "FindWindow" hook returns `NULL` for these classes; renaming the binary itself is the simplest bypass.
+
+**7. Timing checks (GetTickCount / QueryPerformanceCounter):**
 ```c
 // Measure time between two points (debugger slows execution)
 DWORD start = GetTickCount();
@@ -878,7 +967,9 @@ if (end - start > 1000) {
 r eax = <start_value>  # Make time difference = 0
 ```
 
-**4. RDTSC (Read Time-Stamp Counter):**
+ScyllaHide's "GetTickCount Hook" returns a fake monotonic delta that defeats the entire timing-check family without per-sample patching.
+
+**8. RDTSC (Read Time-Stamp Counter):**
 ```nasm
 rdtsc                   ; Read CPU timestamp into EDX:EAX
 mov ebx, eax            ; Save timestamp
@@ -895,7 +986,9 @@ ja debugger_detected
 # x64dbg: Assemble → Replace "cmp eax, 0x1000" with "cmp eax, 0xFFFFFFFF"
 ```
 
-**5. Exception-based anti-debugging:**
+For VMs, you can also disable user-mode `rdtsc` by setting `CR4.TSD` so it traps to ring 0, where the hypervisor returns a synthetic value — useful when the malware checks RDTSC in a tight loop and the comparison threshold is hidden. [inferred — practical effect; behavior depends on host VMM support]
+
+**9. Exception-based anti-debugging:**
 ```c
 // Debugger handles exceptions differently
 __try {
@@ -909,7 +1002,91 @@ __try {
 ```bash
 # x64dbg: Set exception handling options
 # Options → Preferences → Exceptions → Pass all exceptions to debugged program
+# Codes commonly used as detection primitives:
+#   0x80000003  STATUS_BREAKPOINT (INT3)
+#   0xC0000094  STATUS_INTEGER_DIVIDE_BY_ZERO
+#   0xC0000005  STATUS_ACCESS_VIOLATION
 ```
+
+### Anti-VM / Sandbox Detection
+
+**MITRE ATT&CK: T1497 — Virtualization/Sandbox Evasion**
+
+Most malware will fingerprint the analysis VM before executing the payload. Reverse engineers should know the canonical primitives so static analysis can flag the check and dynamic analysis can patch it.
+
+**1. CPUID hypervisor bit (EAX=1, ECX bit 31):**
+
+```nasm
+mov eax, 1
+cpuid
+bt  ecx, 31              ; Hypervisor present bit
+jc  vm_detected
+```
+
+A second CPUID call with `EAX=0x40000000` returns a 12-byte hypervisor vendor string in EBX/ECX/EDX:
+
+| Vendor string | Hypervisor |
+|---------------|------------|
+| `VMwareVMware` | VMware ESXi/Workstation/Fusion |
+| `KVMKVMKVM\0\0\0` | Linux KVM (also QEMU/KVM) |
+| `VBoxVBoxVBox` | Oracle VirtualBox |
+| `Microsoft Hv` | Hyper-V / WSL2 |
+| `XenVMMXenVMM` | Xen |
+| `prl hyperv  ` | Parallels |
+
+**Bypass (host side):**
+- VirtualBox: `VBoxManage modifyvm "<VM>" --paravirtprovider none`
+- VMware `.vmx`: `hypervisor.cpuid.v0 = "FALSE"`
+- KVM/QEMU: launch with `-cpu host,-hypervisor` to clear the bit
+
+**2. Registry artifact checks:**
+
+```
+HKLM\SOFTWARE\Oracle\VirtualBox Guest Additions
+HKLM\SOFTWARE\VMware, Inc.\VMware Tools
+HKLM\SYSTEM\CurrentControlSet\Services\VBoxGuest, VBoxMouse, VBoxSF
+HKLM\SYSTEM\CurrentControlSet\Services\vmhgfs, vmci, vmmouse
+HKLM\HARDWARE\DEVICEMAP\Scsi\Scsi Port 0\...\Identifier
+  → "VBOX HARDDISK" / "VMware Virtual IDE Hard Drive"
+HKLM\HARDWARE\DESCRIPTION\System\SystemBiosVersion
+  → "VBOX" / "VMWARE"
+```
+
+**Bypass:** Uninstall guest additions, delete the leftover service keys, and spoof BIOS/DMI strings via `VBoxManage setextradata` (`DmiBIOSVendor`, `DmiBIOSVersion`, `DmiSystemProduct`, `DmiSystemVendor`, `DmiBoardProduct`, `DmiChassisVendor`).
+
+**3. Process and device probes:**
+
+```
+Processes: vboxservice.exe, vboxtray.exe, vmtoolsd.exe, vmwaretray.exe,
+           vmacthlp.exe, prl_tools.exe
+Devices:   \\.\VBoxGuest, \\.\VBoxMiniRdrDN, \\.\vmci, \\.\HGFS
+```
+
+**4. MAC OUI checks:**
+
+```
+08:00:27   VirtualBox
+00:0C:29 / 00:50:56 / 00:1C:14 / 00:05:69   VMware
+00:03:FF   Microsoft Hyper-V
+52:54:00   QEMU
+```
+
+**Bypass:** `VBoxManage modifyvm "<VM>" --macaddress1 <real-vendor-OUI>` (Intel `8C:8D:28`, Realtek `00:E0:4C`, etc.).
+
+**5. Hardware-thinness / "no real user" heuristics:**
+
+| Check | Sandbox default | Realistic value |
+|-------|-----------------|-----------------|
+| Single CPU core | 1 | ≥ 2 |
+| RAM < 2 GB | 1 GB | ≥ 4 GB |
+| Disk < 60 GB | 20 GB | ≥ 100 GB |
+| `GetTickCount()` uptime | < 10 min | run VM 30+ min before detonation |
+| `GetCursorPos()` static between calls | yes | inject mouse jitter |
+| Empty `%USERPROFILE%\Documents`, no recent files, no browser history | yes | pre-populate |
+
+**6. Validating the hardened VM:**
+
+Before analyzing an evasive sample, run **pafish** (`github.com/a0rtega/pafish`) for a quick pass/fail report, or **al-khaser** (`github.com/LordNoteworthy/al-khaser`) for the comprehensive 170+ check matrix. Red lines indicate artifacts the malware will use to detect you. For deep transparency, **VBoxHardenedLoader** (`github.com/hfiref0x/VBoxHardenedLoader`) patches the VirtualBox kernel driver to suppress CPUID and device-name leaks while keeping shared folders functional.
 
 ### Dynamic Instrumentation (Frida)
 
@@ -1229,22 +1406,24 @@ readelf -h program | grep Entry
 
 | Tool | Purpose |
 |------|---------|
-| **dnSpy** | .NET decompiler & debugger (best all-in-one tool) |
-| **ILSpy** | .NET decompiler (open-source) |
+| **dnSpyEx** | .NET decompiler & debugger (active fork; original dnSpy archived 2020-12-21) |
+| **ILSpy** | .NET decompiler (open-source, cross-platform via Avalonia) |
 | **dotPeek** | .NET decompiler (JetBrains, free) |
-| **de4dot** | .NET deobfuscator |
+| **de4dot** | .NET deobfuscator (legacy; many obfuscators added since last update) |
 
-**dnSpy usage:**
+> **Note:** The original `dnSpy` repository (`github.com/dnSpy/dnSpy`) was archived on 2020-12-21. The community-maintained fork is **dnSpyEx** (`github.com/dnSpyEx/dnSpy`), which has continued receiving fixes and .NET 5/6/7/8 support. References below say "dnSpyEx" — usage and shortcuts are identical to legacy dnSpy.
+
+**dnSpyEx usage:**
 
 ```bash
-# Windows: Launch dnSpy.exe
+# Windows: Launch dnSpy.exe (the binary name is unchanged in the fork)
 dnSpy.exe
 
 # Open .NET assembly:
 # File → Open → Select .exe or .dll
 ```
 
-**dnSpy features:**
+**dnSpyEx features:**
 
 **1. Decompiled C# code:**
 ```csharp
@@ -1392,6 +1571,100 @@ unzip app.apk lib/arm64-v8a/libnative.so
 # Analyze with default settings
 ```
 
+### ARM64 / Apple Silicon (Mach-O)
+
+ARM64 (AArch64) is now the default architecture for iOS, modern Android flagships, AWS Graviton, and every Apple Silicon Mac (M1/M2/M3/M4). Mach-O is the binary format on macOS and iOS — fundamentally different from PE/ELF.
+
+**Triage:**
+
+```bash
+# Identify file type and architecture
+file sample
+# "Mach-O 64-bit executable arm64"
+# "Mach-O universal binary with 2 architectures: [x86_64] [arm64]"  ← fat / universal binary
+
+# Mach-O headers
+otool -hv sample                # Mach-O header
+otool -L sample                 # Linked dynamic libraries
+otool -l sample | less          # Load commands (segments, dyld info, code signature)
+
+# Inspect each slice of a fat binary
+lipo -info sample
+lipo -thin arm64 sample -output sample.arm64
+```
+
+**Key Mach-O concepts:**
+
+- **Segments and sections.** `__TEXT` (code, read-only), `__DATA` / `__DATA_CONST` (writable globals), `__LINKEDIT` (symbol/string tables, code signature, dyld trie).
+- **Code signature is mandatory on arm64 macOS and iOS.** Every binary must be signed (ad-hoc `codesign -s -` is enough for local analysis). Patching a Mach-O on disk invalidates the signature; re-sign with `codesign -fs - patched_binary` or it will fail to launch.
+- **System Integrity Protection (SIP)** prevents debugging Apple-signed system binaries even as root. Use Apple's own `lldb` against your own binaries, or disable SIP in Recovery (`csrutil disable`) on a dedicated analysis machine — never on a daily driver.
+- **Hardened runtime / library validation.** Apps with `com.apple.security.cs.disable-library-validation = false` reject unsigned dylib injection — Frida and similar tools require either ad-hoc re-signing with the entitlement removed, or Apple's `get-task-allow` debugging entitlement.
+
+**ARM64 disassembly basics:**
+
+```
+; AArch64 register file
+X0–X30   64-bit general purpose (W0–W30 = lower 32 bits)
+SP       stack pointer
+LR (X30) link register — holds return address
+PC       program counter (not directly addressable)
+
+; Calling convention (AAPCS64 — same on macOS, Linux, Android)
+X0–X7    first 8 integer/pointer arguments
+X0       integer return value
+V0–V7    SIMD/FP arguments and return
+X18      reserved (platform register; do NOT clobber on Apple)
+```
+
+```
+; Common instruction patterns
+stp  x29, x30, [sp, #-0x20]!   ; prologue: push frame pointer + link register
+mov  x29, sp                   ; set up frame pointer
+bl   _printf                   ; branch with link (call)
+ldp  x29, x30, [sp], #0x20     ; epilogue: restore + adjust SP
+ret                            ; branch to LR
+
+; Load 64-bit pointer in two halves (PC-relative addressing)
+adrp x0, sym@PAGE
+add  x0, x0, sym@PAGEOFF
+```
+
+**Tooling:**
+
+| Tool | macOS arm64 | iOS arm64 | Notes |
+|------|-------------|-----------|-------|
+| **Hopper Disassembler** | Native | Yes | First-class Mach-O / ARM64 support, reasonable price |
+| **IDA Pro 8.x+** | Native | Yes | Decompiler covers AArch64; iOS dyldcache extractor |
+| **Ghidra 11.x** | Native (Java) | Yes | Free; AArch64 decompiler is competent though noisier than IDA |
+| **Binary Ninja** | Native | Yes | Strong arm64 support |
+| **otool / lldb** | System | No | Apple's stock disassembler and debugger |
+| **dyld_shared_cache_extract** | macOS | iOS image | Extract individual frameworks from `dyld_shared_cache_arm64e` |
+
+**iOS specifics:**
+
+- **`arm64e` vs `arm64`.** A14 / M1 and later use `arm64e`, which adds **Pointer Authentication Codes (PAC)**. Function pointers have a cryptographic signature in the upper bits — strip with `xpaci` / `xpacd` or read raw bytes for static analysis. Decompilers handle this; hand-written ROP does not.
+- **iOS application binaries** live inside the IPA (`unzip app.ipa`) under `Payload/AppName.app/AppName`. Pre-iOS 16 they are FairPlay-encrypted (DRM); decrypt on a jailbroken device with `frida-ios-dump` or `Clutch` before static analysis.
+- **dyld shared cache.** On iOS, system frameworks are not standalone files — they live inside `/System/Library/Caches/com.apple.dyld/dyld_shared_cache_arm64e`. Extract with `dyld-shared-cache-extractor` (Ghidra ships one) before opening individual frameworks.
+
+**Dynamic analysis on Apple Silicon:**
+
+```bash
+# lldb on macOS — Apple's stock debugger (no GDB on arm64 macOS)
+lldb ./sample
+(lldb) breakpoint set -n main
+(lldb) run
+(lldb) register read
+(lldb) memory read --format x --size 8 $sp
+
+# Frida works on arm64 macOS / iOS, but the binary must be ad-hoc re-signed
+# without library validation, or run on a jailbroken device.
+codesign --remove-signature ./sample
+codesign -fs - --entitlements get-task-allow.plist ./sample
+frida -l hook.js ./sample
+```
+
+> **OPSEC note.** Apple Silicon laptops increasingly serve as analysis hosts for cross-platform malware. Run all sample execution inside a hardened **UTM** or **VMware Fusion** Linux/Windows VM, *never* on the host macOS — Mach-O malware will execute natively on M-series CPUs.
+
 ---
 
 ## Anti-Reversing Techniques
@@ -1447,26 +1720,52 @@ password[9] = '\0';
 
 **Packing** compresses or encrypts the entire binary, unpacking at runtime.
 
-**Common packers:**
-- **UPX:** Universal Packer for eXecutables (open-source, easy to unpack)
-- **Themida:** Commercial packer with anti-debugging and virtualization
-- **VMProtect:** Virtualizes code (converts to custom VM instructions)
-- **Enigma Protector:** Packer with anti-debugging and virtualization
+**Common packers and section signatures:**
+
+| Packer | Section names | Other tells | Reversible? |
+|--------|---------------|-------------|-------------|
+| **UPX** | `UPX0`, `UPX1`, `UPX2` | `UPX!` magic in overlay, very few imports | Yes — `upx -d` |
+| **ASPack** | `.aspack`, `.adata` | `aSPack` string, low import count | Partially (community tools) |
+| **PECompact** | `pec1`, `pec2` | Short stub section | Partially |
+| **MPRESS** | `.MPRESS1`, `.MPRESS2` | LZMA compression, 1–2 imports | Partially |
+| **Themida / WinLicense** | `.themida`, `.winlicence` | Virtualized code, anti-debug, large protected section | No — dump after self-unpack |
+| **VMProtect** | `.vmp0`, `.vmp1`, `.vmp2` | Custom VM bytecode, heavy anti-tamper | No — dump |
+| **Enigma Protector** | `.enigma1`, `.enigma2` | License-check stubs | No — dump |
+| **Custom / unknown** | Non-standard names | High entropy, minimal imports, no DiE signature | Dump-only; assume APT-grade |
 
 **Detecting packed binaries:**
 
+Use **Detect It Easy (DiE)** as the primary tool — it carries 300+ packer/compiler signatures and renders per-section entropy. **PE-bear** and **pestudio** are good secondary opinions; **PEiD** is legacy but still useful for older signature hits that DiE misses.
+
 ```bash
-# High entropy (compressed/encrypted data):
-# Use "Detect It Easy" (DiE): https://github.com/horsicq/Detect-It-Easy
+# Entropy as a fast triage signal:
+#   < 6.0  : typical compiled code or data
+#   6.0–7.0: borderline (compressed resources, large data tables)
+#   > 7.0  : likely packed or encrypted   ← analyze further
+#   ≈ 8.0  : indistinguishable from random (strong packing/crypto)
 
-# Or check entropy manually:
-ent malware.exe
-# Entropy > 7.0 suggests packing/encryption
+# Per-section entropy with DiE (CLI) or Python:
+python3 -c "
+import pefile, math
+pe = pefile.PE('malware.exe')
+for s in pe.sections:
+    data = s.get_data()
+    if not data: continue
+    freq = [0]*256
+    for b in data: freq[b]+=1
+    e = -sum((c/len(data))*math.log2(c/len(data)) for c in freq if c)
+    print(f'{s.Name.rstrip(chr(0)).decode():10}  entropy={e:.2f}  size={s.SizeOfRawData:>8}')
+"
 
-# Check for known packer signatures:
-# IDA Pro: "UPX0", "UPX1" sections
-# PE sections with unusual names (.vmp, .themida, etc.)
+# Import count: a fully-packed PE often imports only LoadLibraryA / GetProcAddress
+#               (sometimes plus VirtualAlloc / VirtualProtect for stub setup).
 ```
+
+**Sophistication signal mapping:**
+- UPX or self-rolled XOR stub → commodity / script-kid
+- ASPack / PECompact / MPRESS → low-mid commercial
+- Themida / VMProtect / Enigma → mid-high commercial (note in report; dynamic analysis required)
+- Custom packer with unique section names → APT-grade development capability
 
 **Unpacking UPX:**
 
@@ -1481,11 +1780,12 @@ upx -d packed.exe -o unpacked.exe
 # 4. Dump process memory to file
 ```
 
-**Manual unpacking process:**
+**Manual unpacking process (debugger-driven):**
 
-1. **Load in debugger** (x64dbg)
+1. **Load in debugger** (x64dbg) and let the process pause at the entry point
 2. **Find tail jump** (last jump before OEP)
    - UPX typically has a `jmp <OEP>` at end of unpacking stub
+   - For other packers, set breakpoints on `VirtualAlloc` / `VirtualProtect` (allocation of the unpacked region) and on `RtlExitUserProcess`
 3. **Set breakpoint** on tail jump
 4. **Run until breakpoint hit**
 5. **Step into jump** (F7) → now at OEP
@@ -1493,6 +1793,20 @@ upx -d packed.exe -o unpacked.exe
    - Plugins → Scylla → Dump → Select process → Dump
 7. **Fix imports** (Scylla):
    - IAT Autosearch → Get Imports → Fix Dump
+
+**Memory-scan unpacking (pe-sieve / hollows_hunter):**
+
+For samples with strong anti-debug protections (Themida/VMProtect/Enigma), let the malware run in an isolated VM with **ScyllaHide** active and dump the unpacked image straight from process memory — no OEP detection or IAT rebuild required.
+
+```powershell
+# pe-sieve — scan a single PID for unpacked, hollowed, or implanted PE images
+pe-sieve.exe /pid <malware_pid> /dir C:\analysis\dumps /imp 3 /shellc
+
+# hollows_hunter — scan ALL processes (useful when the loader migrates)
+hollows_hunter.exe /pname malware.exe /dir C:\analysis\dumps /imp 3
+```
+
+What you get: a directory containing each suspicious region as its own `.dll` / `.exe` plus an import-recovery report. Run `file` and re-hash everything in the dump folder — the unpacked second-stage frequently has a known SHA-256 in MalwareBazaar even when the packed dropper does not.
 
 ### Anti-Debugging Techniques
 
@@ -2012,8 +2326,9 @@ cat flag.txt
 - **PE-bear:** PE editor/analyzer
 - **PEview:** PE structure viewer
 - **CFF Explorer:** PE editor
-- **Process Hacker:** Process monitoring
+- **System Informer:** Process monitoring (formerly Process Hacker; renamed 2022 — `github.com/winsiderss/systeminformer`)
 - **Procmon:** File/registry/network monitoring
+- **pe-sieve / hollows_hunter:** Scan running processes for injected code, hollowed sections, and unpacked payloads (`github.com/hasherezade`)
 
 **Linux:**
 - **readelf:** ELF header analysis
@@ -2023,10 +2338,10 @@ cat flag.txt
 - **ldd:** List dynamic dependencies
 
 **.NET:**
-- **dnSpy:** Decompiler + debugger
-- **ILSpy:** Decompiler
+- **dnSpyEx:** Decompiler + debugger (active community fork — original dnSpy archived 2020-12-21)
+- **ILSpy:** Decompiler (cross-platform GUI via Avalonia, plus `ilspycmd`)
 - **dotPeek:** Decompiler (JetBrains)
-- **de4dot:** Deobfuscator
+- **de4dot:** Deobfuscator (legacy; some obfuscators not covered)
 
 **Android:**
 - **JADX:** DEX to Java decompiler
@@ -2052,10 +2367,15 @@ cat flag.txt
 |------|---------|
 | **HxD** | Hex editor (Windows) |
 | **010 Editor** | Hex editor with templates |
-| **Detect It Easy** | Packer/compiler detection |
+| **Detect It Easy (DiE)** | Packer/compiler detection (300+ signatures, per-section entropy) |
 | **Entropy** | Measure file entropy (detect packing) |
 | **UPX** | Packer/unpacker |
-| **PEiD** | Packer/compiler detection (legacy) |
+| **PEiD** | Packer/compiler detection (legacy but useful for older signatures) |
+| **pe-sieve / hollows_hunter** | Memory-scan unpacker — dump injected/hollowed/unpacked PE images from a live process |
+| **ScyllaHide** | Plugin for x64dbg/OllyDbg/IDA — patches PEB, NtQueryInformationProcess, hardware-breakpoint, and timing checks transparently |
+| **TitanHide** | Kernel driver counterpart to ScyllaHide — defeats malware that issues direct syscalls to bypass user-mode hooks |
+| **al-khaser** | Open-source 170+ check matrix for VM/debugger/sandbox detection — validate your hardened analysis VM before detonating evasive samples |
+| **pafish** | Lightweight VM/sandbox detection tester — fast pre-analysis sanity check (green = artifact hidden, red = artifact still leaks) |
 | **Binary Refinery** | Python-based binary analysis toolkit with 100+ tools for data extraction, deobfuscation, and format parsing |
 
 **Binary Refinery usage:**
@@ -2264,7 +2584,8 @@ emit data.bin | xor key:0x13 | zl | carve url | peek
 - **Linux Kernel Documentation** - [kernel.org/doc](https://www.kernel.org/doc/)
 
 **.NET:**
-- **dnSpy** - [github.com/dnSpy/dnSpy](https://github.com/dnSpy/dnSpy)
+- **dnSpyEx** - [github.com/dnSpyEx/dnSpy](https://github.com/dnSpyEx/dnSpy) (active community fork; legacy `dnSpy/dnSpy` archived 2020-12-21)
+- **ILSpy** - [github.com/icsharpcode/ILSpy](https://github.com/icsharpcode/ILSpy)
 - **.NET Deobfuscation Guide** - [github.com/NotPrab/.NET-Obfuscator](https://github.com/NotPrab/.NET-Obfuscator)
 
 **Android:**
