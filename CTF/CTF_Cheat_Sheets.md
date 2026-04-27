@@ -476,7 +476,7 @@ python3 -m http.server 8000
 
 ---
 
-*Last updated: {{date}}*
+*Last updated: `{{date}}`*
 *Keep this handy during CTF events!*
 
 ## Tags

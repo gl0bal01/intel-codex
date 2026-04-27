@@ -423,7 +423,7 @@ echo "3. Configure your shell aliases"
 
 ---
 
-*Last updated: {{date}}*
+*Last updated: `{{date}}`*
 
 ## Tags
 #ctf #tools #setup #environment #guide

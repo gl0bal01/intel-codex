@@ -558,7 +558,7 @@ ELIMINATION CHECKLIST
 
 ---
 
-*Last updated: {{date}}*
+*Last updated: `{{date}}`*
 *Practice makes perfect - methodology makes practice efficient!*
 
 ## Tags

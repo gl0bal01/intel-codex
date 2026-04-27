@@ -172,7 +172,7 @@ Write them down before reading code. Examples:
 
 - "The deployer EOA is trusted at deploy time; thereafter, all deployer-only functions must be migrated to the multisig before any user funds are deposited."
 - "The Chainlink price feed is trusted to publish updates within heartbeat parameters and to not deviate from market price by more than X bps."
-- "The admin multisig is 3-of-5; any 3 of {names} can move treasury."
+- "The admin multisig is 3-of-5; any 3 of `{names}` can move treasury."
 - "The bridge relayer is trusted to deliver a message exactly once and only when the source-chain event finalized."
 
 Each trust assumption is a question the audit must verify against the code: does the code enforce the assumption, fail safely if the assumption breaks, or silently rely on it?
