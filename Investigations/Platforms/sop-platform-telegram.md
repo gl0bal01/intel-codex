@@ -9,10 +9,33 @@ tags:
   - messaging
   - osint
 created: 2024-03-24
-updated: 2025-08-11
+updated: 2026-04-27
 ---
 
 # Telegram OSINT SOP
+
+> **Authorized OSINT use only.** Investigation accounts must comply with Telegram's [Terms of Service](https://telegram.org/tos) and the platform's prohibitions on bulk scraping, automated account creation, and coordinated inauthentic behavior. Review [[../Techniques/sop-legal-ethics|Legal & Ethics SOP]] and [[../Techniques/sop-opsec-plan|OPSEC Planning]] before any engagement.
+
+## Table of Contents
+
+1. [Access & Client Options](#1-access--client-options)
+2. [Discovery & Search Methods](#2-discovery--search-methods)
+3. [Search Operators & Methods](#3-search-operators--methods)
+4. [Repeatable Workflow](#4-repeatable-workflow)
+5. [Channel & Group Analysis](#5-channel--group-analysis)
+6. [User Profile Intelligence](#6-user-profile-intelligence)
+7. [Investigation Recipes](#7-investigation-recipes)
+8. [Collection & Evidence Integrity](#8-collection--evidence-integrity)
+9. [Advanced Techniques](#9-advanced-techniques)
+10. [Pivoting & Cross-Platform Correlation](#10-pivoting--cross-platform-correlation)
+11. [Tools & Resources](#11-tools--resources)
+12. [Risks & Limitations](#12-risks--limitations)
+13. [Quality Assurance & Verification](#13-quality-assurance--verification)
+14. [Real-World Scenarios](#14-real-world-scenarios)
+15. [Emergency Procedures](#15-emergency-procedures)
+16. [Legal & Ethical Considerations](#16-legal--ethical-considerations)
+17. [Related SOPs](#17-related-sops)
+18. [External Resources](#18-external-resources)
 
 ## 1) Access & Client Options
 
@@ -92,6 +115,12 @@ updated: 2025-08-11
 - **Phone number**: Visible to contacts only (privacy setting dependent)
 - **Last seen status**: Online indicators (if not hidden by user)
 - **Account creation**: Age estimation via join date of old groups
+
+### Telegram User ID structure
+- Telegram user IDs are **monotonically increasing integers**, not timestamp-encoded snowflakes (contrast with Discord, which uses snowflake IDs whose top bits encode a millisecond-precision creation timestamp). Cross-link to a dedicated Discord SOP will be added when it lands.
+- A **lower** numeric ID generally indicates an **older account**; this is approximate, not exact, and cannot be converted to a creation date directly.
+- Public crowd-sourced lookup services (e.g., `@username_to_id_bot`, third-party "Telegram ID age" sites) provide rough age buckets — verify any time-based claim against multiple sources and flag with `[verify <date>]` in the dossier.
+- ID ordering is most useful as a **relative** signal: a brand-new ID alongside an old one in a coordinated channel indicates account-creation asymmetry worth investigating.
 
 ### Behavioral Analysis
 - **Message patterns**: Posting frequency, time zones, language style
@@ -368,7 +397,18 @@ with TelegramClient('session', api_id, api_hash) as client:
 - **National security**: State-sponsored operations, espionage, critical infrastructure threats
 - **Legal requirements**: Court orders, subpoenas, international law enforcement requests
 
-## 16) Related SOPs
+## 16) Legal & Ethical Considerations
+
+> Telegram OSINT sits at the intersection of platform ToS, encrypted-communications law, and (frequently) sensitive-crime evidence. The canonical source for legal posture is [[../Techniques/sop-legal-ethics|Legal & Ethics SOP]] — never re-derive it here.
+
+- **Platform ToS**: bulk scraping, automated account creation, mass DM, and coordinated inauthentic behavior are prohibited by [Telegram's ToS](https://telegram.org/tos). Investigation accounts that violate ToS risk ban and evidence inadmissibility.
+- **Encrypted-comms law**: jurisdiction-specific. Some countries (UK Investigatory Powers Act, AU Assistance and Access Act, RU Yarovaya laws) impose obligations or restrictions on monitoring encrypted platforms even for OSINT. Confirm authorization scope before engagement.
+- **Joining a private channel**: lurking in a public channel is OSINT; joining a closed/invite-only channel via a sock-puppet may cross into pretexting under some legal frameworks (esp. EU GDPR Recital 47 / lawful basis). Document the legal basis in the collection log.
+- **Bot API discipline**: the official Bot API can read messages only after the bot is added to the chat. Using user-API libraries (Telethon, telegram-cli) under a personal account against third-party channels is a ToS gray area — flag and route to [[../Techniques/sop-legal-ethics|Legal & Ethics SOP]].
+- **Sensitive-crime routing**: CSAM, threat-to-life, trafficking, terrorism content found during OSINT triggers immediate hard-stop and routing per [[../Techniques/sop-sensitive-crime-intake-escalation|Sensitive Crime Escalation SOP]]. Do not download or further analyze CSAM; preserve URL + timestamp only and report to NCMEC (US) / IWF (UK) / national equivalent.
+- **OPSEC**: investigation phone numbers, payment methods, and devices must be isolated from the analyst's personal identity per [[../Techniques/sop-opsec-plan|OPSEC Planning SOP]]. Telegram's contact-discovery feature can leak phone numbers across mutually-saved contacts.
+
+## 17) Related SOPs
 
 - [[../Techniques/sop-legal-ethics|Legal & Ethics SOP]] - Review before every investigation
 - [[../Techniques/sop-opsec-plan|OPSEC Planning]] - Protect investigator identity (phone number, account isolation)
@@ -380,16 +420,17 @@ with TelegramClient('session', api_id, api_hash) as client:
 - [[../Techniques/sop-reporting-packaging-disclosure|Reporting & Disclosure]] - Final report preparation
 - [[../Techniques/sop-sensitive-crime-intake-escalation|Sensitive Crime Escalation]] - Law enforcement referral
 
-## 17) External Resources
+## 18) External Resources
 
 **Official Documentation:**
 - Telegram API Documentation: https://core.telegram.org/api
 - Bot API Guide: https://core.telegram.org/bots/api
 - Telegram Privacy Policy: https://telegram.org/privacy
+- Telegram Terms of Service: https://telegram.org/tos
 
 **Third-Party Tools:**
 - Telethon Documentation: https://docs.telethon.dev
-- telegram-cli GitHub: https://github.com/vysheng/tg (odd)
+- telegram-cli GitHub: https://github.com/vysheng/tg [verify 2026-04-27 — project archival status]
 - Nuclei Templates: https://github.com/projectdiscovery/nuclei-templates
 - Social-Analyzer: https://github.com/qeeqbox/social-analyzer
 
@@ -400,6 +441,6 @@ with TelegramClient('session', api_id, api_hash) as client:
 
 ---
 
-**Last Updated:** 2025-08-11
-**Version:** 2.0 (Expanded & Standardized)
+**Last Updated:** 2026-04-27
+**Version:** 2.1 (TOC + Legal block + Telegram-ID structure note)
 **Review Frequency:** Yearly
