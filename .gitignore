@@ -31,3 +31,11 @@ desktop.ini
 
 # Trash
 .trash/
+
+# OMC agent runtime — ignore per-machine session/state/artifacts.
+# Curated artifacts (vault-state.md, watchlist.md, gaps.md, refresh-log.md) stay tracked.
+.omc/state/
+.omc/sessions/
+.omc/artifacts/
+.omc/project-memory.json
+.omc/resume.md
