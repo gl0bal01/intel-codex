@@ -1,6 +1,17 @@
 ---
+type: sop
 title: "Hash Generation Methods for Evidence Integrity"
-description: "Forensic hashing guide: SHA-256, MD5, file integrity verification, chain of custody & cryptographic hashing for digital evidence preservation."
+description: "Forensic hashing guide: SHA-256, SHA-3, BLAKE2/3, MD5/SHA-1 deprecation, file integrity verification, chain of custody & cryptographic hashing for digital evidence preservation."
+tags:
+  - sop
+  - hashing
+  - forensics
+  - integrity
+  - evidence
+  - chain-of-custody
+  - cryptography
+updated: 2026-04-26
+template_version: 2026-04-26
 ---
 
 # Hash Generation Methods for Evidence Integrity
@@ -152,12 +163,12 @@ echo "SHA256: $(sha256sum evidence.bin | awk '{print $1}')"
 # Hash all files in directory
 find /evidence -type f -exec sha256sum {} \; > evidence_hashes.txt
 
-# With formatted output
+# With formatted output (stat syntax differs: BSD/macOS uses -f, GNU/Linux uses -c)
 find /evidence -type f -print0 | while IFS= read -r -d '' file; do
     echo "File: $file"
     echo "SHA256: $(sha256sum "$file" | awk '{print $1}')"
-    echo "Size: $(stat -f%z "$file") bytes"
-    echo "Modified: $(stat -f%Sm "$file")"
+    echo "Size: $(stat -c%s "$file" 2>/dev/null || stat -f%z "$file") bytes"
+    echo "Modified: $(stat -c%y "$file" 2>/dev/null || stat -f%Sm "$file")"
     echo "---"
 done > evidence_manifest.txt
 
@@ -325,41 +336,77 @@ gtkhash-cli -a md5,sha1,sha256 evidence.bin
 
 ### Algorithm Comparison
 
-| Algorithm | Output Length | Security Status | Speed | Use Case |
-|-----------|---------------|-----------------|-------|----------|
-| **MD5**   | 128-bit (32 hex) | ❌ Broken (collision attacks) | Fast | Legacy compatibility only |
-| **SHA-1** | 160-bit (40 hex) | ⚠️ Deprecated (SHAttered attack 2017) | Fast | Legacy systems |
-| **SHA-256** | 256-bit (64 hex) | ✅ Secure | Medium | **Recommended for forensics** |
-| **SHA-512** | 512-bit (128 hex) | ✅ Secure | Medium | High-security evidence |
-| **SHA-3** | Variable | ✅ Secure (latest standard) | Medium | Future-proofing |
-| **CRC32** | 32-bit | ❌ Not cryptographic | Very Fast | Error detection only |
+| Algorithm | Output Length | Standard | Security Status | Speed | Use Case |
+|-----------|---------------|----------|-----------------|-------|----------|
+| **MD5**   | 128-bit (32 hex) | RFC 1321 (1992) | ❌ Broken — practical collisions (Wang et al. 2004) | Fast | Legacy compatibility / known-bad hash sets only |
+| **SHA-1** | 160-bit (40 hex) | RFC 3174 / FIPS 180-4 | ❌ Broken — SHAttered collision (2017); NIST formally retired Dec 2022, full withdrawal by Dec 2030 [verify 2026-04-26] | Fast | Legacy systems, NSRL/VirusTotal lookups |
+| **SHA-256** | 256-bit (64 hex) | NIST FIPS 180-4 / RFC 6234 | ✅ Secure (~2^128 collision resistance via birthday bound) | Medium | **Recommended primary for forensics** |
+| **SHA-512** | 512-bit (128 hex) | NIST FIPS 180-4 / RFC 6234 | ✅ Secure; faster than SHA-256 on 64-bit hardware | Medium-Fast | High-assurance / long-term archival |
+| **SHA-3 (SHA3-256/384/512)** | 256/384/512-bit | NIST FIPS 202 (2015) | ✅ Secure (Keccak sponge — different construction from SHA-2) | Medium | Redundancy when paired with SHA-2; future-proofing |
+| **SHAKE128 / SHAKE256** | Variable (XOF) | NIST FIPS 202 | ✅ Secure | Medium | Variable-length output (e.g., SLH-DSA signature internals) |
+| **BLAKE2 (b2sum)** | 256/512-bit | RFC 7693 | ✅ Secure; faster than SHA-256 in software | Fast | Performance-sensitive integrity (used in Argon2, WireGuard) |
+| **BLAKE3 (b3sum)** | 256-bit (extensible) | No NIST FIPS [inferred — not court-grade as primary] | ✅ Secure; parallelizable, ~5–10× faster than SHA-256 on multi-core | Very Fast | Performance-critical integrity; **pair with SHA-256, do not use as sole primary** |
+| **CRC32** | 32-bit | ISO/IEC 13239 / Ethernet | ❌ Not cryptographic | Very Fast | Error detection only — **never** for evidence |
 
-### Current Best Practices (2025)
+### Current Best Practices
 
 **Primary standard:**
 ```
-SHA-256 - Recommended for all new evidence
+SHA-256 — Recommended for all new evidence (NIST FIPS 180-4 baseline)
 ```
 
 **Why SHA-256:**
-- NIST approved (FIPS 180-4)
-- No known practical attacks
-- Widely supported across forensic tools
-- Court admissible (Daubert/Frye standards)
-- Balance of security and performance
-- 2^256 possible values (effectively collision-proof)
+- NIST approved (FIPS 180-4); also specified in RFC 6234.
+- No known practical pre-image or collision attacks.
+- Widely supported across forensic tools and OS-native utilities.
+- Court admissible under Daubert/Frye [inferred — admissibility ultimately depends on jurisdiction and expert qualification, not algorithm choice alone].
+- 256-bit output → birthday-bound collision resistance ≈ 2^128 operations (preimage ≈ 2^256). Adequate against foreseeable classical attacks.
 
 **When to use SHA-512:**
-- Critical national security evidence
-- Long-term archival (50+ years)
-- When disk I/O is not a bottleneck
-- Compliance requirements (CMMC Level 5, FedRAMP High)
+- Long-term archival (slower hash deprecation cycle).
+- 64-bit hosts where SHA-512 throughput exceeds SHA-256.
+- Compliance regimes that mandate ≥384-bit hash output (e.g., CNSA 2.0 / CMMC / FedRAMP High [verify 2026-04-26 — exact CNSA 2.0 hash mandate]).
+
+**When SHA-3 (FIPS 202) is appropriate:**
+- Defensive redundancy against an unforeseen SHA-2 weakness — pair SHA-256 + SHA3-256 on critical evidence.
+- Output-length flexibility via SHAKE128/256 (rare in forensics; common in PQ signature internals such as SLH-DSA).
 
 **When MD5 is acceptable:**
-- ⚠️ **ONLY** for deduplication in controlled environments
-- ⚠️ **ONLY** when comparing against legacy databases
-- ⚠️ **NEVER** as sole integrity verification in court
-- ⚠️ **ALWAYS** pair with SHA-256 when used
+- ⚠️ **ONLY** for deduplication in controlled environments.
+- ⚠️ **ONLY** when comparing against legacy databases (NSRL legacy MD5 sets, VirusTotal MD5 search).
+- ⚠️ **NEVER** as sole integrity verification in court.
+- ⚠️ **ALWAYS** pair with SHA-256 when recorded.
+
+**SHA-1 status (2022 retirement):**
+- NIST announced SHA-1 retirement on **2022-12-15**; full withdrawal target **2030-12-31** [verify 2026-04-26 — see NIST IR 8413 / FIPS 180-4 update notice].
+- Acceptable only for backward-compatibility lookups (NSRL legacy, git commit IDs, VirusTotal). Pair with SHA-256.
+- See SHAttered (2017) for the practical collision proof.
+
+### HMAC and Keyed Hashing
+
+For tamper-evident logs where the verifier holds a secret key, use **HMAC-SHA256** (NIST FIPS 198-1) rather than a bare hash:
+
+```bash
+# Linux/macOS
+openssl dgst -sha256 -hmac "$SECRET_KEY" evidence.bin
+
+# Windows (PowerShell)
+$hmac = [System.Security.Cryptography.HMACSHA256]::new([Text.Encoding]::UTF8.GetBytes($env:SECRET_KEY))
+[BitConverter]::ToString($hmac.ComputeHash([IO.File]::ReadAllBytes("evidence.bin"))).Replace("-","").ToLower()
+```
+
+HMAC is **not** a substitute for evidence hashing (chain-of-custody hashes must be reproducible by anyone holding the artefact); it is for log/manifest authenticity where unauthorized modification by an attacker who reads the log must be detectable. See NIST SP 800-107 Rev. 1 for guidance on approved hash applications.
+
+### Quantum-era considerations
+
+- **Grover's algorithm** halves effective hash bit-strength against a quantum adversary: SHA-256 retains ≈ 2^128 preimage security, still adequate.
+- **No PQ migration urgency for hashing** (unlike signatures: NIST FIPS 203 ML-KEM, FIPS 204 ML-DSA, FIPS 205 SLH-DSA, all finalized 2024-08). The hash function inside SLH-DSA is SHA-256 / SHAKE256 — confirms forensic continuity for evidence hashing into the PQ era.
+
+### Out-of-scope hashing families (this SOP is cryptographic-only)
+
+- **Fuzzy / similarity hashing** (ssdeep / sdhash / TLSH / mrsh-v2) — used to *group similar* binaries, not to verify exact integrity. Belongs in [[sop-malware-analysis|Malware Analysis]] (sample clustering).
+- **Perceptual hashing** (pHash / dHash / aHash / PhotoDNA) — used for image/video similarity (CSAM detection, deduplication). Belongs in [[../../Investigations/Techniques/sop-image-video-osint|Image & Video OSINT]]. **PhotoDNA is operator-access only.**
+- **Password KDFs** (Argon2id, scrypt, bcrypt, PBKDF2) — out of scope for evidence integrity; see [[sop-cryptography-analysis|Cryptography Analysis]].
 
 ### Collision Attack Examples
 
@@ -733,27 +780,47 @@ vol.py -f memory.dmp --profile=Win10x64 pslist
 ---
 
 **Best Practice Summary:**
-- ✅ Use SHA-256 for all new evidence (2025 standard)
-- ✅ Calculate hash immediately upon acquisition
-- ✅ Verify hash before and after transfers
-- ✅ Log all verifications in chain of custody
-- ✅ Use multiple algorithms for critical evidence (SHA-256 + SHA-512)
-- ❌ Never rely on MD5 alone for court evidence
-- ❌ Never skip hash verification before analysis
+- ✅ Use SHA-256 (NIST FIPS 180-4) as the primary hash for all new evidence.
+- ✅ Calculate hash immediately upon acquisition; record before any other operation.
+- ✅ Verify hash before and after every transfer or movement (hash-on-acquisition / hash-after-transport).
+- ✅ Log all verifications in chain of custody with analyst, timestamp (UTC), and tool version.
+- ✅ For critical evidence, pair algorithms with **different constructions** (SHA-256 + SHA3-256, or SHA-256 + BLAKE2/3) so a single-family weakness does not invalidate both.
+- ✅ Sign manifests (GPG-detached or age) and consider RFC 3161 / OpenTimestamps anchoring for non-repudiation.
+- ❌ Never rely on MD5 or SHA-1 alone for court evidence.
+- ❌ Never use BLAKE3 as the sole forensic primary (no NIST FIPS standardization yet) [inferred].
+- ❌ Never skip hash verification before analysis.
 
 ---
 
 ## 11. Reference Resources
 
 ### Hash Algorithm Standards & Documentation
-- **NIST FIPS 180-4** - [nvlpubs.nist.gov/nistpubs/FIPS/NIST.FIPS.180-4.pdf](https://nvlpubs.nist.gov/nistpubs/FIPS/NIST.FIPS.180-4.pdf)
-  - Official SHA-2 family specification (SHA-256, SHA-512)
-- **NIST FIPS 202** - [nvlpubs.nist.gov/nistpubs/FIPS/NIST.FIPS.202.pdf](https://nvlpubs.nist.gov/nistpubs/FIPS/NIST.FIPS.202.pdf)
-  - SHA-3 standard specification
-- **NIST Hash Functions Portal** - [csrc.nist.gov/projects/hash-functions](https://csrc.nist.gov/projects/hash-functions)
-  - Cryptographic hash function projects and research
-- **RFC 1321 (MD5)** - [tools.ietf.org/html/rfc1321](https://tools.ietf.org/html/rfc1321)
-  - MD5 specification (historical/deprecated)
+- **NIST FIPS 180-4** — [nvlpubs.nist.gov/nistpubs/FIPS/NIST.FIPS.180-4.pdf](https://nvlpubs.nist.gov/nistpubs/FIPS/NIST.FIPS.180-4.pdf)
+  - Official SHA-1 / SHA-2 family specification (SHA-1, SHA-224, SHA-256, SHA-384, SHA-512, SHA-512/224, SHA-512/256).
+- **NIST FIPS 202** — [nvlpubs.nist.gov/nistpubs/FIPS/NIST.FIPS.202.pdf](https://nvlpubs.nist.gov/nistpubs/FIPS/NIST.FIPS.202.pdf)
+  - SHA-3 standard (Keccak): SHA3-224/256/384/512, SHAKE128, SHAKE256.
+- **NIST FIPS 198-1** — [nvlpubs.nist.gov/nistpubs/FIPS/NIST.FIPS.198-1.pdf](https://nvlpubs.nist.gov/nistpubs/FIPS/NIST.FIPS.198-1.pdf)
+  - HMAC (keyed-hash message authentication code).
+- **NIST SP 800-107 Rev. 1** — [csrc.nist.gov/publications/detail/sp/800-107/rev-1/final](https://csrc.nist.gov/publications/detail/sp/800-107/rev-1/final)
+  - Recommendation for Applications Using Approved Hash Algorithms.
+- **NIST SHA-1 retirement notice** — [csrc.nist.gov/news/2022/nist-retires-sha-1-cryptographic-algorithm](https://csrc.nist.gov/news/2022/nist-retires-sha-1-cryptographic-algorithm)
+  - 2022-12-15 announcement; full withdrawal target 2030-12-31 [verify 2026-04-26].
+- **NIST Hash Functions Portal** — [csrc.nist.gov/projects/hash-functions](https://csrc.nist.gov/projects/hash-functions)
+  - Cryptographic hash function projects and research.
+- **RFC 1321 (MD5)** — [datatracker.ietf.org/doc/html/rfc1321](https://datatracker.ietf.org/doc/html/rfc1321)
+  - MD5 specification (1992, historical/broken).
+- **RFC 3174 (SHA-1)** — [datatracker.ietf.org/doc/html/rfc3174](https://datatracker.ietf.org/doc/html/rfc3174)
+  - US Secure Hash Algorithm 1 (2001).
+- **RFC 6234 (SHA-2 family + HMAC-SHA)** — [datatracker.ietf.org/doc/html/rfc6234](https://datatracker.ietf.org/doc/html/rfc6234)
+  - Reference implementation for SHA-224/256/384/512 and HMAC variants.
+- **RFC 7693 (BLAKE2)** — [datatracker.ietf.org/doc/html/rfc7693](https://datatracker.ietf.org/doc/html/rfc7693)
+  - BLAKE2b / BLAKE2s / BLAKE2x cryptographic hash and MAC.
+- **BLAKE3 specification** — [github.com/BLAKE3-team/BLAKE3-specs](https://github.com/BLAKE3-team/BLAKE3-specs)
+  - Whitepaper (2020); no NIST FIPS standardization [verify 2026-04-26].
+- **RFC 3161 (Time-Stamp Protocol)** — [datatracker.ietf.org/doc/html/rfc3161](https://datatracker.ietf.org/doc/html/rfc3161)
+  - PKI timestamping for non-repudiable hash anchoring.
+- **OpenTimestamps** — [opentimestamps.org](https://opentimestamps.org/)
+  - Bitcoin-anchored timestamping for hash manifests.
 
 ### Digital Forensics Standards
 - **NIST SP 800-86** - [csrc.nist.gov/publications/detail/sp/800-86/final](https://csrc.nist.gov/publications/detail/sp/800-86/final)
@@ -784,16 +851,15 @@ vol.py -f memory.dmp --profile=Win10x64 pslist
   - Linux GTK-based hash calculator
 
 ### Forensic Imaging Tools (with Hash Verification)
-- **FTK Imager** - [exterro.com/ftk-imager](https://www.exterro.com/ftk-imager)
-  - Free forensic imaging tool with automatic hash verification
-  - Supports MD5, SHA1, SHA256
-- **dc3dd** - [sourceforge.net/projects/dc3dd](https://sourceforge.net/projects/dc3dd/)
-  - Enhanced dd with hashing on-the-fly
-  - Law enforcement standard
-- **Guymager** - [guymager.sourceforge.io](https://guymager.sourceforge.io/)
-  - Linux forensic imager with MD5/SHA verification
-- **ewfacquire (libewf)** - [github.com/libyal/libewf](https://github.com/libyal/libewf)
-  - Expert Witness Format (E01) imaging with hash verification
+- **FTK Imager** — [exterro.com/ftk-imager](https://www.exterro.com/ftk-imager)
+  - Free forensic imaging tool with automatic hash verification.
+  - Supports MD5, SHA-1, SHA-256.
+- **dc3dd** — [sourceforge.net/projects/dc3dd](https://sourceforge.net/projects/dc3dd/)
+  - Enhanced dd with hashing on-the-fly. Historically maintained by DoD Cyber Crime Center; upstream activity has slowed [verify 2026-04-26]. Modern preference is `ewfacquire` for E01 / `dcfldd` legacy / `dc3dd` for raw with on-the-fly hash.
+- **Guymager** — [guymager.sourceforge.io](https://guymager.sourceforge.io/)
+  - Linux forensic imager with MD5/SHA verification.
+- **ewfacquire (libewf)** — [github.com/libyal/libewf](https://github.com/libyal/libewf)
+  - Expert Witness Format (E01/Ex01) imaging with embedded SHA-256 hash verification.
 
 ### Online Hash Lookup Services
 - **VirusTotal** - [virustotal.com](https://www.virustotal.com/)
@@ -830,15 +896,40 @@ vol.py -f memory.dmp --profile=Win10x64 pslist
 
 ---
 
-## Related SOPs
+## Legal & Ethical Considerations
 
-**Analysis:**
-- [[sop-malware-analysis|Malware Analysis]] - Hash-based sample identification and deduplication
-- [[sop-cryptography-analysis|Cryptography Analysis]] - Understanding hash algorithm security
-- [[sop-reverse-engineering|Reverse Engineering]] - File integrity during binary analysis
+Hash generation is a methodology, not an authorization. The SOP focuses on technical correctness; jurisdictional rules, evidence handling authority, and disclosure obligations are governed elsewhere in the vault.
 
-**Pentesting & Security:**
-- [[../Pentesting/sop-forensics-investigation|Forensics Investigation]] - Evidence acquisition and chain of custody
-- [[../Pentesting/sop-detection-evasion-testing|Detection Evasion Testing]] - Hash-based malware detection bypass techniques
+> **Authorized environments only.** See [[sop-legal-ethics|Legal & Ethics]] for canonical jurisdictional framing (CFAA, CMA, EU evidence directives, GDPR Art. 6/9), and [[sop-collection-log|Collection Log]] for the chain-of-custody rules into which hash records are integrated.
+
+Hashing-specific guardrails:
+
+- **Hash a copy, not the original.** When acquiring from a live system, hash the working image, not the suspect medium directly (avoid altering MAC times). Use a write-blocker for physical evidence.
+- **Record tool + version.** A SHA-256 value is reproducible only if the algorithm and reader are unambiguous. Record `sha256sum --version`, `Get-FileHash -Algorithm SHA256` (PowerShell version), or `certutil -?` build alongside the hash.
+- **Two-analyst attestation.** Critical evidence should be hashed by the acquiring analyst and re-hashed by an independent verifier; both hashes go into the chain of custody.
+- **Disclosure.** Hash manifests are part of the evidence package. See [[../../Investigations/Techniques/sop-reporting-packaging-disclosure|Reporting, Packaging & Disclosure]].
 
 ---
+
+## Related SOPs
+
+**Methodology & governance:**
+- [[sop-legal-ethics|Legal & Ethics]] — canonical jurisdictional framing
+- [[sop-opsec-plan|OPSEC Plan]] — handler/host hygiene during evidence handling
+- [[../../Investigations/Techniques/sop-collection-log|Collection Log]] — chain-of-custody record into which hash values are integrated
+- [[../../Investigations/Techniques/sop-reporting-packaging-disclosure|Reporting, Packaging & Disclosure]] — hash manifests in deliverable packages
+
+**Analysis:**
+- [[sop-malware-analysis|Malware Analysis]] — hash-based sample identification and deduplication
+- [[sop-cryptography-analysis|Cryptography Analysis]] — algorithm security analysis (length-extension, collision, hashcat modes)
+- [[sop-reverse-engineering|Reverse Engineering]] — file integrity during binary analysis
+- [[sop-forensics-investigation|Forensics Investigation]] — evidence acquisition (basename link; file lives in Security/Analysis/)
+
+**Pentesting & Security:**
+- [[../Pentesting/sop-detection-evasion-testing|Detection Evasion Testing]] — hash-based malware detection bypass techniques
+
+---
+
+**Version:** 1.1
+**Last Updated:** 2026-04-26
+**Review Frequency:** Annual (slow-rot anchor SOP — algorithm-standards horizon is multi-year)

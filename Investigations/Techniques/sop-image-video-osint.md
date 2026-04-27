@@ -3,7 +3,8 @@ type: sop
 title: Image & Video OSINT
 description: "Visual intelligence techniques: EXIF analysis, reverse image search, geolocation, video verification & deepfake detection for media investigations."
 tags: [sop, media, exif, reverse, geolocation, verification]
-template_version: 2025-10-05
+template_version: 2026-04-25
+updated: 2026-04-25
 ---
 
 # Image & Video OSINT
@@ -129,25 +130,35 @@ strings image.jpg | less
 
 ### Google Reverse Image Search
 
-**Browser method:**
+> **Lens transition:** Since 2022 Google has consolidated reverse image search into Google Lens. The classic "Pages that include matching images" view is reachable but de-emphasised — Lens prioritises object/scene classification over exact-match URLs. For OSINT exact-match work, supplement Lens with Yandex + TinEye + Bing rather than relying on Google alone.
+
+**Browser method (Lens, current default):**
 ```
 1. Navigate to https://images.google.com
-2. Click camera icon in search bar
+2. Click the camera/lens icon in the search bar
 3. Upload image OR paste image URL
-4. Review results:
-   - "Visually similar images"
-   - "Pages that include matching images"
-   - "Other sizes"
+4. In the Lens results pane, click "Find image source" (or "Exact matches")
+   to surface the legacy reverse-search view with:
+   - Pages that include matching images
+   - Visually similar images
+   - Other sizes
+```
+
+**Direct legacy URL (still works as of 2026-04-25):**
+```
+# searchbyimage endpoint accepts a public image URL
+https://www.google.com/searchbyimage?image_url=https://example.com/image.jpg
 ```
 
 **Command-line method:**
 ```bash
-# Using Google Custom Search API (requires API key)
+# Using Google Custom Search API (requires API key + cx Programmable Search Engine ID)
+# Note: this is text search with image filter, not reverse-image upload — Google has no
+# public reverse-image API.
 curl "https://www.googleapis.com/customsearch/v1?q=SEARCH_TERM&cx=YOUR_CX&searchType=image&imgSize=large&key=YOUR_API_KEY"
 
-# Or use search-by-image URL directly
-# Upload image to temporary host, then:
-firefox "https://www.google.com/searchbyimage?image_url=https://example.com/image.jpg"
+# Headless browser upload (Selenium/Playwright) is the only reliable
+# automated path for upload-based reverse search.
 ```
 
 **Advanced techniques:**
@@ -208,10 +219,27 @@ curl -u "your_api_key:your_api_secret" \
 **PimEyes (Face Search):**
 ```
 https://pimeyes.com
-- Upload face photo
-- Finds other instances of same face online
-- ⚠️ Privacy concerns - use ethically and legally
-- Commercial tool (free limited searches)
+- Upload face photo → finds matches across the open web (excludes
+  social-media and video platforms per their published scope)
+- Pricing tiers: Open Plus, PROtect (paid plans required to view source URLs,
+  set alerts, or use takedown features); free tier shows blurred matches only
+- Approx. starting tier ~$29.99/month (verify on /pricing — pricing changes)
+  [verify 2026-04-25]
+- ⚠️ Significant privacy controversy — investigated by EU DPAs; opt-out form
+  available at https://pimeyes.com/en/opt-out (irreversible, requires ID)
+- Index claimed at ~3.5B images [verify 2026-04-25]
+```
+
+**FaceCheck.id (face search, pay-per-search):**
+```
+https://facecheck.id
+- Per-search pricing model (no monthly subscription required)
+- Smaller but social-media-leaning index (~763M public images claimed
+  [verify 2026-04-25])
+- Often the better choice when the target image is low-quality, masked,
+  or non-frontal
+- States that uploaded probe images are deleted post-processing and not
+  used for training (verify in current ToS before relying on this)
 ```
 
 **Bing Visual Search:**
@@ -234,12 +262,16 @@ https://image.baidu.com
 
 **Search4Faces:**
 ```bash
-# Multi-platform face search
-# Searches VK, Odnoklassniki, TikTok, etc.
+# Multi-platform face search (Russian-language UI; English available)
 https://search4faces.com/
 
-# Upload face photo
-# Results from multiple social platforms
+# Current databases (verify on the site — they expand periodically):
+# - VK avatars + main profile photos
+# - Odnoklassniki (OK) avatars + main photos
+# - TikTok user avatars (avatar only, not video frames)
+# - Clubhouse user avatars
+# - Celebrity datasets (Wikipedia, IMDb)
+# Free tier with limited daily searches; paid tier for higher volume
 ```
 
 ---
@@ -258,12 +290,19 @@ https://search4faces.com/
 - Thumbnail preview
 
 **⚠️ Platform stripping:**
-Most social media platforms strip EXIF data:
-- Twitter: ✓ Strips GPS, keeps some camera info
+Most social media platforms strip EXIF data on upload (✓ = stripped):
+- X (Twitter): ✓ Strips GPS, keeps some camera info
 - Facebook: ✓ Strips all EXIF
 - Instagram: ✓ Strips all EXIF
+- TikTok: ✓ Strips EXIF on uploaded video; avatar/image uploads also stripped
+- Bluesky: ✓ Strips EXIF on image post; the embedded thumbnail is re-encoded
+- Mastodon: ✓ Strips EXIF by default (server-config dependent — some
+  instances preserve it; verify with target instance)
 - WhatsApp: ✓ Strips EXIF, compresses image
-- Telegram: ✗ Preserves EXIF if sent as "File" (not photo)
+- Signal: ✓ Strips EXIF
+- Telegram: ✗ Preserves EXIF if sent as "File" / document (not "photo")
+- Discord: ✗ Preserves EXIF on direct image attachments [verify 2026-04-25]
+- Email (SMTP/IMAP): ✗ Preserves EXIF (mail clients do not re-encode)
 
 ### EXIF Extraction Tools
 
@@ -335,13 +374,15 @@ exiftool -p gpx.fmt -r /path/to/images/ > photos.gpx
 
 **Using FotoForensics:**
 ```
-1. Navigate to http://fotoforensics.com
+1. Navigate to https://fotoforensics.com
 2. Upload image
 3. Click "Error Level Analysis"
 4. Interpretation:
    - Similar brightness = untouched
    - Bright areas = recently edited/added
-   - ⚠️ Not definitive - can have false positives
+   - ⚠️ Not definitive — ELA produces false positives on JPEGs that have
+     been re-saved at different qualities, screen-captured, or exported
+     from editors that re-compress losslessly. Treat as a lead, not proof.
 ```
 
 **Command-line ELA:**
@@ -422,6 +463,15 @@ Tool: SunCalc - https://www.suncalc.org/
 - Set date and time
 - View sun azimuth (direction) and altitude (angle)
 - Compare with shadow direction/length in image
+
+Tool: ShadowFinder (Bellingcat) - https://github.com/bellingcat/ShadowFinder
+- Inverse problem of SunCalc: given an object's height, shadow length,
+  date and time (UTC), returns a band of possible Earth-surface locations
+- Useful when location is UNKNOWN but timestamp is known (e.g., conflict
+  footage with visible vertical references — lamp posts, doorways)
+- Available as a Python package + Jupyter / Google Colab notebook; install
+  via `pip install shadowfinder` (see repo README for current Python API
+  signature — argument names have shifted across releases) [verify 2026-04-25]
 ```
 
 **Example:**
@@ -486,7 +536,32 @@ cat output.txt
    - Road markings, curb styles
 
 Tool: Google Street View - https://www.google.com/maps (drag pegman icon)
-Tool: Mapillary - https://www.mapillary.com (crowdsourced street imagery)
+Tool: Mapillary - https://www.mapillary.com (crowdsourced street imagery,
+       owned by Meta; CC-BY-SA imagery, large global coverage)
+Tool: KartaView - https://kartaview.org (crowdsourced street imagery,
+       operated by Grab; CC-BY-SA, complementary coverage to Mapillary)
+Tool: Panoramax - https://panoramax.fr (open-source, federated street
+       imagery; growing OSM-aligned coverage) [verify 2026-04-25]
+```
+
+**Method 4: OSM tag-based search (Overpass Turbo)**
+```
+When you suspect a region but need to filter for specific features
+(e.g., "all McDonald's within 5km of Yekaterinburg centre", "all churches
+with onion domes in city X", "all roundabouts with a fountain"):
+
+1. Open https://overpass-turbo.eu/
+2. Set the bbox to the suspected region (zoom + click "current view")
+3. Write an Overpass QL query, e.g. for fast-food chains:
+     [out:json][timeout:25];
+     area[name="Yekaterinburg"]->.searchArea;
+     node["amenity"="fast_food"]["brand"="McDonald's"](area.searchArea);
+     out;
+4. Click "Run" → results plot on the map; click a node to get coordinates,
+   then verify with Street View / Mapillary
+
+Bellingcat publishes Overpass Turbo recipes at
+https://bellingcat.gitbook.io/toolkit/ for common geolocation patterns.
 ```
 
 ### Environmental Clues
@@ -709,41 +784,137 @@ whisper audio.mp3 --model medium --language en --output_format txt
 
 ### Video Verification
 
-**InVID Verification Plugin:**
+**InVID / WeVerify Verification Plugin (now "Fake News Debunker"):**
 ```
-Browser extension: https://www.invid-project.eu/tools-and-services/invid-verification-plugin/
+The plugin originated in EU project InVID (2016-2018), was extended in
+WeVerify (2018-2021), and is now maintained by AFP Medialab R&D under the
+vera.ai project (https://www.veraai.eu/). Marketed as "Fake News Debunker
+by InVID & WeVerify" on the Chrome Web Store.
 
-Features:
-- Keyframe extraction
-- Reverse image search (multiple engines)
-- Metadata analysis
-- OCR on frames
-- Video magnifier
-- Rights verification (forensic analysis)
+Chrome:  https://chromewebstore.google.com/detail/fake-news-debunker-invid/mhccpoafgdgbhnjfhkcmgknndkeenfhe
+Firefox: https://addons.mozilla.org/firefox/addon/fake-news-debunker-by-invid-we/
+
+Features (current):
+- Keyframe extraction from major social-video platforms
+- One-click reverse image search across Google Lens, Yandex, Bing, TinEye,
+  Baidu, Karma Decay
+- EXIF / video metadata viewer
+- Tesseract OCR on frames
+- Video magnifier + per-frame inspection
+- Forensic image analysis (ELA, copy-move, JPEG ghosts)
+- WACZ disinformation-archiving panel (since v0.85)
+- Hiya-powered voice-clone detector for audio (since v0.85) [verify 2026-04-25]
 
 Usage:
-1. Install browser extension (Chrome/Firefox)
-2. Right-click video → InVID Analysis
-3. Extract keyframes
-4. Reverse search each frame
-5. Check metadata
+1. Install browser extension (Chrome / Edge / Firefox)
+2. Click toolbar icon → paste video URL OR right-click video → analyse
+3. Extract keyframes → reverse-search each
+4. Cross-check metadata, audio, and provenance signals
 ```
 
-**Deepfake detection:**
+**Deepfake detection — manual analysis:**
 ```markdown
-Signs of deepfakes:
+Signs of deepfakes (still useful for older / lower-quality fakes; modern
+diffusion-based and lip-sync models defeat most of these):
 - Unnatural blinking patterns (or lack of blinking)
 - Inconsistent lighting on face vs background
-- Blurry face edges (especially around hairline)
+- Blurry face edges (especially around hairline, glasses frames, earrings)
 - Mismatched skin tones (face vs neck)
-- Lip sync errors
-- Unnatural head movements
-- Background inconsistencies (person moves, background doesn't)
+- Lip sync errors / phoneme-viseme mismatches
+- Unnatural head movements; "swimming" forehead/jawline at frame transitions
+- Background inconsistencies (person moves, background doesn't, or vice versa)
+- Pupillary corneal-reflection mismatch between left and right eye
+- Single-row tooth artefacts (teeth rendered as a flat texture rather than
+  individually shaped)
+- Unnatural earlobes / asymmetric earrings (common GAN failure mode)
+```
 
-Tools:
-- Microsoft Video Authenticator (not public yet)
-- Sensity AI (commercial)
-- Manual frame-by-frame analysis (slow but effective)
+**Deepfake detection — tools (2026 landscape):**
+
+> ⚠️ **Honest baseline:** No deepfake detector is currently reliable enough
+> to use alone for decision-making. Detector accuracy varies dramatically
+> by generator family (face-swap vs lip-sync vs diffusion vs voice-clone),
+> degrades on compressed social-media re-encodes, and lags new generation
+> techniques by months. Always combine ≥2 detectors with manual analysis
+> AND a provenance check (see C2PA below).
+
+| Tool | Modality | Access | Notes |
+|------|----------|--------|-------|
+| Microsoft Video Authenticator | Video | **Limited release only** — never reached general availability; access via Microsoft's Election Communications / AI for Good partners | Originally announced 2020; per-frame confidence score [verify 2026-04-25] |
+| Intel FakeCatcher | Real-time video | Commercial / OEM integration | Uses photoplethysmography (PPG) blood-flow signal; vendor-claimed ~96% controlled / ~91% in-the-wild [verify 2026-04-25] |
+| Reality Defender | Video, image, audio, text | Commercial API + portal | Multi-model ensemble; common choice for newsroom / enterprise pipelines |
+| Sensity AI | Image + video, identity-focused | Commercial | Strong on face-swap and synthetic-portrait attribution |
+| Hive AI Moderation | Image, video, audio | Commercial API | Used by Reddit, BlueSky for content moderation; AI-generated-content classifier exposed via API |
+| AI or Not | Image (single-shot) | Free tier + paid | Fast, no-account checks; independent benchmarks place accuracy <90% on mixed-generator test sets [verify 2026-04-25] |
+| Deepware Scanner | Video upload | Free | Web upload; useful as a triage second opinion |
+| Manual frame-by-frame in DaVinci Resolve / Premiere / VLC | Any | Free | Slow but defeats most automated countermeasures |
+
+**AI-image detectors — explicit caveat:**
+```markdown
+Generative-image detection (single still image, no provenance signal) is
+NOT reliable in 2026. False-positive rates of 6–12% are typical on real
+photos that look "AI-like" (smooth skin, cinematic lighting). Treat any
+single-detector verdict on a still image as a weak signal. Provenance
+metadata (C2PA) and reverse-image-search for an earlier human-attributed
+instance are stronger evidence.
+```
+
+### Synthetic Media Provenance (C2PA Content Credentials)
+
+**What it is:**
+C2PA (Coalition for Content Provenance and Authenticity) is a cross-vendor
+standard for cryptographically-signed provenance metadata embedded in
+images, video, audio, and PDFs. The user-facing brand is "Content
+Credentials". A C2PA manifest records who produced or modified an asset,
+which tools were used, and (optionally) whether AI was involved.
+
+**Adoption snapshot (as of 2026-04-25):**
+- **Adobe** — Photoshop, Lightroom, Firefly attach C2PA manifests
+- **OpenAI** — DALL·E 3 and ChatGPT image outputs attach C2PA + visible
+  marker; OpenAI is on the C2PA steering committee
+- **Google** — SynthID watermark on Imagen / Veo / Gemini image+video
+  output (>20B images watermarked, vendor figure); Pixel 10 was the
+  first phone certified for C2PA capture
+- **Microsoft** — Bing Image Creator, M365 content (rollout from
+  Feb 2026 [verify 2026-04-25])
+- **Meta** — AI-generated content labelling on Facebook/Instagram/Threads
+- **Cameras** — Leica M11-P, Sony α1 II / α7 IV firmware, Nikon Z6 III,
+  Canon (announced) support in-camera capture-side signing
+- **EU AI Act Article 50** transparency obligations come into full effect
+  2026-08-02 and effectively mandate machine-readable provenance for
+  AI-generated content distributed in the EU [verify 2026-04-25]
+
+**Inspecting C2PA manifests:**
+```bash
+# c2patool — Content Authenticity Initiative CLI (Rust)
+# The original contentauth/c2patool repo was archived 2024-12-10 and merged
+# into contentauth/c2pa-rs (the c2pa-rs CLI is the current build).
+# Releases: https://github.com/contentauth/c2pa-rs/releases
+
+# Read manifest from any signed asset (image/video/PDF/audio)
+c2patool image.jpg
+
+# Dump full JSON manifest (signers, ingredients, actions, AI assertions);
+# refer to `c2patool --help` for the current flag set — flag names have
+# shifted across releases. [verify 2026-04-25]
+c2patool image.jpg --detailed
+```
+
+**Browser-side check:**
+- Adobe-hosted verifier: https://contentcredentials.org/verify
+  (drag-drop any file → manifest, signer, edit history)
+- Content Credentials icon (the "CR" pin) appears in supporting viewers
+  (Chrome via extension, Adobe apps, Microsoft Edge in some builds)
+
+**Limitations to flag in any report:**
+```markdown
+- C2PA is opt-in: absence of a manifest does NOT mean the asset is fake
+- Manifests can be stripped trivially (re-save, screenshot, social-media
+  re-encode) — strip ≠ tamper
+- Manifests can be forged with a non-trusted certificate; ALWAYS check
+  the signing certificate's trust chain, not just "manifest present"
+- C2PA proves what tool signed the asset; it does NOT prove the depicted
+  scene is real (a real camera can photograph a screen showing a fake)
 ```
 
 ---
@@ -758,41 +929,72 @@ Tools:
 ```
 https://pimeyes.com
 - Upload face photo (crop to just face)
-- Finds other instances online
-- Results include: social media, news articles, websites
-- ⚠️ Privacy implications - use responsibly
+- Finds other instances online (open web only — no social media)
+- Results include: news articles, blogs, image-hosting sites
+- Pricing/restrictions: see §2.5 above
+- ⚠️ Privacy implications — use only with documented legal basis
+```
+
+**FaceCheck.id (commercial, social-leaning):**
+```
+https://facecheck.id
+- Per-search pricing; better signal on social-media-sourced faces
+- See §2.5 above for full details
 ```
 
 **Search4Faces (social media specific):**
 ```
 https://search4faces.com/
-- Searches: VK, Odnoklassniki, TikTok
+- Searches: VK, Odnoklassniki, TikTok avatars, Clubhouse, celebrity DBs
 - Better for Eastern European profiles
-- Free (limited searches)
+- Free tier (limited searches)
 ```
 
 **Face comparison (manual verification):**
-```python
-# Using face_recognition library (Python)
-# Install: pip install face_recognition
 
+> **Maintenance note:** `ageitgey/face_recognition` (the historical
+> "simplest face recognition" Python wrapper around dlib) has not seen
+> a release since 2020 and dlib itself moves slowly. For new work prefer
+> [DeepFace](https://github.com/serengil/deepface) — actively maintained,
+> wraps modern backbones (ArcFace, FaceNet, VGG-Face, SFace, GhostFaceNet)
+> with a single API.
+
+```python
+# Modern path — DeepFace (pip install deepface)
+from deepface import DeepFace
+
+# Verify whether two images depict the same person
+result = DeepFace.verify(
+    img1_path="person1.jpg",
+    img2_path="person2.jpg",
+    model_name="ArcFace",        # ArcFace / Facenet512 are strong defaults
+    detector_backend="retinaface" # robust face detection
+)
+print(result)
+# {'verified': True/False, 'distance': 0.42, 'threshold': 0.68, ...}
+
+# Bulk search: find all matches for a probe inside a directory
+dfs = DeepFace.find(
+    img_path="probe.jpg",
+    db_path="reference_set/",
+    model_name="ArcFace"
+)
+```
+
+```python
+# Legacy path — face_recognition (still works, but unmaintained)
+# pip install face_recognition
 import face_recognition
 
-# Load images
 image1 = face_recognition.load_image_file("person1.jpg")
 image2 = face_recognition.load_image_file("person2.jpg")
-
-# Get face encodings
 encoding1 = face_recognition.face_encodings(image1)[0]
 encoding2 = face_recognition.face_encodings(image2)[0]
 
-# Compare
 results = face_recognition.compare_faces([encoding1], encoding2)
-print(f"Match: {results[0]}")  # True/False
-
-# Distance (lower = more similar)
 distance = face_recognition.face_distance([encoding1], encoding2)
-print(f"Distance: {distance[0]}")  # 0.0 - 1.0
+print(f"Match: {results[0]}, Distance: {distance[0]:.3f}")
+# distance < 0.6 ≈ same person (default threshold)
 ```
 
 ### License Plate Recognition
@@ -820,14 +1022,21 @@ cat plate_text.txt
 
 **Automated ALPR (Automatic License Plate Recognition):**
 ```bash
-# Using OpenALPR (open-source)
-# Install: https://github.com/openalpr/openalpr
+# OpenALPR (open-source) — repo at github.com/openalpr/openalpr
+# OpenALPR was acquired by Rekor Systems; the open-source repo has been
+# largely stagnant since 2021 [verify 2026-04-25]. Still works on
+# common Western plate formats, but accuracy on modern EU/Asian formats
+# is best-in-class only via the commercial alternatives below.
+alpr -c us plate_image.jpg            # Output: plate + confidence score
+alpr -c eu -n 10 plate_image.jpg      # Top 10 matches, EU pattern set
 
-alpr -c us plate_image.jpg
-# Output: Plate number + confidence score
-
-# Specify region
-alpr -c eu -n 10 plate_image.jpg  # Top 10 matches for EU plates
+# Modern alternatives:
+# - Plate Recognizer (https://platerecognizer.com) — hosted API; free tier
+#   ~2,500 lookups/month for non-commercial use [verify 2026-04-25]
+# - ultimateALPR SDK (https://github.com/DoubangoTelecom/ultimateALPR-SDK) —
+#   open-source SDK, GPL3, strong on Asian and Arabic plates
+# - V0LT Predator (https://github.com/connervieira/Predator) — open-source
+#   wrapper around OpenALPR with extra ergonomics
 ```
 
 ### Reverse Video Search
@@ -867,20 +1076,36 @@ ffmpeg -i video.mp4 -vf "scale=8:8,format=gray" -f image2pipe -vcodec ppm - | sh
 | Tool | Purpose | Platform | Link |
 |------|---------|----------|------|
 | **ExifTool** | Metadata extraction | CLI (all platforms) | [exiftool.org](https://exiftool.org) |
-| **Google Images** | Reverse image search | Web | [images.google.com](https://images.google.com) |
-| **Yandex Images** | Reverse search (faces) | Web | [yandex.com/images](https://yandex.com/images) |
-| **TinEye** | Reverse search (temporal) | Web/API | [tineye.com](https://tineye.com) |
-| **PimEyes** | Facial recognition | Web (commercial) | [pimeyes.com](https://pimeyes.com) |
-| **SunCalc** | Sun position calculator | Web | [suncalc.org](https://suncalc.org) |
-| **Google Earth Pro** | Satellite imagery, 3D view | Desktop (free) | [google.com/earth/pro](https://www.google.com/earth/versions/#earth-pro) |
-| **ffmpeg** | Video processing | CLI | [ffmpeg.org](https://ffmpeg.org) |
-| **yt-dlp** | Video download | CLI (Python) | [github.com/yt-dlp/yt-dlp](https://github.com/yt-dlp/yt-dlp) |
-| **InVID Plugin** | Video verification | Browser extension | [invid-project.eu](https://www.invid-project.eu/tools-and-services/invid-verification-plugin/) |
-| **Tesseract OCR** | Text extraction | CLI | [github.com/tesseract-ocr](https://github.com/tesseract-ocr/tesseract) |
+| **Google Images / Lens** | Reverse image search | Web | [images.google.com](https://images.google.com) |
+| **Yandex Images** | Reverse search (faces, Cyrillic) | Web | [yandex.com/images](https://yandex.com/images) |
+| **TinEye** | Reverse search (temporal / oldest instance) | Web / API | [tineye.com](https://tineye.com) |
+| **Bing Visual Search** | Reverse search (objects, products) | Web | [bing.com/visualsearch](https://www.bing.com/visualsearch) |
+| **PimEyes** | Face search (open web) | Web (commercial) | [pimeyes.com](https://pimeyes.com) |
+| **FaceCheck.id** | Face search (social-leaning) | Web (commercial, pay-per-search) | [facecheck.id](https://facecheck.id) |
+| **Search4Faces** | Face search (VK / OK / TikTok / Clubhouse) | Web | [search4faces.com](https://search4faces.com) |
+| **DeepFace** | Face comparison / verification | Python | [github.com/serengil/deepface](https://github.com/serengil/deepface) |
+| **SunCalc** | Sun-position calculator | Web | [suncalc.org](https://www.suncalc.org) |
+| **ShadowFinder** | Inverse sun-position (find lat/long from shadow) | CLI / Colab (Python) | [github.com/bellingcat/ShadowFinder](https://github.com/bellingcat/ShadowFinder) |
+| **Google Earth Pro** | Satellite imagery, historical layers, 3D | Desktop (free) | [google.com/earth/versions](https://www.google.com/earth/versions/) |
+| **Mapillary** | Crowdsourced street imagery | Web | [mapillary.com](https://www.mapillary.com) |
+| **KartaView** | Crowdsourced street imagery (Grab) | Web | [kartaview.org](https://kartaview.org) |
+| **Overpass Turbo** | OSM tag-based area queries | Web | [overpass-turbo.eu](https://overpass-turbo.eu) |
+| **ffmpeg / ffprobe** | Video processing + metadata | CLI | [ffmpeg.org](https://ffmpeg.org) |
+| **yt-dlp** | Social-video download | CLI (Python) | [github.com/yt-dlp/yt-dlp](https://github.com/yt-dlp/yt-dlp) |
+| **InVID / WeVerify (vera.ai)** | Video verification toolkit | Browser extension | [veraai.eu](https://www.veraai.eu/) |
+| **Tesseract OCR** | Text extraction | CLI | [github.com/tesseract-ocr/tesseract](https://github.com/tesseract-ocr/tesseract) |
 | **ImageMagick** | Image manipulation | CLI | [imagemagick.org](https://imagemagick.org) |
-| **FotoForensics** | Error level analysis | Web | [fotoforensics.com](http://fotoforensics.com) |
+| **FotoForensics** | Error-level analysis | Web | [fotoforensics.com](https://fotoforensics.com) |
 | **Whisper** | Audio transcription | CLI (Python) | [github.com/openai/whisper](https://github.com/openai/whisper) |
+| **Intel FakeCatcher** | Real-time deepfake detection (PPG) | OEM / commercial | [intel.com/.../trusted-media-deepfake-detection](https://www.intel.com/content/www/us/en/research/trusted-media-deepfake-detection.html) |
+| **Reality Defender** | Multi-modal deepfake detection | Commercial API | [realitydefender.com](https://www.realitydefender.com) |
+| **Sensity AI** | Identity-focused deepfake detection | Commercial | [sensity.ai](https://sensity.ai) |
+| **AI or Not** | Single-image AI-generation check | Web (free tier) | [aiornot.com](https://www.aiornot.com) |
+| **C2PA c2patool** | Inspect Content Credentials | CLI (Rust) | [github.com/contentauth/c2pa-rs](https://github.com/contentauth/c2pa-rs) |
+| **Content Credentials Verify** | Browser-side C2PA check | Web | [contentcredentials.org/verify](https://contentcredentials.org/verify) |
+| **Plate Recognizer** | ALPR (hosted, free tier) | Web / API | [platerecognizer.com](https://platerecognizer.com) |
 | **GeoGuessr** | Geolocation practice | Web | [geoguessr.com](https://www.geoguessr.com) |
+| **Bellingcat Toolkit** | Curated OSINT tool index | Web | [bellingcat.gitbook.io/toolkit](https://bellingcat.gitbook.io/toolkit/) |
 
 ### Quick Command Reference
 
@@ -1133,12 +1358,30 @@ cropped.jpg           (hash: c3d4e5f6...) - from: convert original.jpg -crop 200
 
 ## 11. Legal & Ethical Considerations
 
+> **Authority anchor:** This section summarises image/video-specific
+> considerations only. The canonical legal-and-ethics framework lives in
+> [[sop-legal-ethics|Legal & Ethics SOP]] — read it first; do not rely on
+> the bullets below as a complete authority. For collection-side OPSEC
+> (probe-image leakage to facial-recognition vendors, browser fingerprint
+> exposure when uploading), see [[sop-opsec-plan|OPSEC Plan]].
+
 ### Privacy & Consent
 
 **⚠️ Legal restrictions on facial recognition:**
-- EU: GDPR restricts biometric data processing
-- US: Varies by state (IL/TX have strict laws, others minimal)
-- Always verify legal authority before using facial recognition tools
+- EU: GDPR Art. 9 treats biometric data as a special category — processing
+  requires an explicit lawful basis (Art. 9(2)) AND, in many member
+  states, a national-law derogation. The EU AI Act (in force 2024-08-01,
+  staged enforcement) further restricts real-time remote biometric
+  identification in public spaces.
+- US: Varies sharply by state. Illinois BIPA, Texas CUBI, Washington
+  HB 1493 impose private rights of action and consent requirements;
+  most other states have minimal regulation. Federal sectoral laws
+  (FERPA, HIPAA) may apply contextually.
+- UK: UK GDPR + DPA 2018 mirror EU GDPR for biometric data; ICO has
+  taken enforcement action against indiscriminate face-search providers.
+- Always verify legal authority **before** uploading a probe image to
+  any third-party facial-recognition service — the upload itself may
+  constitute regulated processing.
 
 **Ethical use guidelines:**
 ```markdown
@@ -1165,7 +1408,8 @@ Evidence collection checklist:
 - [ ] Document source URL, timestamp, collection method
 - [ ] Never modify originals (work on copies)
 - [ ] Log all processing steps (cropping, enhancement, etc.)
-- [ ] Include tool versions (exiftool 12.67, ffmpeg 4.4.2, etc.)
+- [ ] Include tool versions (e.g. `exiftool -ver`, `ffmpeg -version`,
+      `yt-dlp --version` — record output verbatim, do not paraphrase)
 ```
 
 See also: [[sop-collection-log|Collection Log & Chain of Custody]]
@@ -1182,10 +1426,17 @@ See also: [[sop-collection-log|Collection Log & Chain of Custody]]
 **Related SOPs:**
 - [[sop-collection-log|Collection Log]]
 - [[sop-reporting-packaging-disclosure|Reporting]]
+- [[sop-legal-ethics|Legal & Ethics]] — authority on consent / biometric law
+- [[sop-opsec-plan|OPSEC Plan]] — probe-image / browser-fingerprint hygiene
+- [[sop-entity-dossier|Entity Dossier]] — where face / image findings get logged
 - [Hash Generation](../../Security/Analysis/sop-hash-generation-methods.md)
+- [Forensics Investigation](../../Security/Analysis/sop-forensics-investigation.md) — for chain-of-custody on seized media
 
 **Additional Resources:**
+- [Bellingcat Online Investigation Toolkit](https://bellingcat.gitbook.io/toolkit/) — curated, frequently-updated tool catalogue
+- [vera.ai](https://www.veraai.eu/) — successor to InVID/WeVerify; verification-plugin home
+- [Content Authenticity Initiative](https://contentauthenticity.org/) — C2PA reference implementations and policy resources
 - [Gral Hix](https://gralhix.com/) - OSINT tools and resources
-- [Bene Brown](https://www.youtube.com/c/bendobrown) - Geolocation and OSINT techniques
+- [Benjamin Strick (Bene Brown)](https://www.youtube.com/c/bendobrown) - Geolocation and OSINT techniques
 - [GeoRainbolt](https://www.youtube.com/@georainbolt) - Expert geolocation content
 - [start.me OSINT Resources](https://start.me/u/gl0bal01) - Comprehensive OSINT tool directory

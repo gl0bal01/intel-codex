@@ -1,9 +1,22 @@
 ---
+type: sop
 title: "Cryptography Analysis SOP"
 description: "Crypto security assessment: cipher analysis, encryption audits, key management review & cryptographic vulnerability testing for secure implementations."
+tags:
+  - sop
+  - security
+  - cryptography
+  - cryptanalysis
+  - tls
+  - rsa
+  - password-cracking
+  - ctf
+updated: 2026-04-25
 ---
 
 # Cryptography Analysis SOP
+
+> **Authorized environments only.** Run cryptographic attacks (password cracking, padding-oracle exploitation, RSA factoring of recovered keys, TLS scanning of production endpoints) against systems you own or have written authorization to test. Decrypting third-party traffic, breaking keys you do not control, or scanning hosts without permission can violate computer-fraud, wiretap, and export-control statutes. See [[sop-legal-ethics|Legal & Ethics]].
 
 ## Table of Contents
 
@@ -17,7 +30,9 @@ description: "Crypto security assessment: cipher analysis, encryption audits, ke
 8. [SSL/TLS & PKI](#ssltls--pki)
 9. [Common Attacks](#common-attacks)
 10. [CTF Crypto Challenges](#ctf-crypto-challenges)
-11. [Tools Reference](#tools-reference)
+11. [Post-Quantum Cryptography](#post-quantum-cryptography)
+12. [Tools Reference](#tools-reference)
+13. [Legal & Ethical Considerations](#legal--ethical-considerations)
 
 ---
 
@@ -51,18 +66,24 @@ description: "Crypto security assessment: cipher analysis, encryption audits, ke
 | Type | Algorithm | Key Size | Status | Notes |
 |------|-----------|----------|--------|-------|
 | **Symmetric** | AES | 128/192/256-bit | ✅ Secure | Industry standard |
-| | ChaCha20 | 256-bit | ✅ Secure | Modern alternative |
-| | 3DES | 168-bit | ⚠️ Deprecated | Use AES instead |
+| | ChaCha20-Poly1305 | 256-bit | ✅ Secure | AEAD; mobile/no-AES-NI default |
+| | 3DES | 168-bit | ⚠️ Deprecated | NIST disallowed after 2023 |
 | | DES/RC4 | 56-bit/Variable | ❌ Broken | Never use |
-| **Asymmetric** | RSA | ≥2048-bit | ✅ Secure | 4096-bit for high security |
+| **Asymmetric** | RSA | ≥2048-bit | ✅ Secure (classical) | 3072-bit for ≥2030 (NIST SP 800-57) |
 | | RSA | <2048-bit | ❌ Weak | Easily factored |
-| | ECC | 256-bit | ✅ Secure | Smaller keys, same security |
-| **Hash** | SHA-256/512 | 256/512-bit | ✅ Secure | General purpose |
-| | SHA-1 | 160-bit | ❌ Broken | Collision attacks exist |
-| | MD5 | 128-bit | ❌ Broken | Never use for security |
-| **Password** | Argon2 | Variable | ✅ Best | PHC winner 2015 |
-| | bcrypt | Variable | ✅ Secure | Industry standard |
-| | PBKDF2 | Variable | ✅ Acceptable | Minimum 100k iterations |
+| | ECC (P-256, X25519, Ed25519) | 256-bit | ✅ Secure (classical) | Smaller keys, same security |
+| | ML-KEM (FIPS 203) | 512/768/1024 | ✅ Secure (PQ KEM) | Replaces CRYSTALS-Kyber; finalized Aug 2024 |
+| | ML-DSA (FIPS 204) | 44/65/87 | ✅ Secure (PQ sig) | Replaces CRYSTALS-Dilithium |
+| | SLH-DSA (FIPS 205) | Variable | ✅ Secure (PQ sig) | Stateless hash-based; replaces SPHINCS+ |
+| **Hash** | SHA-256/384/512 | 256/384/512-bit | ✅ Secure | General purpose (SHA-2 family) |
+| | SHA-3 (Keccak) | 224/256/384/512-bit | ✅ Secure | Different construction (sponge); FIPS 202 |
+| | BLAKE2 / BLAKE3 | 256-bit (default) | ✅ Secure | Faster than SHA-2; BLAKE3 parallelizable |
+| | SHA-1 | 160-bit | ❌ Broken | Collision attacks (SHAttered 2017) |
+| | MD5 | 128-bit | ❌ Broken | Collisions trivial; never use for security |
+| **Password** | Argon2id | Variable | ✅ Best | PHC winner 2015; OWASP-recommended variant |
+| | scrypt | Variable | ✅ Secure | Memory-hard; common in cryptocurrency |
+| | bcrypt | ≤72 bytes | ✅ Secure | Industry standard; truncates long passwords |
+| | PBKDF2-HMAC-SHA256 | Variable | ✅ Acceptable | Minimum 600k iterations (OWASP 2023+) |
 
 ### Essential Commands
 
@@ -76,13 +97,14 @@ hashcat -m 0 -a 0 hashes.txt rockyou.txt           # MD5 dictionary
 hashcat -m 1400 -a 0 hashes.txt rockyou.txt        # SHA-256
 hashcat -m 3200 -a 0 hashes.txt rockyou.txt        # bcrypt
 
-# RSA analysis/attacks
-python3 RsaCtfTool.py --publickey public.pem --private
+# RSA analysis/attacks (modern entry point; older python3 RsaCtfTool.py still works)
+RsaCtfTool --publickey public.pem --private
 openssl rsa -in private.pem -text -noout
 
 # SSL/TLS testing
 testssl.sh --full https://target.com
 nmap --script ssl-enum-ciphers -p 443 target.com
+nmap --script ssl-cert,ssl-ccs-injection -p 443 target.com
 
 # Certificate inspection
 openssl x509 -in cert.pem -text -noout
@@ -494,24 +516,57 @@ if p and q:
     print(f"p = {p}, q = {q}")
 ```
 
-#### 4. Automated RSA Attacks
+#### 4. Wiener's Attack (Small Private Exponent)
 
-**RsaCtfTool** - Automates 20+ RSA attacks
+**Vulnerability:** When `d < (1/3) * n^(1/4)`, the private exponent can be recovered from the public key alone using continued-fraction expansion of `e/n`.
+
+**When to suspect:** Small `d` chosen for fast decryption (signing devices, IoT). Often paired with very large `e` to keep `e * d ≡ 1 (mod φ(n))` balanced.
+
+```python
+# Conceptual; production-ready implementations: owiecc/wiener_attack, RsaCtfTool's wiener module
+# Procedure: compute continued-fraction convergents of e/n; for each convergent k/d,
+# test whether (e*d - 1) / k == φ(n) yields integer p, q from x^2 - (n - φ + 1)*x + n = 0
+```
+
+#### 5. Boneh-Durfee Attack (Lattice-based Wiener Extension)
+
+**Vulnerability:** Extends Wiener up to `d < n^0.292` using Coppersmith / LLL lattice reduction. RsaCtfTool exposes this via the `boneh_durfee` attack module.
+
+#### 6. ROCA (Return of Coppersmith's Attack, CVE-2017-15361)
+
+**Vulnerability:** RSA keys generated by Infineon's RSALib (used in TPM chips, Yubikey 4, Estonian eID, Gemalto smartcards) have a structured form `n = k * M + (65537^a mod M)` that allows factoring 1024-bit keys in ~97 CPU-days and 2048-bit in ~140 CPU-years (commercial-feasible for 1024).
+
+**Detection:**
+```bash
+# roca-detect from CRoCS-MUNI
+pip install roca-detect
+roca-detect public_key.pem
+# Or batch: roca-detect-keystore *.pem
+```
+
+#### 7. Automated RSA Attacks
+
+**RsaCtfTool** — Automates Wiener, Hastad, Boneh-Durfee, common modulus, Fermat, Pollard rho/p-1, Williams p+1, ECM, ROCA, SQUFOF, FactorDB lookup, Z3, Wolfram Alpha, and more.
 
 ```bash
-# Install
+# Install (Python 3.9+ required)
 git clone https://github.com/RsaCtfTool/RsaCtfTool.git
 cd RsaCtfTool
 pip3 install -r requirements.txt
 
-# Recover private key from public key
-python3 RsaCtfTool.py --publickey public.pem --private
+# Modern entry point (older `python3 RsaCtfTool.py` form still works)
+RsaCtfTool --publickey public.pem --private
 
-# Decrypt ciphertext
-python3 RsaCtfTool.py --publickey public.pem --uncipherfile encrypted.bin
+# Decrypt ciphertext (current flag: --decryptfile; legacy --uncipherfile retained)
+RsaCtfTool --publickey public.pem --decryptfile encrypted.bin
 
 # Try all attacks
-python3 RsaCtfTool.py --publickey public.pem --private --attack all
+RsaCtfTool --publickey public.pem --private --attack all
+
+# Specific attack module
+RsaCtfTool --publickey public.pem --private --attack wiener
+RsaCtfTool --publickey public.pem --private --attack boneh_durfee
+RsaCtfTool --publickey public.pem --private --attack roca
 ```
 
 ---
@@ -551,6 +606,18 @@ print(f"SHA-256: {sha256}")
 # SHA-512 (512-bit) - ✅ SECURE
 sha512 = hashlib.sha512(message).hexdigest()
 print(f"SHA-512: {sha512}")
+
+# SHA-3 (Keccak, FIPS 202) - ✅ SECURE - sponge construction, immune to length extension
+sha3_256 = hashlib.sha3_256(message).hexdigest()
+print(f"SHA3-256: {sha3_256}")
+
+# BLAKE2 - ✅ SECURE - faster than SHA-2, included in stdlib
+blake2 = hashlib.blake2b(message).hexdigest()
+print(f"BLAKE2b: {blake2}")
+
+# BLAKE3 - ✅ SECURE - parallelizable, faster than BLAKE2 (pip install blake3)
+# import blake3
+# print(f"BLAKE3: {blake3.blake3(message).hexdigest()}")
 ```
 
 ### HMAC (Message Authentication)
@@ -596,15 +663,20 @@ hash_secure = hmac.new(secret, data, hashlib.sha256).hexdigest()
 
 **Attack Tool:**
 ```bash
-# HashPump - Exploits length extension
-git clone https://github.com/bwall/HashPump.git
-cd HashPump && make
+# hash_extender - Exploits length extension (HashPump's bwall/HashPump repo is gone; this is the
+# actively-recommended replacement; supports MD4/MD5/RIPEMD-160/SHA-0/SHA-1/SHA-256/SHA-512/WHIRLPOOL)
+git clone https://github.com/iagox86/hash_extender.git
+cd hash_extender && make
 
 # Extend hash without knowing secret
-./hashpump -s 'original_hash' \
-           -d 'original_data' \
-           -a '&admin=true' \
-           -k 10  # Secret length guess
+./hash_extender --data 'user=guest' \
+                --secret 16 \
+                --append '&admin=true' \
+                --signature 'original_hex_hash' \
+                --format sha256
+
+# SHA-3, BLAKE2, BLAKE3, and HMAC-* are NOT vulnerable to length extension
+# (sponge / keyed-hash constructions). Use HMAC or migrate to SHA-3 / BLAKE2.
 ```
 
 ---
@@ -662,12 +734,23 @@ hashid '5d41402abc4b2a76b9719d911017c592'
 
 ### Hashcat (GPU Password Cracking)
 
-**Common Hash Modes:**
+**Common Hash Modes** (full list: `hashcat --help` or [hashcat.net wiki example_hashes](https://hashcat.net/wiki/doku.php?id=example_hashes)):
 - `0` = MD5
 - `100` = SHA1
 - `1400` = SHA-256
+- `1700` = SHA-512
 - `3200` = bcrypt
-- `1800` = sha512crypt (Unix)
+- `1800` = sha512crypt (Unix `$6$`)
+- `1000` = NTLM
+- `5500` = NetNTLMv1
+- `5600` = NetNTLMv2
+- `8900` = scrypt
+- `13400` = KeePass 1/2
+- `14600` = LUKS
+- `11600` = 7-Zip
+- `13600` = WinZip
+- `22000` = WPA-PBKDF2-PMKID+EAPOL (replaces legacy 2500/16800)
+- Argon2 modes vary by hashcat build [verify 2026-04-25] — check `hashcat --help | grep -i argon` on your installed version
 
 **Dictionary Attack:**
 ```bash
@@ -732,11 +815,11 @@ openssl x509 -in cert.pem -noout -issuer
 
 ### SSL/TLS Testing
 
-**testssl.sh (Comprehensive Scanner):**
+**testssl.sh (Comprehensive Scanner)** — current stable: 3.2.3 (Feb 2026); 3.3dev for in-progress features.
 
 ```bash
-# Clone
-git clone https://github.com/drwetter/testssl.sh.git
+# Clone (use --depth 1 for the stable branch only)
+git clone --depth 1 https://github.com/drwetter/testssl.sh.git
 
 # Full scan
 ./testssl.sh --full https://target.com
@@ -745,33 +828,54 @@ git clone https://github.com/drwetter/testssl.sh.git
 ./testssl.sh --heartbleed https://target.com
 ./testssl.sh --poodle https://target.com
 ./testssl.sh --robot https://target.com
+./testssl.sh --logjam https://target.com
+./testssl.sh --freak https://target.com
 
-# Check weak ciphers
+# Protocol coverage (TLS 1.3 supported, including 0-RTT detection where applicable)
+./testssl.sh --protocols https://target.com
+
+# Cipher / KEX inspection (post-quantum hybrid groups such as X25519MLKEM768
+# appear under key-exchange listings on supporting endpoints) [verify 2026-04-25]
 ./testssl.sh --cipher-per-proto https://target.com
+./testssl.sh --groups https://target.com
 ```
 
-**Nmap SSL Scripts:**
+**Nmap SSL Scripts** (all part of standard NSE distribution):
 
 ```bash
-# Enumerate ciphers
+# Enumerate ciphers, protocols, and cipher preference order
 nmap --script ssl-enum-ciphers -p 443 target.com
 
-# Check Heartbleed
+# Certificate inspection
+nmap --script ssl-cert -p 443 target.com
+
+# Heartbleed (CVE-2014-0160)
 nmap --script ssl-heartbleed -p 443 target.com
 
-# Check POODLE
+# POODLE (CVE-2014-3566)
 nmap --script ssl-poodle -p 443 target.com
+
+# CCS injection (CVE-2014-0224)
+nmap --script ssl-ccs-injection -p 443 target.com
+
+# DH parameter check
+nmap --script ssl-dh-params -p 443 target.com
 ```
 
 ### Common SSL/TLS Vulnerabilities
 
 | Vulnerability | CVE | Impact | Test |
 |---------------|-----|--------|------|
-| Heartbleed | CVE-2014-0160 | Memory leak | `nmap --script ssl-heartbleed` |
+| Heartbleed | CVE-2014-0160 | OpenSSL memory leak | `nmap --script ssl-heartbleed` |
 | POODLE | CVE-2014-3566 | SSLv3 padding oracle | `testssl.sh --poodle` |
 | BEAST | CVE-2011-3389 | CBC vulnerability TLS 1.0 | `testssl.sh --beast` |
+| CCS Injection | CVE-2014-0224 | OpenSSL key material disclosure | `nmap --script ssl-ccs-injection` |
+| FREAK | CVE-2015-0204 | Export-grade RSA downgrade | `testssl.sh --freak` |
+| LOGJAM | CVE-2015-4000 | DHE downgrade to 512-bit | `testssl.sh --logjam` |
 | DROWN | CVE-2016-0800 | SSLv2 cross-protocol attack | `testssl.sh --drown` |
-| ROBOT | - | RSA PKCS#1 oracle | `testssl.sh --robot` |
+| Sweet32 | CVE-2016-2183 | 64-bit block cipher (3DES/Blowfish) | `testssl.sh --sweet32` |
+| ROBOT | CVE-2017-13099 (and others) | RSA PKCS#1 v1.5 Bleichenbacher oracle | `testssl.sh --robot` |
+| Raccoon | CVE-2020-1968 | Static-DH timing leak | covered by `--full` |
 
 ---
 
@@ -956,18 +1060,72 @@ cd CyberChef && firefox CyberChef.html
 
 ---
 
+## Post-Quantum Cryptography
+
+### Status (as of 2026)
+
+NIST finalized the first three FIPS post-quantum standards in **August 2024**. Migration is no longer hypothetical — federal systems and major TLS deployments have begun rolling out hybrid (classical + PQ) algorithms.
+
+| Standard | Algorithm | Origin Submission | Use Case |
+|----------|-----------|-------------------|----------|
+| **FIPS 203** | ML-KEM (512 / 768 / 1024) | CRYSTALS-Kyber | Key encapsulation (TLS, IKEv2, Signal) |
+| **FIPS 204** | ML-DSA (44 / 65 / 87) | CRYSTALS-Dilithium | General-purpose digital signatures |
+| **FIPS 205** | SLH-DSA (SHA2 / SHAKE; 128/192/256) | SPHINCS+ | Stateless hash-based signatures (firmware, code-signing) |
+| FIPS 206 (in progress) [verify 2026-04-25] | FN-DSA | FALCON | Compact lattice signatures |
+| Selected for additional KEM standardization | HQC | HQC | Code-based KEM, ML-KEM backup |
+
+### Hybrid Key Exchange (Transition Reality)
+
+**Why hybrid:** classical (X25519) gives short-term confidentiality if the PQ algorithm is broken; PQ (ML-KEM-768) gives long-term confidentiality against "harvest-now-decrypt-later." Both run in parallel and the shared secrets are concatenated.
+
+- **TLS 1.3 codepoint:** `X25519MLKEM768` (group `0x11EC`) — defined in `draft-ietf-tls-ecdhe-mlkem` (active IETF draft replacing the expired `draft-kwiatkowski-tls-ecdhe-mlkem`) [verify 2026-04-25].
+- **Browser/CDN deployment:** Chrome (since v131, late 2024) and Cloudflare enabled `X25519MLKEM768` by default. Firefox shipped support behind config flag, then on by default [verify 2026-04-25 — confirm exact version].
+- **Detection:** modern `testssl.sh --groups` and OpenSSL 3.5+ (`openssl s_client -groups X25519MLKEM768 -connect host:443`) will negotiate hybrid groups when both endpoints support them [verify 2026-04-25].
+
+### Migration Posture for Auditors
+
+1. **Inventory crypto-using assets** (TLS endpoints, code-signing roots, VPN, document signing, secure boot, blockchain).
+2. **Classify by data lifetime:** anything that must remain confidential past ~2030 is a "harvest-now-decrypt-later" target — prioritize hybrid TLS + PQ key wrapping today.
+3. **Track NIST SP 800-208** (stateful hash-based signatures: LMS, XMSS) for firmware/IoT code-signing where SLH-DSA is too large.
+4. **CNSA 2.0** mandates ML-KEM-1024 / ML-DSA-87 / SLH-DSA-256 for U.S. NSS systems; full transition by 2033 [verify 2026-04-25].
+
+### Practical Tools
+
+```bash
+# liboqs - Open Quantum Safe (C library + bindings)
+git clone https://github.com/open-quantum-safe/liboqs.git
+# OpenSSL provider for liboqs (oqs-provider) enables PQ KEX/sigs in OpenSSL 3.x
+git clone https://github.com/open-quantum-safe/oqs-provider.git
+
+# pqcrypto (Python) - bindings to NIST round-3 / FIPS-203/204/205 reference impls
+pip install pqcrypto
+
+# Test endpoint negotiates hybrid PQ groups (requires OpenSSL 3.5+ with PQ enabled)
+openssl s_client -groups X25519MLKEM768:X25519:secp256r1 \
+                 -connect target.com:443 -tls1_3 </dev/null
+```
+
+> **Don't roll your own PQ.** Even more than classical crypto, PQ implementations are subtle (lattice arithmetic, constant-time sampling, side-channel resistance). Use liboqs / oqs-provider / pqcrypto / vendor libraries — never re-implement from the spec.
+
+---
+
 ## Tools Reference
 
 ### Essential Tools
 
 | Tool | Purpose | Installation |
 |------|---------|--------------|
-| **OpenSSL** | Crypto operations, certs | `apt install openssl` |
+| **OpenSSL** | Crypto operations, certs | `apt install openssl` (3.x; 3.5+ for PQ groups) |
 | **Hashcat** | GPU password cracking | `apt install hashcat` |
-| **John the Ripper** | CPU password cracking | `apt install john` |
-| **testssl.sh** | SSL/TLS testing | `git clone https://github.com/drwetter/testssl.sh` |
-| **RsaCtfTool** | Automated RSA attacks | `git clone https://github.com/RsaCtfTool/RsaCtfTool.git` |
-| **hashid** | Hash identification | `pip install hashid` |
+| **John the Ripper (jumbo)** | CPU password cracking | `apt install john` (distro) or build `openwall/john` jumbo branch for the widest format coverage |
+| **testssl.sh** | SSL/TLS testing | `git clone --depth 1 https://github.com/drwetter/testssl.sh` (stable 3.2.x) |
+| **RsaCtfTool** | Automated RSA attacks (Wiener, Boneh-Durfee, ROCA, Hastad, common modulus, FactorDB, Z3, ...) | `git clone https://github.com/RsaCtfTool/RsaCtfTool.git` |
+| **hashid** | Hash identification | `pipx install hashid` |
+| **name-that-hash (nth)** | Modern hash identifier (more formats than hashid) | `pipx install name-that-hash` |
+| **roca-detect** | Detect ROCA-vulnerable RSA keys (CVE-2017-15361) | `pip install roca-detect` |
+| **hash_extender** | Length-extension attack (replaces unmaintained HashPump) | `git clone https://github.com/iagox86/hash_extender && make` |
+| **liboqs / oqs-provider** | Post-quantum primitives + OpenSSL 3 provider | `git clone https://github.com/open-quantum-safe/oqs-provider.git` |
+| **SageMath** | CTF-grade number theory, lattice attacks | `apt install sagemath` |
 
 ### Python Libraries
 
@@ -992,12 +1150,15 @@ pip install hashid            # Hash identification
 
 ### Specialized Tools
 
-| Tool          | Purpose                        | Link                                      |
-| ------------- | ------------------------------ | ----------------------------------------- |
-| **PadBuster** | Padding oracle attack          | https://github.com/AonCyberLabs/PadBuster |
-| **CyberChef** | Multi-tool for encoding/crypto | https://gchq.github.io/CyberChef/         |
-| **FactorDB**  | Integer factorization database | http://factordb.com/                      |
-| **Slither**   | Smart contract analyzer        | `pip install slither-analyzer`            |
+| Tool          | Purpose                                            | Link                                      |
+| ------------- | -------------------------------------------------- | ----------------------------------------- |
+| **PadBuster** | Padding oracle attack (Perl, original)             | https://github.com/AonCyberLabs/PadBuster |
+| **padre**     | Padding oracle attack (Go, faster, modern)         | https://github.com/glebarez/padre         |
+| **CyberChef** | Multi-tool for encoding/crypto                     | https://gchq.github.io/CyberChef/         |
+| **FactorDB**  | Integer factorization database                     | http://factordb.com/                      |
+| **YAFU**      | Self-tuning integer factorizer (large composites)  | https://github.com/bbuhrow/yafu           |
+| **msieve / cado-nfs** | Number-field-sieve factorization for ≥512-bit n | https://gitlab.inria.fr/cado-nfs/cado-nfs |
+| **Slither**   | Smart contract analyzer                            | `pip install slither-analyzer`            |
 
 ---
 
@@ -1089,7 +1250,18 @@ pip install hashid            # Hash identification
 - **CVE Details - Cryptography** - [cvedetails.com](https://www.cvedetails.com/)
   - Search for crypto-related CVEs (Heartbleed, POODLE, etc.)
 - **NIST Cryptographic Standards** - [csrc.nist.gov/projects/cryptographic-standards-and-guidelines](https://csrc.nist.gov/projects/cryptographic-standards-and-guidelines)
-  - Official FIPS standards (FIPS 140-2, SP 800-series)
+  - Official FIPS standards (FIPS 140-3, SP 800-series)
+
+### Post-Quantum Cryptography
+- **NIST PQC Project** - [csrc.nist.gov/projects/post-quantum-cryptography](https://csrc.nist.gov/projects/post-quantum-cryptography)
+  - FIPS 203 (ML-KEM), 204 (ML-DSA), 205 (SLH-DSA) — finalized August 2024
+- **Open Quantum Safe** - [openquantumsafe.org](https://openquantumsafe.org/)
+  - liboqs reference implementations + oqs-provider for OpenSSL 3.x
+- **PQShield Migration Resources** - [pqshield.com](https://pqshield.com/) [verify 2026-04-25]
+- **Cloudflare PQ Status** - [pq.cloudflareresearch.com](https://pq.cloudflareresearch.com/)
+  - Real-world deployment metrics for hybrid PQ TLS
+- **CISA PQC Migration Roadmap** - [cisa.gov/quantum](https://www.cisa.gov/quantum)
+  - Federal guidance on inventory + migration timelines
 
 ### Research & Academic Papers
 - **IACR ePrint Archive** - [eprint.iacr.org](https://eprint.iacr.org/)
@@ -1109,7 +1281,7 @@ pip install hashid            # Hash identification
   - French platform with cryptanalysis challenges
 
 ### Defensive Resources
-- **OWASP Cryptographic Failures (A02:2021)** - [owasp.org/Top10/A02_2021-Cryptographic_Failures](https://owasp.org/Top10/A02_2021-Cryptographic_Failures/)
+- **OWASP Cryptographic Failures (A04:2025 / A02:2021)** - [owasp.org/Top10/A02_2021-Cryptographic_Failures](https://owasp.org/Top10/A02_2021-Cryptographic_Failures/) (2021 page; 2025 content at [owasp.org/Top10/2025/](https://owasp.org/Top10/2025/))
   - Common crypto implementation mistakes
   - Weak algorithms, improper key management
 - **NIST Key Management Guidelines (SP 800-57)** - [csrc.nist.gov/publications/detail/sp/800-57-part-1/rev-5/final](https://csrc.nist.gov/publications/detail/sp/800-57-part-1/rev-5/final)
@@ -1127,14 +1299,32 @@ pip install hashid            # Hash identification
 - [[sop-hash-generation-methods|Hash Generation Methods]] - File integrity verification
 
 **Pentesting & Security:**
-- [[../Pentesting/sop-web-application-security|Web Application Security]] - Cryptographic failures (OWASP A02:2021)
+- [[../Pentesting/sop-web-application-security|Web Application Security]] - Cryptographic failures (OWASP A04:2025 / A02:2021)
 - [[../Pentesting/sop-vulnerability-research|Vulnerability Research]] - Finding crypto vulnerabilities
 - [[../Pentesting/sop-bug-bounty|Bug Bounty Hunting]] - Responsible disclosure
 - [[../Pentesting/sop-mobile-security|Mobile Security]] - SSL pinning bypass
-- [[../Pentesting/sop-forensics-investigation|Forensics Investigation]] - Encrypted data recovery
+- [[sop-forensics-investigation|Forensics Investigation]] - Encrypted data recovery
+
+**OSINT & Process:**
+- [[sop-legal-ethics|Legal & Ethics]] - Authorization, jurisdiction, export control (canonical)
+- [[sop-opsec-plan|OPSEC Plan]] - Handling of recovered keys, ciphertext, evidence custody
 
 ---
 
-**Version:** 2.0
-**Last Updated:** 2025-10-11
+## Legal & Ethical Considerations
+
+Cryptographic analysis spans defensive testing, CTF training, academic research, and offensive operations. Authorization and jurisdiction matter independently of intent — see [[sop-legal-ethics|Legal & Ethics]] for the canonical framework. Field-specific risks for this SOP:
+
+- **Authorization:** password cracking, padding-oracle attacks, RSA key recovery, and TLS scanning of *third-party* hosts can constitute unauthorized access (CFAA / Computer Misuse Act / equivalent statutes worldwide). Get written scope before running anything in this SOP against a system you do not own.
+- **Wiretap / interception:** decrypting captured traffic — even your own captures of someone else's session — implicates wiretap statutes (e.g., U.S. ECPA, EU ePrivacy). Lab traffic only unless you have signed authorization or both-party consent.
+- **Export control:** cryptographic source code and certain dual-use tools (e.g., libraries implementing strong PQ KEMs) are subject to EAR (US) / Wassenaar / national export-control regimes. Be cautious sharing builds across borders; published open-source code is generally exempt but the exemption is narrow.
+- **Recovered key material handling:** treat recovered private keys, plaintext, and password lists as evidence — minimum, encrypt at rest with a fresh key; preferred, hand off to the engagement custodian per [[sop-opsec-plan|OPSEC Plan]] §evidence handling. Never paste recovered keys into public pastebins, third-party CTF "hint" sites, or LLM chat windows.
+- **Disclosure:** for vulnerabilities found incidentally (e.g., a misconfigured TLS deployment, a ROCA-vulnerable production key), follow coordinated disclosure — see [[../Pentesting/sop-bug-bounty|Bug Bounty]] for the responsible-disclosure workflow.
+- **CTF context:** challenges shipped *for cracking* are in scope by definition; do not extend the same techniques to the platform's own infrastructure or to other competitors' systems.
+
+---
+
+**Version:** 2.1
+**Last Updated:** 2026-04-25
 **Focus:** Practical cryptanalysis for security research and CTF challenges
+**Review Frequency:** Semi-annual (medium-rot — tooling churn, CVE drift, post-quantum migration tracking)

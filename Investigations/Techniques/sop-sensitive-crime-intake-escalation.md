@@ -3,6 +3,8 @@ type: sop
 title: Sensitive Crime Intake & Escalation
 description: "Critical incident protocols: CSAM reporting, violent threats, terrorism escalation & law enforcement referral procedures for sensitive investigations."
 created: 2024-11-16
+updated: 2026-04-26
+template_version: 2026-04-26
 tags:
   - sop
   - safety
@@ -53,14 +55,16 @@ tags:
 
 ### Legal Framework
 
-**Mandatory Reporting Laws:**
-- **United States:** Federal law (18 U.S.C. § 2258A) requires reporting CSAM to NCMEC
-- **European Union:** GDPR Article 6(1)(d) permits processing for vital interests (life-threatening situations)
-- **United Kingdom:** Section 47 Modern Slavery Act 2015 requires reporting trafficking
-- **Australia:** Commonwealth Criminal Code Act 1995 (Division 474.22) CSAM reporting
+**Mandatory Reporting Laws** (canonical jurisdictional analysis lives in [[sop-legal-ethics|Legal & Ethics]]; the bullets below are operational triggers, not legal advice):
+
+- **United States — 18 U.S.C. § 2258A:** Electronic Service Providers must report apparent violations to NCMEC CyberTipline. The **REPORT Act (Pub. L. 118-59, signed 2024-05-07)** expanded the reportable categories to include online enticement of children for sexual acts and child sex trafficking (alongside CSAM) and extended NCMEC's evidence-retention window from 90 to 365 days. `[verify 2026-04-26]`
+- **European Union — GDPR Article 6(1)(d):** Processing necessary to protect *vital interests* of the data subject or another natural person is a lawful basis (life-threatening situations). Article 9(2)(c) covers special-category data on the same grounds. `[verify 2026-04-26]`
+- **European Union — CSAM-detection regime:** **Interim Regulation (EU) 2021/1232** (the "ePrivacy derogation" allowing voluntary scanning of communications for CSAM by number-independent interpersonal communications services) **expired 2026-04-03**; the proposed permanent **CSAM Regulation** remains under negotiation in the Council and Parliament. Confirm current EU detection authority before relying on platform-side reports from EU services. `[verify 2026-04-26]`
+- **United Kingdom — Modern Slavery Act 2015 § 52:** Statutory duty on specified public authorities (police forces, NCA, certain local authorities — the "First Responder" cohort under the National Referral Mechanism) to notify the Secretary of State of suspected victims of slavery or human trafficking. **Note:** § 54 of the same Act covers *supply-chain transparency* (corporate annual statement) — the two are commonly conflated; § 52 is the victim-referral duty. `[verify 2026-04-26]`
+- **Australia — Criminal Code Act 1995 (Cth) Division 474 / s 474.22 et seq.:** Possession, control, production, supply and access offences for child abuse material obtained or transmitted using a carriage service. `[verify 2026-04-26]`
 
 **Good Samaritan Provisions:**
-- Reporting in good faith generally protected from liability
+- Reporting in good faith generally protected from liability (specific immunity scope varies — confirm against the controlling statute or counsel)
 - Privilege applies to mandatory reporters (varies by jurisdiction)
 - No duty to investigate beyond reasonable belief
 
@@ -105,10 +109,11 @@ tags:
 - Imminent threat to critical infrastructure
 
 **Emergency Contact:**
-- **US:** 911 (local emergency), FBI tips.fbi.gov (terrorism)
-- **US (CSAM):** NCMEC CyberTipline 1-800-843-5678 or CyberTipline.org
-- **UK:** 999 (emergency), 101 (non-emergency), CEOP (child safety)
-- **EU:** 112 (emergency)
+- **US:** 911 (local emergency); FBI tips.fbi.gov (terrorism); 988 Suicide & Crisis Lifeline (since 2022-07-16, replaced 1-800-273-TALK)
+- **US (CSAM):** NCMEC CyberTipline 1-800-843-5678 or report.cybertip.org
+- **UK:** 999 (emergency); 101 (non-emergency); CEOP / NCA (child safety) — `ceop.police.uk` redirects into NCA's CEOP Command reporting flow
+- **EU:** 112 (universal emergency, all 27 EU states + EFTA + UK)
+- **Canada:** 911; 9-8-8 Suicide Crisis Helpline (since 2023-11-30)
 
 ### Tier 2: Urgent Escalation (Within 24 Hours)
 
@@ -435,10 +440,11 @@ Contact: [Your phone/email]"
 
 ### Child Sexual Abuse Material (CSAM)
 
-**Legal Definition (US - 18 U.S.C. § 2256):**
+**Legal Definition (US - 18 U.S.C. § 2256):** `[verify 2026-04-26]`
 - Visual depiction of minor (<18 years) engaged in sexually explicit conduct
-- Includes real children, not computer-generated imagery (CGI) or drawings (varies by jurisdiction)
-- Possession, distribution, and production are federal crimes
+- Statutory definition centres on real minors; treatment of CGI / "virtual" CSAM and obscenity-statute overlap is jurisdiction-specific (see *Ashcroft v. Free Speech Coalition*, 535 U.S. 234 (2002), and the PROTECT Act 2003 obscenity provisions). Confirm current charging posture with counsel.
+- Possession, distribution, receipt, and production are federal crimes (18 U.S.C. §§ 2251, 2252, 2252A)
+- Mandatory ESP reporting to NCMEC under 18 U.S.C. § 2258A as amended by the **REPORT Act 2024** (Pub. L. 118-59) — categories now include online enticement and child sex trafficking; NCMEC retention extended to 365 days. `[verify 2026-04-26]`
 
 **Recognition Indicators:**
 - Images/videos depicting children in sexual situations
@@ -601,8 +607,12 @@ wget --page-requisites "https://classifiedsite.com/ad/12345" -O trafficking_ad.h
 - Active violence (assault, shooting, stabbing)
 - Medical emergency requiring immediate intervention
 
+**Crisis line vs emergency services:**
+- For an *imminent* attempt or active life-threatening crisis: call emergency services first (911/999/112/000).
+- For credible ideation without an active attempt where the subject can be reached/encouraged to call: US/Canada **988** Suicide & Crisis Lifeline; UK **Samaritans 116 123**; international directory **findahelpline.com** (IASP). `[verify 2026-04-26]`
+
 **Immediate Actions:**
-1. **Call 911/999/112 FIRST** (emergency services)
+1. **Call 911/999/112/000 FIRST** (emergency services)
 2. Provide dispatcher:
    - Nature of emergency
    - Location (physical address or last known location)
@@ -664,10 +674,15 @@ My contact: [your phone number for follow-up]"
 - **Department of Homeland Security:** 1-800-BE-ALERT
 
 **Human Trafficking:**
-- **National Human Trafficking Hotline:** 1-888-373-7888 | Text: 233733
+- **National Human Trafficking Hotline (Polaris Project):** 1-888-373-7888 | Text 233733 (BEFREE) | https://humantraffickinghotline.org/
 
 **Cybercrime:**
 - **IC3 (Internet Crime Complaint Center):** https://www.ic3.gov/
+- **CISA Reporting:** report@cisa.gov | https://www.cisa.gov/report `[verify 2026-04-26]`
+
+**Crisis / Mental Health:**
+- **988 Suicide & Crisis Lifeline:** 988 (call or text), `988lifeline.org` (replaced 1-800-273-TALK in 2022)
+- **Crisis Text Line:** Text HOME to 741741
 
 **Emergency:**
 - **911** (imminent threat to life)
@@ -694,32 +709,45 @@ My contact: [your phone number for follow-up]"
 ### European Union
 
 **Child Safety:**
-- **INHOPE Hotline Network:** https://www.inhope.org/ (EU hotline directory)
-- **Europol (via national contact):** https://www.europol.europa.eu/
+- **INHOPE Hotline Network:** https://www.inhope.org/ — global directory of CSAM-reporting hotlines (EU + 50+ member jurisdictions). Use https://www.inhope.org/EN/find-a-hotline to locate the in-country member. `[verify 2026-04-26]`
+- **ICMEC (International Centre for Missing & Exploited Children):** https://www.icmec.org/ — coordinates global response; partners with national hotlines.
+- **Europol EC3 (European Cybercrime Centre):** Via national contact point — https://www.europol.europa.eu/
+- **Note on detection regime:** **Interim Regulation (EU) 2021/1232** (voluntary CSAM scanning derogation from ePrivacy Directive) **expired 2026-04-03**. The proposed permanent CSAM Regulation remained under negotiation in the Council/Parliament at expiry. Confirm authority basis before relying on EU service-provider proactive detection. `[verify 2026-04-26]`
 
 **Terrorism:**
-- **Europol Counter-Terrorism:** Via national law enforcement
+- **Europol Counter-Terrorism (ECTC):** Via national law enforcement
+- **Europol Internet Referral Unit (EU IRU):** https://www.europol.europa.eu/operations-services-and-innovation/services-support/referral-action `[verify 2026-04-26]`
 - **112** (emergency)
 
 **Human Trafficking:**
-- **EU Anti-Trafficking Coordinator:** Via national authorities
+- **EU Anti-Trafficking Coordinator** (DG HOME): Via national authorities — https://home-affairs.ec.europa.eu/policies/internal-security/organised-crime-and-human-trafficking/together-against-trafficking-human-beings_en `[verify 2026-04-26]`
 
 ### Australia
 
 **Child Safety:**
-- **ACORN (Australian Cybercrime Online Reporting):** https://www.cyber.gov.au/
+- **ACCCE (Australian Centre to Counter Child Exploitation):** https://www.accce.gov.au/ — primary AFP-led CSAM/child-exploitation reporting portal. `[verify 2026-04-26]`
+- **eSafety Commissioner:** https://www.esafety.gov.au/report — image-based abuse, illegal/restricted online content (Online Safety Act 2021). `[verify 2026-04-26]`
+
+**Cybercrime:**
+- **ReportCyber (ACSC):** https://www.cyber.gov.au/report-and-recover/report (replaces ACORN, decommissioned 2019). `[verify 2026-04-26]`
 - **AFP (Australian Federal Police):** https://www.afp.gov.au/
 
 **Emergency:**
 - **000** (police, ambulance, fire)
+- **131 444** (police non-emergency, most states) `[verify 2026-04-26]`
+- **Lifeline crisis support:** 13 11 14
 
 ### Canada
 
 **Child Safety:**
-- **Cybertip.ca:** https://www.cybertip.ca/ | 1-866-658-9022
+- **Cybertip.ca** (Canadian Centre for Child Protection): https://www.cybertip.ca/ | 1-866-658-9022 `[verify 2026-04-26]`
 
 **Terrorism:**
 - **RCMP National Security:** https://www.rcmp-grc.gc.ca/
+- **CSIS (Canadian Security Intelligence Service):** https://www.canada.ca/en/security-intelligence-service.html
+
+**Crisis / Mental Health:**
+- **9-8-8 Suicide Crisis Helpline:** 988 (call or text), https://988.ca/ — launched 2023-11-30 `[verify 2026-04-26]`
 
 **Emergency:**
 - **911** (most regions)
@@ -757,11 +785,26 @@ My contact: [your phone number for follow-up]"
 
 ### International
 
-**INTERPOL:**
-- Via national contact point: https://www.interpol.int/
+**Child Safety (cross-jurisdictional):**
+- **INHOPE (Hotline Network):** https://www.inhope.org/ — 50+ member CSAM-reporting hotlines worldwide; use "Find a Hotline" to route to the in-country member. `[verify 2026-04-26]`
+- **ICMEC:** https://www.icmec.org/ — coordinates Project VIC and global CSAM victim-identification work. (Project VIC and PhotoDNA access require LE / vetted-partner credentials.) `[verify 2026-04-26]`
 
-**Europol:**
-- Via national law enforcement: https://www.europol.europa.eu/
+**Law Enforcement Coordination:**
+- **INTERPOL:** Via national contact point — https://www.interpol.int/ (CSAM victim identification through ICSE database is LE-only)
+- **Europol:** Via national law enforcement — https://www.europol.europa.eu/
+
+**Human Trafficking (cross-jurisdictional):**
+- **UNODC Human Trafficking Knowledge Portal:** https://sherloc.unodc.org/cld/en/v3/htms/index.html `[verify 2026-04-26]`
+- **Inter-Agency Coordination Group against Trafficking in Persons (ICAT):** https://icat.un.org/ `[verify 2026-04-26]`
+
+**Journalists / Human-Rights Defenders at Risk:**
+- **CPJ Emergencies:** https://cpj.org/emergency-response/
+- **Reporters Without Borders (RSF):** https://rsf.org/
+- **Front Line Defenders:** https://www.frontlinedefenders.org/
+
+**Crisis Support (international directory):**
+- **findahelpline.com** (IASP — International Association for Suicide Prevention)
+- **Befrienders Worldwide:** https://www.befrienders.org/
 
 ---
 
@@ -981,7 +1024,7 @@ sha256sum -b * > SHA256SUMS
 ### Resources
 
 **US:**
-- **National Suicide Prevention Lifeline:** 988 (call or text)
+- **988 Suicide & Crisis Lifeline:** 988 (call or text), `988lifeline.org`
 - **Crisis Text Line:** Text HOME to 741741
 - **SAMHSA Helpline:** 1-800-662-4357 (mental health, substance abuse)
 - **EAP:** Contact your organization's HR department
@@ -991,8 +1034,29 @@ sha256sum -b * > SHA256SUMS
 - **Mind:** 0300 123 3393
 - **NHS Mental Health Crisis:** Text SHOUT to 85258
 
+**Canada:**
+- **9-8-8 Suicide Crisis Helpline:** 988 (call or text), https://988.ca/
+
 **International:**
+- **findahelpline.com** (IASP — International Association for Suicide Prevention; localised crisis directory)
 - **Befrienders Worldwide:** https://www.befrienders.org/ (global crisis helpline directory)
+
+### Researcher-Wellness References (CSAM / extreme-violence work)
+
+Apply the same controls used by mainstream child-safety teams and conflict-zone journalists. Authoritative sources for SOPs, training, and supervisor frameworks:
+
+- **Tech Coalition — "Thorn / Tech Coalition Employee Resilience Guidebook"** and Trust & Safety wellness materials. `[verify 2026-04-26]`
+- **Project VIC** — victim-identification database; LE / vetted-partner credentials required. `[verify 2026-04-26]`
+- **Microsoft Digital Crimes Unit** — Researcher Wellbeing Guide for CSAM-adjacent investigators. `[verify 2026-04-26]`
+- **Headington Institute** — vicarious-trauma training and assessment for humanitarian and high-exposure workers (https://headington-institute.org/). `[verify 2026-04-26]`
+- **Dart Center for Journalism and Trauma** (Columbia Journalism School) — trauma-informed reporting and interviewing guidance applicable to OSINT investigators (https://dartcenter.org/). `[verify 2026-04-26]`
+- **UK NCA "Wellbeing for those investigating online child sexual abuse"** guidance. `[verify 2026-04-26]`
+
+**Operational floor (regardless of organisation):**
+- Two-person rule for any review of graphic evidence (avoid single-investigator exposure).
+- Mandatory rotation off CSAM-adjacent material on a fixed cadence (commonly 6–12 months); supervisor enforces, not the analyst.
+- No off-hours / personal-device review of sensitive content; workstation-based only.
+- Document exposure events even when no formal escalation is required (cumulative effect tracking).
 
 ---
 
@@ -1351,11 +1415,11 @@ sdelete -p 7 E:\Evidence\ESC-2025-1005-001\*
 
 ---
 
-**Version:** 2.0
-**Last Updated:** 2025-10-10
-**Review Cycle:** Yearly
+**Version:** 2.1
+**Last Updated:** 2026-04-26
+**Review Cycle:** Yearly (anchor SOP — bump only on legal-framework changes, hotline rebrands, or canonical-source URL moves)
 
 ---
 
 **Related SOPs:**
-[[sop-legal-ethics|Legal & Ethics]] | [[sop-opsec-plan|OPSEC Planning]] | [[sop-collection-log|Collection Log]] | [[sop-reporting-packaging-disclosure|Reporting & Disclosure]]
+[[sop-legal-ethics|Legal & Ethics]] | [[sop-opsec-plan|OPSEC Planning]] | [[sop-collection-log|Collection Log]] | [[sop-reporting-packaging-disclosure|Reporting & Disclosure]] | [[sop-entity-dossier|Entity Dossier]]

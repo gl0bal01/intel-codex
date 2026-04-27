@@ -1,8 +1,10 @@
 ---
 type: sop
 title: Legal, Ethics & Data Governance for OSINT
-description: "Essential legal & ethical boundaries for OSINT: GDPR compliance, authorization requirements, privacy laws & responsible disclosure protocols."
+description: "Essential legal & ethical boundaries for OSINT: GDPR/CPRA/state-privacy compliance, authorization, cross-border transfer, sensitive-data handling & responsible disclosure."
 created: 2025-10-05
+updated: 2026-04-26
+template_version: 2026-04-26
 tags: [sop, legal, ethics, compliance, gdpr, privacy, data-governance]
 ---
 
@@ -50,30 +52,40 @@ tags: [sop, legal, ethics, compliance, gdpr, privacy, data-governance]
 **Key Laws & Regulations:**
 
 **United States:**
-- **CFAA (18 U.S.C. § 1030):** Computer Fraud and Abuse Act - prohibits unauthorized access
-- **ECPA (18 U.S.C. § 2510):** Electronic Communications Privacy Act - wiretapping, stored communications
-- **SCA (18 U.S.C. § 2701):** Stored Communications Act - unauthorized access to stored electronic communications
-- **State privacy laws:** CCPA (California), VCDPA (Virginia), CPA (Colorado)
+- **CFAA (18 U.S.C. § 1030):** Computer Fraud and Abuse Act — prohibits unauthorized access. Scope narrowed by *Van Buren v. United States* (2021) and *hiQ Labs v. LinkedIn* (9th Cir. 2022).
+- **ECPA (18 U.S.C. § 2510):** Electronic Communications Privacy Act — wiretapping, stored communications.
+- **SCA (18 U.S.C. § 2701):** Stored Communications Act — unauthorized access to stored electronic communications.
+- **DMCA § 1201 (17 U.S.C. § 1201):** Anti-circumvention of technological protection measures. Triennial Librarian-of-Congress rulemaking sets security-research exemptions; **most recent cycle was 2024** (37 CFR 201.40(b)(7)) [verify 2026-04-26].
+- **CSAM reporting (18 U.S.C. § 2258A):** Mandatory NCMEC CyberTipline reporting by US-provider electronic-communication services. REPORT Act (Pub. L. 118-59, May 2024) expanded reporting categories to include enticement and trafficking [verify 2026-04-26].
+- **State privacy laws:** California **CCPA** (2018) as amended by **CPRA** (operative Jan 1, 2023; CPPA enforcement); **VCDPA** (Virginia, Jan 2023), **CPA** (Colorado, July 2023), **CTDPA** (Connecticut, July 2023), **UCPA** (Utah, Dec 2023). ~15+ additional state comprehensive privacy laws active or imminent through 2025–2026 (TX, OR, MT, IA, DE, NJ, NH, KY, IN, TN, MD, MN, RI, etc.) — verify the current list at iapp.org or NCSL before scoping a multi-state matter [verify 2026-04-26].
 
 **European Union:**
-- **GDPR (Regulation 2016/679):** General Data Protection Regulation - data processing, privacy rights
-- **ePrivacy Directive (2002/58/EC):** Cookie consent, electronic communications privacy
-- **Data Retention Directive:** Varies by member state
+- **GDPR (Regulation (EU) 2016/679):** General Data Protection Regulation — data processing, privacy rights. Article 6 lawful basis, Article 9 special-category data, Article 14(5)(b) OSINT-relevant notification carve-out.
+- **ePrivacy Directive (2002/58/EC):** Cookie consent, electronic communications privacy. (ePrivacy Regulation proposal still pending as of 2026 [verify 2026-04-26].)
+- **Cybercrime Directive (2013/40/EU):** Harmonizes member-state criminal law on attacks against information systems (analogue to CFAA).
+- **NIS2 Directive ((EU) 2022/2555):** Network and information security; member-state transposition deadline October 17, 2024.
+- **DORA (Digital Operational Resilience Act, (EU) 2022/2554):** Applies to financial-sector entities from January 17, 2025.
+- **EU AI Act (Regulation (EU) 2024/1689):** In force August 1, 2024. Prohibited-practices ban from February 2, 2025; GPAI obligations August 2, 2025; full applicability August 2, 2026 [verify 2026-04-26]. Article 50 transparency obligations are relevant to synthetic-media OSINT.
+- **e-Evidence Regulation ((EU) 2023/1543) and Directive ((EU) 2023/1544):** Cross-border production/preservation orders for electronic evidence; staged application from August 18, 2026 [verify 2026-04-26].
+- **EU–US Data Privacy Framework (DPF):** European Commission adequacy decision adopted July 10, 2023, replacing the Schrems-II-invalidated Privacy Shield. Self-certification via dataprivacyframework.gov; subject to ongoing CJEU review.
 
 **United Kingdom:**
-- **Data Protection Act 2018:** UK implementation of GDPR
-- **Computer Misuse Act 1990:** Unauthorized access to computer systems
-- **Investigatory Powers Act 2016:** Surveillance and interception
-- **Modern Slavery Act 2015:** Mandatory reporting of trafficking
+- **UK GDPR + Data Protection Act 2018:** Domestic implementation of GDPR (post-Brexit). Data (Use and Access) Bill / DPDI reform debate ongoing through 2024–2026 [verify 2026-04-26].
+- **Computer Misuse Act 1990:** § 1 unauthorized access, § 3 unauthorized modification, § 3ZA serious damage to systems. Home Office launched a CMA reform consultation in 2023; status of any successor legislation is unsettled [verify 2026-04-26].
+- **Investigatory Powers Act 2016:** Surveillance and interception. Amended by Investigatory Powers (Amendment) Act 2024.
+- **Modern Slavery Act 2015:** § 52 duty to notify the Single Competent Authority (NRM referrals); § 54 supply-chain transparency statements (different obligation — do not conflate).
+- **Online Safety Act 2023:** User-to-user / search-service duties; Ofcom enforcement phasing in through 2025–2026 [verify 2026-04-26].
 
 **Australia:**
-- **Privacy Act 1988:** Australian Privacy Principles (APPs)
-- **Cybercrime Act 2001:** Unauthorized access, data interference
-- **Surveillance Devices Act:** Varies by state
+- **Privacy Act 1988:** Australian Privacy Principles (APPs); reform tranches in progress 2024–2026 (statutory tort for serious invasion of privacy; mandatory data-breach uplift) [verify 2026-04-26].
+- **Cybercrime Act 2001:** Unauthorized access, data interference (Criminal Code Part 10.7).
+- **Surveillance Devices Act:** Federal Surveillance Devices Act 2004 + state/territory equivalents — recording-consent rules vary materially by state.
 
 **International:**
-- **Budapest Convention on Cybercrime:** International cooperation on cybercrime
-- **UN Guiding Principles on Business & Human Rights:** Corporate responsibility for human rights
+- **Budapest Convention on Cybercrime (CETS 185, 2001) + Second Additional Protocol (CETS 224, 2022):** International cooperation on cybercrime; Second Protocol covers direct cooperation with service providers and joint investigations.
+- **Council of Europe Convention 108+ (CETS 223, modernized 2018):** Open for signature; ratification status varies by state [verify 2026-04-26].
+- **UN OHCHR Berkeley Protocol on Digital Open Source Investigations (2022):** Methodology benchmark for human-rights and accountability OSINT.
+- **UN Guiding Principles on Business & Human Rights:** Corporate responsibility for human rights.
 
 ---
 
@@ -230,14 +242,28 @@ tags: [sop, legal, ethics, compliance, gdpr, privacy, data-governance]
 **GDPR applies to:**
 - Organizations established in EU (regardless of where data is processed)
 - Organizations outside EU that offer goods/services to EU residents
-- Organizations outside EU that monitor behavior of EU residents
+- Organizations outside EU that monitor behavior of EU residents (Article 3(2) — explicitly captures behavioural OSINT against EU subjects)
 
-**Example:** US-based OSINT firm investigating EU resident for US client must comply with GDPR.
+**Example:** US-based OSINT firm investigating EU resident for US client must comply with GDPR. Where personal data is transferred from the EU to the US, a valid Chapter V transfer mechanism is required (DPF self-certification, SCCs + Transfer Impact Assessment, or Article 49 derogation).
 
-**CCPA applies to:**
-- For-profit businesses doing business in California
+**CCPA / CPRA applies to:**
+- For-profit businesses doing business in California that meet at least one of: (a) annual gross revenue > $25M (adjusted), (b) buy/sell/share PI of ≥ 100,000 consumers or households, or (c) derive ≥ 50% of revenue from selling/sharing PI [verify 2026-04-26 — thresholds adjusted by CPPA regulations]
 - Collecting personal information of California residents
-- Meeting revenue/data volume thresholds
+- "Sensitive Personal Information" (SPI) under CPRA carries additional limit-of-use obligations
+
+### Cross-Border Transfer (EU → Third Countries)
+
+**Post-Schrems II (2020) baseline:** Privacy Shield invalidated; transfers to the US require an Article 46 transfer mechanism + Transfer Impact Assessment.
+
+**Current valid mechanisms (2026):**
+- **EU–US Data Privacy Framework** (adequacy decision July 10, 2023) for self-certified US recipients — verify recipient on the official DPF list before transferring.
+- **Standard Contractual Clauses** (2021/914) + Transfer Impact Assessment — required for non-DPF US recipients and most other third countries.
+- **Binding Corporate Rules** (Article 47) — intra-group transfers.
+- **Article 49 derogations** (consent, contract necessity, important public interest, legal claims, vital interests) — narrow, occasional use only; not a substitute for a transfer mechanism.
+
+**UK transfers:** Use the UK International Data Transfer Agreement (IDTA) or the UK Addendum to the EU SCCs; UK extension to the DPF was implemented October 12, 2023 [verify 2026-04-26].
+
+**Government access requests (CLOUD Act, 2018):** US providers may be compelled to produce stored data regardless of location; UK 2019 and Australia 2021 executive agreements operate as bilateral exceptions [verify 2026-04-26 — Canada and EU agreements still in negotiation].
 
 ---
 
@@ -254,18 +280,19 @@ tags: [sop, legal, ethics, compliance, gdpr, privacy, data-governance]
 - ❌ Bypassing paywalls or authentication mechanisms
 
 **Legal risk:**
-- **US:** CFAA violation (18 U.S.C. § 1030) - up to 10 years imprisonment
-- **UK:** Computer Misuse Act 1990 - up to 2 years imprisonment
-- **EU:** Varies by member state
+- **US:** CFAA violation (18 U.S.C. § 1030) — penalties scale with conduct (1–10 years for first-offense unauthorized access; 5–20 years where damage, fraud, or critical-infrastructure elements apply) [verify 2026-04-26].
+- **UK:** Computer Misuse Act 1990 § 1 (basic unauthorized access) — up to 2 years; § 3 / § 3ZA (modification / serious damage) — up to 10 years / life.
+- **EU:** Member-state implementation of Cybercrime Directive 2013/40/EU; minimum-maximum sentences vary by state.
 
 **Case law:**
-- *Van Buren v. United States* (2021): Accessing data you're authorized to access for unauthorized purposes may NOT violate CFAA (narrow ruling)
-- *hiQ Labs v. LinkedIn* (2022): Scraping publicly accessible data does NOT violate CFAA
-- **Caution:** Case law evolving, consult counsel
+- ***Van Buren v. United States*, 593 U.S. 374 (2021):** "Exceeds authorized access" under CFAA means accessing files/folders/databases the user is forbidden from accessing — *not* misusing data the user is otherwise permitted to view. Improper-purpose-only conduct on accessible data is generally outside CFAA after Van Buren.
+- ***hiQ Labs, Inc. v. LinkedIn Corp.*, 31 F.4th 1180 (9th Cir. 2022) (on remand post-Van Buren GVR):** Scraping publicly accessible website data without authentication is unlikely to violate CFAA's "without authorization" prong. The case ultimately settled in 2022 with hiQ liable on contract / DMCA-adjacent grounds — the CFAA holding did *not* immunize ToS violations or contract claims [verify 2026-04-26].
+- ***Meta v. BrandTotal* (N.D. Cal.) and other 2023–2024 scraping cases:** Show continued circuit/district friction over ToS-only violations; **assume the safest jurisdiction** when scoping cross-border scraping.
+- **Caution:** CFAA case law and DOJ charging policy (2022 charging-policy memo declining to prosecute good-faith security research) continue to evolve — consult counsel.
 
 **Permitted:**
 - ✅ Accessing publicly available information (no authentication required)
-- ✅ Using publicly disclosed credentials (e.g., default passwords, if legal in jurisdiction)
+- ✅ Using publicly disclosed credentials only where lawful in the relevant jurisdiction *and* not contractually prohibited (default-credential discovery in your own / authorized lab is fine; reusing leaked credentials against a third-party service is not)
 - ✅ Accessing data you have permission to access (Terms of Service compliance)
 
 **2. Social Engineering / Pretexting**
@@ -567,28 +594,39 @@ tags: [sop, legal, ethics, compliance, gdpr, privacy, data-governance]
 **Provided:** [Attached data export]
 ```
 
-### CCPA Compliance (California Residents)
+### CCPA / CPRA Compliance (California Residents)
 
-**CCPA Consumer Rights:**
+CCPA was amended by the California Privacy Rights Act (CPRA, operative January 1, 2023). The California Privacy Protection Agency (CPPA) is the principal enforcement authority alongside the Attorney General. References below cite the post-CPRA Cal. Civ. Code.
 
-**1. Right to Know (§ 1798.100)**
+**Consumer Rights:**
+
+**1. Right to Know (§ 1798.100, § 1798.110, § 1798.115)**
 - Categories of personal information collected
 - Sources, purposes, third parties with access
 
 **2. Right to Delete (§ 1798.105)**
 - Request deletion of personal information
-- **Exceptions:** Legal compliance, security, legal claims
+- **Exceptions:** Legal compliance, security, legal claims, free speech / public interest
 
-**3. Right to Opt-Out of Sale (§ 1798.120)**
-- Prohibit sale of personal information
-- **Note:** OSINT investigations typically do NOT constitute "sale"
+**3. Right to Correct (§ 1798.106)** *(added by CPRA)*
+- Request correction of inaccurate personal information
 
-**4. Right to Non-Discrimination (§ 1798.125)**
-- Cannot discriminate for exercising CCPA rights
+**4. Right to Opt-Out of Sale OR Sharing (§ 1798.120)**
+- Prohibit sale *and* cross-context behavioural advertising "sharing" — CPRA broadened the opt-out beyond strict "sale"
+- **Note:** OSINT investigations typically do NOT constitute "sale" or "sharing", but document the basis
 
-**CCPA Definitions:**
-- **Personal Information:** Information that identifies, relates to, or could reasonably be linked to a California resident
-- **Sale:** Includes disclosure for valuable consideration (broadly defined)
+**5. Right to Limit Use of Sensitive Personal Information (§ 1798.121)** *(added by CPRA)*
+- SPI categories include geolocation, biometric, health, sex life/orientation, racial/ethnic origin, religious beliefs, contents of non-recipient communications, government-ID numbers, financial-account credentials
+
+**6. Right to Non-Discrimination (§ 1798.125)**
+- Cannot discriminate for exercising rights
+
+**Definitions:**
+- **Personal Information:** Information that identifies, relates to, describes, or could reasonably be linked to a California resident or household
+- **Sale:** Disclosure for monetary or other valuable consideration (broadly defined)
+- **Sharing:** Disclosure for cross-context behavioural advertising, even without consideration
+
+**Other state regimes worth scoping (non-exhaustive, 2026):** Virginia (VCDPA), Colorado (CPA), Connecticut (CTDPA), Utah (UCPA), Texas (TDPSA), Oregon (OCPA), Montana (MCDPA), Iowa, Delaware, New Jersey, New Hampshire, Tennessee, Indiana, Kentucky, Maryland, Minnesota, Rhode Island [verify 2026-04-26 — confirm effective dates and applicability against current iapp.org / NCSL trackers].
 
 ### Privacy by Design
 
@@ -946,25 +984,25 @@ Example: "Subject's social media post suggests suicidal ideation. Should I notif
 **Immediately escalate to appropriate authority if you discover:**
 
 **1. Child Sexual Abuse Material (CSAM)**
-- Report to: NCMEC CyberTipline (US), IWF (UK), INHOPE (EU)
-- Timeframe: Immediate (within 1 hour)
-- **DO NOT** download or possess CSAM
+- Report to: **NCMEC CyberTipline** (US, https://report.cybertip.org/), **Internet Watch Foundation** (UK, https://report.iwf.org.uk/), **INHOPE** national member hotline (international, https://inhope.org/)
+- Timeframe: Immediate
+- **DO NOT** download, copy, hash-locally, or otherwise possess suspected CSAM. US providers must preserve and transmit per 18 U.S.C. § 2258A; non-providers must avoid possession entirely
 - See: [[sop-sensitive-crime-intake-escalation]]
 
 **2. Imminent Threat to Life**
-- Report to: Emergency services (911, 999, 112)
+- Report to: Emergency services (911 US/CA, 999 UK, 112 EU/AU)
 - Timeframe: Immediate
 - Examples: Suicide threat, kidnapping, active violence
 - See: [[sop-sensitive-crime-intake-escalation]]
 
 **3. Terrorism / National Security**
-- Report to: FBI (US), MI5 (UK), national authorities
-- Timeframe: Immediate (within 1 hour for imminent threats)
+- Report to: FBI (US, https://tips.fbi.gov/), MI5 (UK, https://www.mi5.gov.uk/contact-us), national authorities elsewhere; Europol J-CAT for cross-border cyber-enabled terrorism [verify 2026-04-26]
+- Timeframe: Immediate for imminent threats
 - See: [[sop-sensitive-crime-intake-escalation]]
 
 **4. Human Trafficking**
-- Report to: National Human Trafficking Hotline (US: 1-888-373-7888), Modern Slavery Helpline (UK)
-- Timeframe: Within 24 hours
+- Report to: **National Human Trafficking Hotline** (US: 1-888-373-7888, https://humantraffickinghotline.org/), **Modern Slavery & Exploitation Helpline** (UK: 08000 121 700, https://www.modernslaveryhelpline.org/)
+- Timeframe: Within 24 hours; immediate where there is an imminent risk to a victim
 - See: [[sop-sensitive-crime-intake-escalation]]
 
 **5. Serious Crime (Non-Imminent)**
@@ -973,9 +1011,10 @@ Example: "Subject's social media post suggests suicidal ideation. Should I notif
 - Examples: Large-scale fraud, organized crime, cybercrime
 
 **Legal obligations:**
-- **US:** Federal law (18 U.S.C. § 2258A) requires CSAM reporting
-- **UK:** Modern Slavery Act 2015 requires trafficking reporting
-- **Professional duty:** Attorney-client privilege may apply, consult counsel
+- **US — CSAM:** 18 U.S.C. § 2258A imposes reporting on US-provider electronic-communication services. Non-providers (researchers, investigators) have no affirmative reporting duty under § 2258A but must avoid possession; report via CyberTipline as a citizen reporter. The **REPORT Act** (Pub. L. 118-59, May 7, 2024) expanded provider reporting categories to include online enticement and child sex-trafficking offences and extended NCMEC retention periods [verify 2026-04-26].
+- **UK — modern slavery:** Modern Slavery Act 2015 § 52 requires "specified public authorities" (police, local authorities, gangmasters licensing) to notify the National Referral Mechanism (NRM); private investigators and most non-statutory bodies do not have a § 52 duty but should refer through the NRM or the Modern Slavery Helpline. (§ 54 transparency-statement duty is unrelated to incident reporting — do not conflate.)
+- **EU — CSAM:** Interim Regulation (EU) 2021/1232 permitting voluntary provider scanning expires April 3, 2026; the proposed long-term CSAM Regulation (COM(2022) 209) remains under negotiation [verify 2026-04-26].
+- **Professional duty:** Attorney-client and litigation privilege may apply to investigation work product; consult counsel before transmitting privileged material to any third party.
 
 ---
 
@@ -1066,19 +1105,35 @@ Example: "Subject's social media post suggests suicidal ideation. Should I notif
 
 **United States:**
 - **CFAA:** 18 U.S.C. § 1030 (Computer Fraud and Abuse Act)
-- **ECPA:** 18 U.S.C. § 2510 (Electronic Communications Privacy Act)
-- **SCA:** 18 U.S.C. § 2701 (Stored Communications Act)
-- **CSAM Reporting:** 18 U.S.C. § 2258A
-- **CCPA:** California Civil Code § 1798.100
+- **ECPA:** 18 U.S.C. § 2510 *et seq.* (Electronic Communications Privacy Act)
+- **Wiretap Act:** 18 U.S.C. § 2511
+- **SCA:** 18 U.S.C. § 2701 *et seq.* (Stored Communications Act)
+- **DMCA § 1201:** 17 U.S.C. § 1201 (anti-circumvention; security-research exemption at 37 CFR 201.40(b)(7), 2024 cycle [verify 2026-04-26])
+- **CSAM Reporting:** 18 U.S.C. § 2258A; REPORT Act, Pub. L. 118-59 (2024) [verify 2026-04-26]
+- **Federal stalking:** 18 U.S.C. § 2261A
+- **Wire fraud:** 18 U.S.C. § 1343
+- **CCPA / CPRA:** California Civil Code § 1798.100 *et seq.*
+- **Bank Secrecy Act / FinCEN AML:** 31 CFR Chapter X (e.g., § 1020.210 — bank AML program)
 
 **European Union:**
 - **GDPR:** Regulation (EU) 2016/679
 - **ePrivacy Directive:** Directive 2002/58/EC
+- **Cybercrime Directive:** Directive 2013/40/EU
+- **NIS2 Directive:** Directive (EU) 2022/2555
+- **DORA:** Regulation (EU) 2022/2554
+- **EU AI Act:** Regulation (EU) 2024/1689
+- **e-Evidence:** Regulation (EU) 2023/1543; Directive (EU) 2023/1544
 
 **United Kingdom:**
-- **Data Protection Act 2018**
+- **UK GDPR + Data Protection Act 2018**
 - **Computer Misuse Act 1990**
-- **Modern Slavery Act 2015**
+- **Investigatory Powers Act 2016** (as amended by the Investigatory Powers (Amendment) Act 2024)
+- **Modern Slavery Act 2015** (§ 52 NRM duty; § 54 supply-chain transparency)
+- **Online Safety Act 2023**
+
+**International:**
+- **Budapest Convention on Cybercrime (CETS 185)** + Second Additional Protocol (CETS 224)
+- **Council of Europe Convention 108+ (CETS 223)**
 
 ### DPIA (Data Protection Impact Assessment) Template
 
@@ -1136,28 +1191,40 @@ Example: "Subject's social media post suggests suicidal ideation. Should I notif
 
 ### Resources & References
 
-**Legal Frameworks:**
-- GDPR Full Text: https://gdpr-info.eu/
-- CCPA Full Text: https://oag.ca.gov/privacy/ccpa
-- CFAA Guide: https://www.justice.gov/criminal-ccips/ccmanual
+**Legal Frameworks (primary text):**
+- GDPR full text: https://gdpr-info.eu/ (annotated) / https://eur-lex.europa.eu/eli/reg/2016/679/oj (official)
+- EU AI Act: https://eur-lex.europa.eu/eli/reg/2024/1689/oj
+- NIS2 Directive: https://eur-lex.europa.eu/eli/dir/2022/2555/oj
+- DORA: https://eur-lex.europa.eu/eli/reg/2022/2554/oj
+- CCPA / CPRA: https://oag.ca.gov/privacy/ccpa ; CPPA regulations: https://cppa.ca.gov/regulations/
+- US-state privacy tracker: https://iapp.org/resources/article/us-state-privacy-legislation-tracker/ [verify 2026-04-26]
+- DOJ CFAA / Computer Crime Manual: https://www.justice.gov/criminal/criminal-ccips/ccips-documents-and-reports
+- DMCA § 1201 triennial exemptions (Library of Congress): https://www.copyright.gov/1201/
+- EU–US Data Privacy Framework: https://www.dataprivacyframework.gov/
 
-**Ethics Guides:**
-- Bellingcat Digital Investigations Ethics: https://bellingcat.gitbook.io/toolkit/resources/guides-and-handbooks
-- Berkeley Protocol (UN OHCHR): https://www.ohchr.org/en/publications/policy-and-methodological-publications/berkeley-protocol-digital-open-source
+**Ethics & Methodology:**
+- Bellingcat Toolkit & Guides: https://bellingcat.gitbook.io/toolkit/resources/guides-and-handbooks
+- UN OHCHR Berkeley Protocol on Digital Open Source Investigations (2022): https://www.ohchr.org/en/publications/policy-and-methodological-publications/berkeley-protocol-digital-open-source
+- ISO/IEC 27037:2012 (digital evidence handling) — purchase via https://www.iso.org/standard/44381.html
+- NIST SP 800-86 (forensic guide to incident response): https://csrc.nist.gov/pubs/sp/800/86/final
+- Council of Europe Convention 108+ explanatory report: https://www.coe.int/en/web/data-protection/convention108-and-protocol
 
-**Mandatory Reporting:**
+**Mandatory / Safeguarding Reporting:**
 - NCMEC CyberTipline: https://report.cybertip.org/
 - FBI Tips: https://tips.fbi.gov/
-- National Human Trafficking Hotline: 1-888-373-7888
+- Internet Watch Foundation (UK CSAM): https://report.iwf.org.uk/
+- INHOPE national hotlines: https://inhope.org/EN/articles/child-helplines
+- US National Human Trafficking Hotline: 1-888-373-7888 — https://humantraffickinghotline.org/
+- UK Modern Slavery & Exploitation Helpline: 08000 121 700 — https://www.modernslaveryhelpline.org/
 
 ---
 
-**Version:** 2.0
-**Last Updated:** 2025-10-05
-**Review Cycle:** Yearly
-**Next Review:** 2025-11-05
+**Version:** 2.1
+**Last Updated:** 2026-04-26
+**Review Cycle:** Yearly (with quarterly check on fast-moving items: EU AI Act phase-in, US-state privacy tracker, DMCA § 1201 cycle, REPORT Act guidance)
+**Next Review:** 2027-04-26
 
 ---
 
 **Related SOPs:**
-[[sop-sensitive-crime-intake-escalation|Sensitive Crime Escalation]] | [[sop-opsec-plan|OPSEC Planning]] | [[sop-collection-log|Collection Log]] | [[sop-reporting-packaging-disclosure|Reporting & Disclosure]] | [[../OSINT-Index|OSINT Index]]
+[[sop-sensitive-crime-intake-escalation|Sensitive Crime Escalation]] | [[sop-opsec-plan|OPSEC Planning]] | [[sop-collection-log|Collection Log]] | [[sop-reporting-packaging-disclosure|Reporting & Disclosure]] | [[Techniques-Index|Techniques Index]]

@@ -21,8 +21,8 @@ All content reflects current best practices and is actively maintained.
 
 ## 📊 Quick Stats
 
-**Total SOPs:** 30+
-**Categories:** Investigations (16) | Security (14) | CTF (9)
+**Total SOPs:** 39+
+**Categories:** Investigations (19) | Security (20) | CTF (9)
 
 ---
 
@@ -56,6 +56,9 @@ All content reflects current best practices and is actively maintained.
 - [[intel-codex/Investigations/Techniques/sop-image-video-osint|Image & Video Analysis]]
 - [[intel-codex/Investigations/Techniques/sop-web-dns-whois-osint|Web, DNS & WHOIS]]
 - [[intel-codex/Investigations/Techniques/sop-financial-aml-osint|Financial & AML]]
+- [[intel-codex/Investigations/Techniques/sop-blockchain-investigation|Blockchain Investigation]]
+- [[intel-codex/Investigations/Techniques/sop-mixer-tracing|Mixer & Privacy-Pool Tracing]]
+- [[intel-codex/Investigations/Techniques/sop-darkweb-investigation|Darkweb Investigation]]
 - [[intel-codex/Investigations/Techniques/sop-reporting-packaging-disclosure|Reporting & Disclosure]]
 - [[intel-codex/Investigations/Techniques/sop-sensitive-crime-intake-escalation|Sensitive Crime Escalation]]
 - [[intel-codex/Investigations/Techniques/Techniques-Index|Full Techniques Index]]
@@ -78,6 +81,10 @@ All content reflects current best practices and is actively maintained.
 - [[intel-codex/Security/Analysis/sop-forensics-investigation|Forensics Investigation]]
 - [[intel-codex/Security/Analysis/sop-cryptography-analysis|Cryptography Analysis]]
 - [[intel-codex/Security/Analysis/sop-hash-generation-methods|Hash Generation Methods]]
+- [[intel-codex/Security/Analysis/sop-smart-contract-audit|Smart Contract Audit]]
+- [[intel-codex/Security/Analysis/sop-cloud-forensics|Cloud Forensics]]
+- [[intel-codex/Security/Analysis/sop-saas-log-forensics|SaaS Log Forensics]]
+- [[intel-codex/Security/Analysis/sop-email-bec-forensics|Email & BEC Forensics]]
 - [[intel-codex/Security/Analysis/Analysis-Index|Full Analysis Index]]
 
 ### Pentesting & Vulnerability Research
@@ -89,6 +96,8 @@ All content reflects current best practices and is actively maintained.
 - [[intel-codex/Security/Pentesting/sop-linux-pentest|Linux Pentesting]]
 - [[intel-codex/Security/Pentesting/sop-bug-bounty|Bug Bounty Methodology]]
 - [[intel-codex/Security/Pentesting/sop-detection-evasion-testing|Detection & Evasion Testing]]
+- [[intel-codex/Security/Pentesting/sop-cloud-pentest|Cloud Pentesting (AWS/Azure/GCP)]]
+- [[intel-codex/Security/Pentesting/sop-wireless-rf-pentest|Wireless & RF Pentesting]]
 - [[intel-codex/Security/Pentesting/Pentesting-Index|Full Pentesting Index]]
 
 ---

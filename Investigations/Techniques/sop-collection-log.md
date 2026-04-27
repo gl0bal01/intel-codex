@@ -3,7 +3,8 @@ type: sop
 title: OSINT Collection Log & Chain of Custody
 description: "Evidence documentation guide: SHA-256 hashing, chain of custody, metadata preservation & forensically sound collection for legal admissibility."
 tags: [sop, log, chain-of-custody, evidence, documentation]
-template_version: 2025-10-05
+template_version: 2026-04-26
+updated: 2026-04-26
 ---
 
 # OSINT Collection Log & Chain of Custody
@@ -126,6 +127,8 @@ curl -s "https://api.x.com/2/tweets/TWEET_ID?expansions=author_id&tweet.fields=c
 
 **Step 3: Hash Calculation** (see [[../../Security/Analysis/sop-hash-generation-methods|Hash Generation Methods SOP]])
 
+> **Algorithm selection:** SHA-256 (NIST FIPS 180-4) is the default for evidence integrity throughout this SOP. SHA-3 (FIPS 202) is a future-compatible successor — SHA-2 has not been deprecated. **MD5 and SHA-1 are collision-broken** (Wang 2004 / Stevens et al. SHAttered 2017) and should appear only in legacy-compatibility contexts with an explicit deprecation note. BLAKE2 / BLAKE3 are fast modern hashes but lack a NIST FIPS standard and are not generally accepted as court-grade [verify 2026-04-26].
+
 ```bash
 # Linux/macOS
 sha256sum captured_file.html > captured_file.sha256
@@ -185,6 +188,9 @@ find . -type f -exec sha256sum {} \; > MANIFEST_SHA256SUMS.txt
 ```bash
 # Method 1: Nitter + SingleFile (no account required)
 # Navigate to: https://nitter.net/username
+# WARNING: nitter.net main instance has been intermittent/down since 2024 after
+# Twitter API restrictions; community-run instances exist but vary in
+# availability and trust posture. Verify before relying. [verify 2026-04-26]
 # Use SingleFile to capture HTML
 # Screenshot for visual proof
 
@@ -199,7 +205,11 @@ curl -X GET "https://api.x.com/2/users/USER_ID/tweets?max_results=100" \
      -H "Authorization: Bearer $TWITTER_BEARER_TOKEN" \
      > twitter_tweets.json
 
-# Method 3: Twint (archived tweets, no API needed - may be deprecated)
+# Method 3: Twint (LEGACY — repository archived 2022; Python 3.10+ compatibility
+# broken; cannot fetch tweets after the 2023 Twitter API lockdown without
+# unofficial patches). Document if still usable in a constrained legacy
+# environment, but prefer paid Twitter API v2 or browser-driven capture.
+# [verify 2026-04-26]
 twint -u username --json -o tweets.json
 ```
 
@@ -724,26 +734,42 @@ sha256sum file.txt | tee file.txt.sha256 | xclip -selection clipboard
 | **SingleFile** | Save complete web page as single HTML | Browser extension | [Chrome/Firefox](https://github.com/gildas-lormeau/SingleFile) |
 | **wget** | Archive websites to WARC format | CLI (Linux/Mac/Win) | `wget --warc-file=archive URL` |
 | **ArchiveBox** | Self-hosted web archiving | CLI/Web | [archivebox.io](https://archivebox.io) |
-| **Twint** | Twitter scraping (no API) | CLI (Python) | [github.com/twintproject/twint](https://github.com/twintproject/twint) |
+| **Wayback Machine** | Public third-party web archive (Internet Archive) | Web/API | `https://web.archive.org/save/<URL>` |
+| **Twint** | Twitter scraping (no API) — **archived 2022, legacy use only** [verify 2026-04-26] | CLI (Python) | [github.com/twintproject/twint](https://github.com/twintproject/twint) |
 | **Instaloader** | Instagram archival | CLI (Python) | `instaloader username` |
 | **exiftool** | Metadata extraction | CLI | `exiftool file.jpg` |
 | **sha256sum** | Hash calculation | CLI (Linux/Mac) | `sha256sum file.txt` |
 | **Get-FileHash** | Hash calculation | PowerShell (Windows) | `Get-FileHash -Path file.txt -Algorithm SHA256` |
-| **7-Zip** | Password-protected archiving | GUI/CLI | `7z a -pinfected -mhe=on archive.7z files/` |
+| **shasum -a 256** | Hash calculation (Perl, ships with macOS) | CLI (macOS/Linux) | `shasum -a 256 file.txt` |
+| **hashdeep / md5deep / sha256deep** | Recursive multi-hash for chain-of-custody verification | CLI (Linux/Mac/Win) | `sha256deep -r /Evidence/CASE-001/ > MANIFEST.txt` |
+| **7-Zip** | Password-protected archiving (deterministic, AES-256) | GUI/CLI | `7z a -pinfected -mhe=on archive.7z files/` |
+| **age** | Modern file encryption (Filippo Valsorda) for sealed evidence packages | CLI | `age -r <recipient_pubkey> -o evidence.7z.age evidence.7z` |
+| **GnuPG (GPG)** | OpenPGP signing of hash manifests / sealed packages | CLI (Linux/Mac/Win) | `gpg --clearsign MANIFEST_SHA256SUMS.txt` |
+| **dd / dc3dd / dcfldd** | Bit-for-bit acquisition (raw imaging); dc3dd / dcfldd add hashing on read | CLI (Linux/Mac) | `dc3dd if=/dev/sdX hash=sha256 log=acq.log of=image.dd` [verify 2026-04-26] |
+| **ewfacquire (libewf)** | Expert Witness Format (E01/Ex01) acquisition with embedded hashing | CLI (Linux/Mac/Win) | `ewfacquire /dev/sdX` |
+| **Guymager** | Forensic acquisition GUI (E01/AFF/dd) | Linux GUI | [guymager.sourceforge.io](https://guymager.sourceforge.io) |
+| **FTK Imager** | Free forensic imager (E01/dd, hash verification) — **vendor: Exterro (acquired AccessData 2020)** [verify 2026-04-26] | GUI/CLI (Win/Mac/Linux) | [exterro.com](https://www.exterro.com/) |
+| **Autopsy / The Sleuth Kit** | Open-source forensic platform (Brian Carrier) | GUI / CLI | [sleuthkit.org/autopsy](https://www.sleuthkit.org/autopsy/) |
+| **OpenTimestamps** | Bitcoin-anchored timestamping (corroboration only — not court-qualified) | CLI/Web | [opentimestamps.org](https://opentimestamps.org) |
+| **openssl ts** | RFC 3161 Time-Stamp Protocol client (qualified TSP requests) | CLI | `openssl ts -query -data file -sha256 -cert -out req.tsq` |
 
 ---
 
 ## 10. Legal & Compliance (see [[sop-legal-ethics|Legal & Ethics SOP]])
 
+> Canonical jurisdictional framing (CFAA, CMA, EU Cybercrime Directive 2013/40/EU, GDPR Art. 6/9, DMCA §1201) lives in [[sop-legal-ethics|Legal & Ethics]]; this section covers chain-of-custody-specific admissibility checkpoints only.
+
 ### Admissibility Requirements
 
-**Daubert Standard (US Federal Courts):**
-- [ ] Evidence collection method is scientifically valid
+**Daubert Standard (US Federal Courts — *Daubert v. Merrell Dow Pharmaceuticals*, 509 U.S. 579 (1993)):**
+- [ ] Evidence collection method is scientifically valid (testable, falsifiable)
 - [ ] Method has been peer-reviewed and published
 - [ ] Known error rate is acceptable
-- [ ] Method is generally accepted in the field
+- [ ] Method is generally accepted in the relevant field
 
-**Best Evidence Rule:**
+**Frye Standard** (older "general acceptance" test) still applies in some US state courts — confirm the forum's controlling test before relying on Daubert framing alone. [verify 2026-04-26]
+
+**Best Evidence Rule (FRE 1001–1003):**
 - [ ] Original digital file preserved (not edited copy)
 - [ ] Hash proves file hasn't been altered
 - [ ] Chain of custody demonstrates integrity
@@ -753,9 +779,54 @@ sha256sum file.txt | tee file.txt.sha256 | xclip -selection clipboard
 - [ ] Unique characteristics prove authenticity (hash)
 - [ ] Process/system produces accurate result (tooling)
 
+**Self-Authenticating Electronic Records (FRE 902(13) and 902(14)):**
+
+Added by the 2017 amendment to the US Federal Rules of Evidence (effective 2017-12-01) [verify 2026-04-26]:
+
+- **FRE 902(13)** — Certified records generated by an electronic process or system, accompanied by a written certification of a qualified person.
+- **FRE 902(14)** — Data copied from an electronic device, storage medium, or file, authenticated by hash comparison certified by a qualified person.
+
+Practical effect: a properly certified hash list with chain-of-custody documentation can authenticate digital evidence without requiring trial testimony from the original analyst. Build collection logs with this in mind — a "qualified person" certification template should accompany the master `MANIFEST_SHA256SUMS.txt`.
+
+### Standards & Frameworks
+
+- **ISO/IEC 27037:2012** — Identification, collection, acquisition and preservation of digital evidence (international baseline).
+- **ISO/IEC 27041:2015** — Investigation assurance; **27042:2015** — analysis & interpretation; **27043:2015** — investigation principles & processes (companion standards, often missed).
+- **NIST SP 800-86** — *Guide to Integrating Forensic Techniques into Incident Response* (US baseline, 2006; still authoritative).
+- **NIST SP 800-101 Rev. 1** — *Guidelines on Mobile Device Forensics* (2014) [verify 2026-04-26].
+- **Berkeley Protocol on Digital Open Source Investigations** (UN OHCHR + UC Berkeley HRC, 2022) — §IV "Information Preservation" and §V "Information Verification" are the canonical OSINT chain-of-custody references for human-rights / war-crimes investigations and increasingly cited in international tribunals.
+- **ACPO Good Practice Guide for Digital Evidence** (UK, v5, 2012) — still cited in UK courts.
+- **SWGDE Best Practices** ([swgde.org](https://www.swgde.org)) — discipline-specific guidance (Best Practices for Computer Forensic Acquisitions; for Mobile Phone Forensic Examination; etc.). Verify current published versions before citing in a report. [verify 2026-04-26]
+
+### Other Jurisdictions (verify locally)
+
+- **UK** — Civil Evidence Act 1995 + Criminal Procedure Rules 2020 Part 19; *R v. Cochrane* on hearsay-from-electronic-records [verify 2026-04-26].
+- **EU** — admissibility varies by Member State; **eIDAS Regulation (EU) 910/2014** governs qualified trust service providers (timestamping, e-signatures). **eIDAS 2 (Regulation (EU) 2024/1183)** entered into force 2024-05-20, becomes applicable in stages from 2026-05; introduces the European Digital Identity Wallet and updates qualified-trust-service requirements [verify 2026-04-26].
+
+### Qualified Timestamping
+
+For chain-of-custody assertions that must survive challenges to local-clock accuracy or operator integrity:
+
+- **RFC 3161 Time-Stamp Protocol (TSP)** — IETF standard for trusted timestamping. Use an `openssl ts` workflow against a qualified Time-Stamp Authority (TSA):
+  ```bash
+  # Linux/macOS — request TSA signature on an evidence hash
+  openssl ts -query -data MANIFEST_SHA256SUMS.txt -sha256 -cert -out req.tsq
+  curl -H "Content-Type: application/timestamp-query" \
+       --data-binary @req.tsq \
+       https://<tsa-endpoint> -o resp.tsr
+  openssl ts -reply -in resp.tsr -text
+  ```
+- **eIDAS qualified TSPs** — examples include DigiCert, GlobalSign, and EU Trusted List members; a *qualified* electronic timestamp gets the EU presumption of accuracy and integrity. [verify 2026-04-26]
+- **OpenTimestamps** ([opentimestamps.org](https://opentimestamps.org)) — Bitcoin-blockchain-anchored, free, useful for OSINT corroboration; **not** court-qualified under eIDAS or RFC 3161.
+
+### Date / Time Conventions
+
+- **ISO 8601 / RFC 3339** for textual timestamps; UTC strongly preferred (`Z` suffix, e.g., `2026-04-26T14:30:22Z`). Never log local time without explicit offset.
+- Filesystem `mtime` / `ctime` / `atime` should be preserved on evidence drives — mount with `noatime`/`relatime` *only* on working copies, never on the originals. macOS resource forks and extended attributes (`xattr`) are preserved by `cp -p`, `rsync -aHAX`, or block-level `dd` only.
+
 ### GDPR Compliance (if applicable)
 
-- [ ] Legal basis for collection documented
+- [ ] Legal basis for collection documented (Art. 6 / Art. 9 special-category data)
 - [ ] Data minimization applied (collect only what's needed)
 - [ ] Retention period defined (delete when no longer needed)
 - [ ] Access controls implemented (who can view evidence)
@@ -775,7 +846,7 @@ sha256sum file.txt | tee file.txt.sha256 | xclip -selection clipboard
 - [[sop-reporting-packaging-disclosure|Reporting & Disclosure]]
 - [[../../Security/Analysis/sop-hash-generation-methods|Hash Generation Methods]]
 - [[../../Security/Analysis/sop-cryptography-analysis|Cryptography Analysis]]
-- [[../../Security/Pentesting/sop-forensics-investigation|Forensics Investigation]]
+- [[../../Security/Analysis/sop-forensics-investigation|Forensics Investigation]]
 - [[sop-web-dns-whois-osint|Web, DNS & WHOIS OSINT]]
 - [[sop-financial-aml-osint|Financial & AML OSINT]]
 - [[sop-image-video-osint|Image & Video OSINT]]
@@ -788,3 +859,41 @@ sha256sum file.txt | tee file.txt.sha256 | xclip -selection clipboard
 - [[../Platforms/sop-platform-reddit|Platform: Reddit]]
 - [[../Platforms/sop-platform-tiktok|Platform: TikTok]]
 - [[../Platforms/sop-platform-bluesky|Platform: Bluesky]]
+
+---
+
+## External / Reference Resources
+
+**Standards & frameworks:**
+- ISO/IEC 27037:2012 — [iso.org/standard/44381.html](https://www.iso.org/standard/44381.html)
+- ISO/IEC 27041 / 27042 / 27043:2015 — companion incident-investigation standards
+- NIST SP 800-86 — [csrc.nist.gov/pubs/sp/800/86/final](https://csrc.nist.gov/pubs/sp/800/86/final)
+- Berkeley Protocol on Digital Open Source Investigations (UN OHCHR + UC Berkeley HRC, 2022) — [ohchr.org/sites/default/files/2022-04/OHCHR_BerkeleyProtocol.pdf](https://www.ohchr.org/sites/default/files/2022-04/OHCHR_BerkeleyProtocol.pdf) [verify 2026-04-26]
+- ACPO Good Practice Guide for Digital Evidence (UK, v5, 2012)
+- SWGDE Best Practices — [swgde.org](https://www.swgde.org)
+- Federal Rules of Evidence — [law.cornell.edu/rules/fre](https://www.law.cornell.edu/rules/fre)
+
+**RFCs & technical references:**
+- RFC 3161 — Internet X.509 Public Key Infrastructure Time-Stamp Protocol
+- RFC 3339 — Date and Time on the Internet: Timestamps
+- ISO 8601:2019 — Date and time format
+- NIST FIPS 180-4 — Secure Hash Standard (SHA-2)
+- NIST FIPS 202 — SHA-3 Standard
+
+**Tooling references:**
+- libewf (E01/Ex01 acquisition) — [github.com/libyal/libewf](https://github.com/libyal/libewf)
+- The Sleuth Kit / Autopsy — [sleuthkit.org](https://www.sleuthkit.org)
+- hashdeep — [github.com/jessek/hashdeep](https://github.com/jessek/hashdeep) [verify 2026-04-26]
+- age (file encryption) — [age-encryption.org](https://age-encryption.org)
+- OpenTimestamps — [opentimestamps.org](https://opentimestamps.org)
+
+**Regulatory:**
+- eIDAS Regulation (EU) 910/2014 — [eur-lex.europa.eu/eli/reg/2014/910](https://eur-lex.europa.eu/eli/reg/2014/910)
+- eIDAS 2 — Regulation (EU) 2024/1183 [verify 2026-04-26]
+- GDPR — [gdpr-info.eu](https://gdpr-info.eu)
+
+---
+
+**Version:** 1.1
+**Last Updated:** 2026-04-26
+**Review Frequency:** Annual (anchor SOP — slow-rot; the underlying standards do move)

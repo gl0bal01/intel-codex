@@ -3,6 +3,7 @@ type: sop
 title: Financial Crime & AML OSINT
 description: "Financial intelligence techniques: cryptocurrency tracing, sanctions screening, AML investigation & blockchain analysis for financial crime detection."
 tags: [sop, finance, aml, sanctions]
+updated: 2026-04-27
 ---
 
 # Financial Crime & AML OSINT
@@ -67,8 +68,9 @@ tags: [sop, finance, aml, sanctions]
 ### Sanctions Lists (Public)
 
 **OFAC (US Treasury):**
-- [OFAC SDN List](https://sanctionssearch.ofac.treas.gov/) - Specially Designated Nationals
-- Download consolidated list: [XML/CSV](https://ofac.treasury.gov/file-finder)
+- [OFAC SDN List](https://sanctionssearch.ofac.treas.gov/) - Specially Designated Nationals; web search interface
+- Download consolidated list (XML/CSV, updated daily): [OFAC File Finder](https://ofac.treasury.gov/file-finder) (or the newer bulk endpoint at [sanctionslist.ofac.treas.gov](https://sanctionslist.ofac.treas.gov))
+- Crypto coverage: SDN list includes **Digital Currency Address** (DCA) entries tagged by currency code (`XBT`, `ETH`, `USDT`, `XMR`, etc.). Treat each DCA hit as a high-priority pivot.
 
 **European Union:**
 - [EU Sanctions Map](https://www.sanctionsmap.eu/) - EU consolidated list
@@ -92,7 +94,8 @@ tags: [sop, finance, aml, sanctions]
 - [OpenSanctions](https://www.opensanctions.org/pep/) - Aggregated PEP & sanctions data (open source)
 
 **Commercial (subscription):**
-- World-Check, Dow Jones, LexisNexis, Refinitiv (enterprise screening)
+- LSEG World-Check (formerly Refinitiv World-Check; LSEG retired the Refinitiv brand starting Aug 2023)
+- Dow Jones Risk & Compliance, LexisNexis Risk Solutions, Moody's Orbis (Bureau van Dijk), Sayari Graph — enterprise screening / corporate-network analytics
 
 **Manual checks:**
 - Government websites (parliament, cabinet lists)
@@ -148,70 +151,36 @@ site:news.com "Company Name" AND ("investigation" OR "charged" OR "lawsuit")
 
 ---
 
-## 5. Cryptocurrency Tracing
+## 5. Cryptocurrency Tracing — AML Analyst Quick Reference
 
-### Blockchain Explorers (Public, Free)
+> Deep on-chain methodology — multi-chain tracing, address clustering, mixer / CoinJoin defeat, cross-chain bridge tracing, and court-admissibility tradecraft — lives in [[sop-blockchain-investigation|Blockchain Investigation]] and [[sop-mixer-tracing|Mixer & Privacy-Pool Tracing]]. This section is the AML-analyst entry-point only: surface-level wallet check, sanctions screening, and Travel-Rule context. Hand off any deep tracing work to those SOPs.
 
-**Bitcoin:**
-- [Blockchain.com](https://www.blockchain.com/explorer)
-- [Blockchair](https://blockchair.com/bitcoin)
-- [Mempool.space](https://mempool.space/)
+### Surface-level wallet check
 
-**Ethereum:**
-- [Etherscan](https://etherscan.io/)
-- [Blockchair](https://blockchair.com/ethereum)
+1. Look up the address in a public explorer: [Blockchain.com](https://www.blockchain.com/explorer) or [Mempool.space](https://mempool.space/) (BTC), [Etherscan](https://etherscan.io/) (ETH / EVM), [Blockchair](https://blockchair.com/) (multi-chain).
+2. Note inflows / outflows, exchange-deposit patterns, and any vendor-tagged labels ([Arkham Intelligence](https://www.arkhamintelligence.com/) for entity labels, [Chainabuse](https://www.chainabuse.com/) for known-bad reports).
+3. Flag any of: privacy-coin hops (Monero, Zcash shielded), CoinJoin / mixer activity, cross-chain bridge use, peel chains, round-number layering, no-KYC swap services (FixedFloat, ChangeNOW, SimpleSwap), OFAC SDN Digital Currency Address (DCA) hits.
+4. **Stop here.** Do not transact with the address. Do not pivot deeper without engaging blockchain-investigation methodology — vendor labels are heuristics, not court evidence, and pasting addresses into free analytics surfaces can leak the investigation.
 
-**Other Chains:**
-- Litecoin: [BlockCypher](https://live.blockcypher.com/ltc/)
-- Bitcoin Cash: [Blockchain.com BCH](https://www.blockchain.com/explorer?view=bch)
-- Monero: Limited tracing (privacy coin)
-- Tron, BSC, Polygon: Network-specific explorers
+### Sanctions screening (crypto-side)
 
-### Wallet Analysis
+The OFAC SDN list includes **Digital Currency Address (DCA)** entries tagged by currency code (`XBT`, `ETH`, `USDT`, `XMR`, etc.). Each DCA hit is a high-priority sanctions exposure. Sanctions designations are time-stamped facts — record both the activity timestamp **and** the list state at that time (Tornado Cash addresses were SDN-listed 2022-08-08, vacated 2024-11-26, delisted 2025-03-21). EU, UK OFSI, and UN consolidated lists may not mirror US DCA entries; screen all four at minimum.
 
-**Basic workflow:**
-1. Input wallet address into explorer
-2. Review transaction history (inflows/outflows)
-3. Identify clusters (addresses transacting together)
-4. Export transaction CSV for timeline analysis
-5. Flag exchanges, mixers/tumblers, known entities
+### Travel Rule (FATF Recommendation 16)
 
-**Look for:**
-- Exchange deposit addresses (Binance, Coinbase, Kraken tags)
-- Mixing services (CoinJoin, Wasabi, ChipMixer)
-- Known scam addresses (check [Chainabuse](https://www.chainabuse.com/))
-- Large value transfers or patterns (layering/structuring)
+VASPs (exchanges, custodial wallets, OTC desks) must transmit originator / beneficiary information for crypto transfers above a jurisdictional threshold. Implementations differ:
 
-### Tools
+- **US (FinCEN):** USD 3,000 threshold [verify 2026-04-27]
+- **EU (Transfer of Funds Regulation / MiCA):** **No de minimis** for VASP-to-VASP transfers from 2024-12-30
+- **UK (FCA):** GBP 1,000 originator-side trigger
+- **Singapore / Switzerland / Japan:** thresholds vary; check the local FIU
 
-**Free:**
-- [Wallet Explorer](https://www.walletexplorer.com/) - Bitcoin wallet clustering
-- [OXT](https://oxt.me/) - Bitcoin transaction analysis
-- [Etherscan Token Tracker](https://etherscan.io/tokens) - ERC-20 token flows
+Non-compliant VASPs and self-hosted-wallet routes are common AML red flags. Open-source Travel Rule protocols include TRP, IVMS101, and Sygna Bridge / Notabene / Veriscope deployments [inferred — vendor list shifts annually].
 
-**Commercial:**
-- Chainalysis (law enforcement/enterprise)
-- Elliptic (compliance/investigations)
-- CipherTrace (AML/CTF)
+### Hand-off
 
-### Exchanges & On/Off Ramps
-
-**Identify exchanges:**
-- Look for known deposit address patterns (exchanges tag addresses)
-- Check for exchange hot wallets (publicly documented)
-- Use blockchain analytics tools to label addresses
-
-**Document:**
-- Which exchanges were used
-- Timestamps of deposits/withdrawals
-- Amounts and asset types
-- KYC requirements of that exchange (relevant for attribution)
-
-**Red flags:**
-- Use of privacy coins (Monero, Zcash)
-- Mixing/tumbling services
-- Peer-to-peer (P2P) platforms with weak KYC
-- Rapid movement through multiple wallets (layering)
+- **Multi-chain tracing, address clustering, bridge-event indexing, court-admissibility tradecraft** → [[sop-blockchain-investigation|Blockchain Investigation]]
+- **Mixer / CoinJoin / Tornado Cash / Wasabi / Whirlpool / cross-chain-bridge obfuscation defeat, regulatory-event timeline** → [[sop-mixer-tracing|Mixer & Privacy-Pool Tracing]]
 
 ---
 
@@ -355,13 +324,19 @@ site:news.com "Company Name" AND ("investigation" OR "charged" OR "lawsuit")
 
 ## 9. Legal & Ethical Constraints
 
-- **Never transact** with crypto wallets or bank accounts under investigation
-- **Do not access** darknet markets or illicit platforms
-- **Respect data protection laws** (GDPR, etc.) - minimize PII collection
-- **Log all queries** for audit trail and legal defensibility
-- **Flag immediately** if you encounter evidence of child exploitation, terrorism, or imminent harm
-- **Consult legal** before sharing findings with third parties
-- **Maintain confidentiality** - handle financial intelligence as sensitive
+Canonical legal framework: see [[sop-legal-ethics|Legal & Ethics]]. Do not re-derive jurisdiction, statute, or authorization rules here — read them from the canonical SOP and apply.
+
+OPSEC for the investigator (separation of attribution, network egress, wallet/account hygiene): see [[sop-opsec-plan|OPSEC Plan]]. Crypto investigations leak more than IP — viewing a wallet on a logged-in exchange, transacting from an attribution-tied address, or pasting an address into an analytics service that resells data can each compromise the investigation.
+
+**Financial-intelligence-specific guardrails:**
+
+- **Never transact** with crypto wallets or bank accounts under investigation. Even a 1-satoshi "test" can taint the cluster, alert the subject, and create legal exposure.
+- **Do not access** darknet markets or illicit platforms to "verify" a finding — open-source pivot only.
+- **Bank account / IBAN lookups:** retrieving account holder data without lawful authority is a criminal offence in most jurisdictions (e.g. UK Computer Misuse Act, US 18 U.S.C. §1030, EU GDPR Art. 6/9). Use only published / leaked / sanctions-listed identifiers; pivot to a regulated channel (MLRO, FIU SAR, mutual legal assistance) for non-public account intel.
+- **Sanctions hits are time-stamped facts.** Record both the activity timestamp **and** the sanctions-list state at that time (e.g. Tornado Cash addresses were SDN-listed 2022-08-08 → vacated 2024-11-26 → delisted 2025-03-21). Liability assessments hinge on the temporal alignment.
+- **PII minimization (GDPR / UK DPA / CCPA):** collect only what is necessary for the analytical purpose; document lawful basis (legitimate interest / legal claim / public-task) per query.
+- **Mandatory reporting / Suspicious Activity Reports:** if you are operating inside a regulated entity, route findings through the MLRO. Outside a regulated entity, route serious findings (sanctions evasion, terrorist financing, child exploitation funding) via the appropriate FIU (FinCEN, NCA, FIU-NL, etc.) — see [[sop-sensitive-crime-intake-escalation|Sensitive Crime Intake & Escalation]].
+- **Log every query** (URL, search terms, UTC timestamp, hash of saved output) — see [[sop-collection-log|Collection Log]] for the canonical format.
 
 ---
 
@@ -371,13 +346,24 @@ site:news.com "Company Name" AND ("investigation" OR "charged" OR "lawsuit")
 |----------|------|-----|
 | OpenCorporates | Global company search | [opencorporates.com](https://opencorporates.com) |
 | Companies House (UK) | UK registry | [find-and-update.company-information.service.gov.uk](https://find-and-update.company-information.service.gov.uk/) |
+| OpenOwnership | Beneficial ownership register | [register.openownership.org](https://register.openownership.org/) |
+| OCCRP Aleph | Investigative document graph | [aleph.occrp.org](https://aleph.occrp.org/) |
 | OFAC SDN Search | US sanctions | [sanctionssearch.ofac.treas.gov](https://sanctionssearch.ofac.treas.gov/) |
+| OFAC Sanctions List Service | US sanctions data feeds | [sanctionslistservice.ofac.treas.gov](https://sanctionslistservice.ofac.treas.gov/) [verify 2026-04-25] |
 | EU Sanctions Map | EU sanctions | [sanctionsmap.eu](https://www.sanctionsmap.eu/) |
-| OpenSanctions | Aggregated sanctions/PEP | [opensanctions.org](https://www.opensanctions.org/) |
+| EU Financial Sanctions DB | EU consolidated list | [webgate.ec.europa.eu/fsd/fsf](https://webgate.ec.europa.eu/fsd/fsf) |
+| UK Sanctions List | UK OFSI consolidated list | [gov.uk/government/publications/financial-sanctions-consolidated-list-of-targets](https://www.gov.uk/government/publications/financial-sanctions-consolidated-list-of-targets) |
+| UN Security Council Sanctions | UN consolidated list | [un.org/securitycouncil/sanctions/information](https://www.un.org/securitycouncil/sanctions/information) |
+| OpenSanctions | Aggregated sanctions/PEP/CRIME | [opensanctions.org](https://www.opensanctions.org/) |
 | ICIJ Offshore Leaks | Leaked offshore data | [offshoreleaks.icij.org](https://offshoreleaks.icij.org/) |
 | Etherscan | Ethereum explorer | [etherscan.io](https://etherscan.io/) |
+| Blockchair | Multi-chain explorer | [blockchair.com](https://blockchair.com/) |
+| Mempool.space | Bitcoin mempool & explorer | [mempool.space](https://mempool.space/) |
 | Blockchain.com | Bitcoin explorer | [blockchain.com/explorer](https://www.blockchain.com/explorer) |
 | Chainabuse | Crypto scam database | [chainabuse.com](https://www.chainabuse.com/) |
+| Arkham Intelligence | On-chain entity labels | [arkhamintelligence.com](https://www.arkhamintelligence.com/) |
+| Breadcrumbs | Free blockchain visualization | [breadcrumbs.app](https://www.breadcrumbs.app/) |
+| FATF | Standards & VASP guidance | [fatf-gafi.org](https://www.fatf-gafi.org/) |
 
 ---
 
@@ -407,9 +393,29 @@ site:news.com "Company Name" AND ("investigation" OR "charged" OR "lawsuit")
 ## 12. Common Pitfalls
 
 - ❌ Relying on single-source data (cross-verify across registries)
-- ❌ Missing historical changes (directors, addresses, ownership)
-- ❌ Not checking sanctions lists thoroughly (check all major lists)
+- ❌ Missing historical changes (directors, addresses, ownership) — corporate registries surface "current state" by default
+- ❌ Not checking sanctions lists thoroughly (OFAC + EU + UK OFSI + UN at minimum; many SDN crypto entries are not present in non-US lists)
+- ❌ Stating sanctions status without a timestamp — Tornado Cash designation status changed three times between 2022 and 2025; report what was true at the time of activity
 - ❌ Assuming privacy = guilt (legitimate reasons for offshore structures exist)
-- ❌ Transacting or interacting with suspect wallets/accounts
+- ❌ Transacting or interacting with suspect wallets/accounts (taints clusters and may be a criminal offence)
 - ❌ Not documenting sources and timestamps (breaks chain of custody)
 - ❌ Overlooking adverse media in non-English sources
+- ❌ Treating commercial blockchain-analytics labels as ground truth — they are heuristic clusters, not court evidence; corroborate before publishing
+- ❌ Stopping at the first mixer / bridge hop instead of continuing on the receiving side
+- ❌ Pasting target addresses into free analytics services without checking whether they resell or log queries (operational leak)
+
+---
+
+## Related SOPs
+
+- [[sop-legal-ethics|Legal & Ethics]] — canonical legal framework
+- [[sop-opsec-plan|OPSEC Plan]] — investigator OPSEC, including crypto-side leaks
+- [[sop-entity-dossier|Entity Dossier]] — structured target profiling
+- [[sop-collection-log|Collection Log]] — chain-of-custody and query logging
+- [[sop-reporting-packaging-disclosure|Reporting, Packaging & Disclosure]] — output formatting & disclosure routes
+- [[sop-web-dns-whois-osint|Web / DNS / WHOIS OSINT]] — domain pivots for fraud sites and crypto scam infrastructure
+- [[sop-sensitive-crime-intake-escalation|Sensitive Crime Intake & Escalation]] — escalation path for terrorism / sanctions evasion / CSAM-funding leads
+
+---
+
+**Last Updated:** 2026-04-27

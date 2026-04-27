@@ -18,7 +18,7 @@ All content reflects current best practices and is actively maintained.
 
 ## 📊 By the Numbers
 
-**30+ SOPs** across all disciplines | **16 Investigation Guides** | **14 Security Procedures** | **9 CTF Resources**
+**39+ SOPs** across all disciplines | **19 Investigation Guides** | **20 Security Procedures** | **9 CTF Resources**
 
 ---
 
@@ -41,6 +41,11 @@ Comprehensive investigation techniques, platform guides, and operational procedu
 - [Image/Video OSINT](Investigations/Techniques/sop-image-video-osint.md) - Reverse search, geolocation, metadata
 - [Web/DNS/WHOIS](Investigations/Techniques/sop-web-dns-whois-osint.md) - Infrastructure analysis
 - [Financial/AML OSINT](Investigations/Techniques/sop-financial-aml-osint.md) - Blockchain, company records, sanctions
+- [Blockchain Investigation](Investigations/Techniques/sop-blockchain-investigation.md) - Multi-chain tracing, address clustering, bridge read-flow, sanctions integration, court-admissibility
+- [Mixer & Privacy-Pool Tracing](Investigations/Techniques/sop-mixer-tracing.md) - CoinJoin clustering attacks, Tornado Cash on-chain heuristics, cross-chain bridge obfuscation defeat, privacy-coin research limits, regulatory event timeline
+- [Darkweb Investigation](Investigations/Techniques/sop-darkweb-investigation.md) - Tor/I2P navigation, marketplace OSINT, vendor PGP pivots, ransomware leak-site tracking
+- [Reporting, Packaging & Disclosure](Investigations/Techniques/sop-reporting-packaging-disclosure.md) - Executive summaries, evidence packaging, chain of custody, disclosure protocols
+- [Sensitive Crime Intake & Escalation](Investigations/Techniques/sop-sensitive-crime-intake-escalation.md) - Escalation routes for CSAM, terrorism, trafficking, and threat-to-life cases
 
 ---
 
@@ -83,6 +88,8 @@ Comprehensive guides for offensive security operations across multiple domains.
 - [Bug Bounty Methodology](Security/Pentesting/sop-bug-bounty.md)
 - [Firmware Reverse Engineering](Security/Pentesting/sop-firmware-reverse-engineering.md)
 - [Detection Evasion Testing](Security/Pentesting/sop-detection-evasion-testing.md)
+- [Cloud Pentesting (AWS/Azure/GCP)](Security/Pentesting/sop-cloud-pentest.md)
+- [Wireless & RF Pentesting](Security/Pentesting/sop-wireless-rf-pentest.md)
 
 
 #### Security Analysis Procedures
@@ -94,10 +101,15 @@ Procedures for analyzing malicious software, cryptographic systems, and security
 
 **Available SOPs:**
 - [Malware Analysis](Security/Analysis/sop-malware-analysis.md) - Static and dynamic analysis procedures
-- [Forensics Investigation](Security/Analysis/sop-forensics-investigation.md) - Precedures and workflow
+- [Forensics Investigation](Security/Analysis/sop-forensics-investigation.md) - Procedures and workflow
 - [Reverse Engineering](Security/Analysis/sop-reverse-engineering.md) - Binary analysis techniques
 - [Cryptography Analysis](Security/Analysis/sop-cryptography-analysis.md) - Crypto system evaluation
 - [Hash Generation Methods](Security/Analysis/sop-hash-generation-methods.md) - Evidence integrity verification
+- [Smart Contract Audit](Security/Analysis/sop-smart-contract-audit.md) - Audit lifecycle, SWC registry, vulnerability classes (reentrancy / oracle / MEV / upgrade / governance), tooling (Slither / Echidna / Foundry / Halmos), formal verification, audit-report structure
+- [Cloud Forensics](Security/Analysis/sop-cloud-forensics.md) - IaaS-plane forensics: AWS CloudTrail / Azure Monitor + Sentinel / GCP Audit Logs collection, IAM principal-action reconstruction, region-sweep, log-tampering detection, container-runtime artifacts (EKS / AKS / GKE), cloud-volume snapshot preservation, cross-cloud correlation
+- [SaaS Log Forensics](Security/Analysis/sop-saas-log-forensics.md) - SaaS-tenant identity and collaboration plane forensics: M365 Unified Audit Log + Purview eDiscovery, Google Workspace Reports + Vault, Okta System Log + ITP, Slack Audit Logs + Discovery, Salesforce Setup Audit Trail + Real-Time Event Monitoring, GitHub / GitLab audit, OAuth consent-grant abuse, cross-tenant collaboration forensics, retention-cliff and discovery-export discipline
+- [Email & BEC Forensics](Security/Analysis/sop-email-bec-forensics.md) - Scenario-centric Business Email Compromise forensics: email header forensics (Received-chain reconstruction, Authentication-Results parsing), SPF / DKIM / DMARC / ARC mechanics, lookalike-domain and brand-impersonation detection (IDN homograph, typosquatting, dnstwist patterns, CT-log monitoring), Microsoft 365 Get-MessageTrace and Google Workspace Email Log Search, secure-email-gateway forensics (Mimecast / Proofpoint / Barracuda), phishing-kit static analysis (defensive — kit acquisition, AiTM detection), wire-recall pathway (SWIFT MT103 / Fedwire / SEPA recall mechanics, Financial Fraud Kill Chain, FBI IC3 reporting, FinCEN SAR triggers), and BEC scenario taxonomy (CEO fraud, vendor-invoice fraud, payroll-redirect, attorney-impersonation, real-estate / closing-funds, gift-card scam)
+- [AI/ML Vulnerability & Evasion Testing](Security/Analysis/sop-ai-vulnerability-evasion.md) - AI red-team and model-vulnerability evaluation: prompt-injection, jailbreak, training-data extraction, model-stealing, evasion attacks against ML classifiers
 
 ---
 

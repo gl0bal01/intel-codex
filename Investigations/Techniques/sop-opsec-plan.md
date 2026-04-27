@@ -3,6 +3,8 @@ type: sop
 title: OPSEC Planning for OSINT Investigations
 description: "Protect yourself during investigations: VPN setup, burner accounts, browser isolation & operational security best practices for safe OSINT work."
 created: 2025-10-05
+updated: 2026-04-26
+template_version: 2026-04-26
 tags: [sop, opsec, operational-security, investigation]
 ---
 
@@ -173,6 +175,8 @@ docker stop osint-firefox && docker rm osint-firefox
 # All traffic forced through Tor
 # DNS leaks impossible by design
 # Recommended for high-risk investigations
+# Best deployed inside Qubes OS (Qubes-Whonix integration);
+# verify current Qubes major version (R4.2+ supported in 2024) [verify 2026-04-26]
 ```
 
 **Option 4: Tails OS (Amnesic Live System)**
@@ -182,6 +186,7 @@ docker stop osint-firefox && docker rm osint-firefox
 # All traffic through Tor
 # RAM-only operation (no disk traces)
 # Recommended for maximum OPSEC
+# Verify current major before download (Tails 6.x branch shipped 2024; check tails.net) [verify 2026-04-26]
 ```
 
 **Option 5: Exegol (Security Testing Environment)**
@@ -216,7 +221,7 @@ exegol remove osint-workspace
 
 ```bash
 # Kasm Workspaces: Containerized desktop/app streaming
-# https://kasm.com/
+# https://kasmweb.com/
 
 # Features:
 # - Browser-based access (no local software needed)
@@ -227,10 +232,12 @@ exegol remove osint-workspace
 
 # Community Edition (free):
 # Download from: https://www.kasmweb.com/downloads.html
+# Resolve the current release filename from the downloads page
+# rather than relying on shell wildcards against an S3 listing.
 
-# Installation (Ubuntu):
+# Installation (Ubuntu) — pin to the verified release filename:
 cd /tmp
-curl -O https://kasm-static-content.s3.amazonaws.com/kasm_release_*.tar.gz
+# curl -O https://kasm-static-content.s3.amazonaws.com/kasm_release_<VERSION>.tar.gz
 tar -xf kasm_release_*.tar.gz
 sudo bash kasm_release/install.sh
 
@@ -291,9 +298,9 @@ diskutil apfs encryptVolume /Volumes/Evidence
 - **DNS leak protection** forces all DNS through VPN tunnel
 
 **Recommended VPN Providers:**
-- **Mullvad VPN** (anonymous signup, accepts cash, audited no-logs)
-- **ProtonVPN** (Swiss jurisdiction, secure core, Tor over VPN)
-- **IVPN** (no email required, audited no-logs, port forwarding)
+- **Mullvad VPN** (account-number-only signup since 2023, no email/payment metadata required, accepts cash/crypto/voucher; recurring subscriptions removed — top-up model only [verify 2026-04-26]; Swedish jurisdiction. April 2023 server seizure by Swedish police produced no user data, publicly validating the no-logs claim)
+- **Proton VPN** (Swiss jurisdiction, Secure Core multi-hop, Tor over VPN; rebranded from ProtonVPN in 2022, current domain `protonvpn.com` / unified `proton.me` account)
+- **IVPN** (no email required, account-number-only, audited no-logs, port forwarding)
 
 **VPN Best Practices:**
 
@@ -314,15 +321,18 @@ nslookup google.com
 **VPN Configuration Examples:**
 
 ```bash
-# OpenVPN (Linux):
+# WireGuard (modern default — faster, smaller attack surface, recommended):
+sudo wg-quick up mullvad-us-ny
+# Interface name will be the config name (e.g. mullvad-us-ny), not tun0.
+
+# OpenVPN (legacy fallback for environments where WG is blocked):
 sudo openvpn --config mullvad_us_ny.conf --auth-user-pass credentials.txt
 
-# WireGuard (faster, more modern):
-sudo wg-quick up mullvad-us-ny
-
-# Verify no traffic leaks outside VPN:
+# Verify no traffic leaks outside VPN (adapt interface name to wg0 / tun0):
 sudo iptables -A OUTPUT ! -o tun0 -j DROP
 sudo iptables -A OUTPUT -o tun0 -j ACCEPT
+# For WireGuard the interface is typically wg0 or the config name —
+# replace tun0 above to match `ip -br a` output.
 ```
 
 **Kill Switch Configuration:**
@@ -345,16 +355,31 @@ New-NetFirewallRule -DisplayName "Allow VPN" -Direction Outbound -Action Allow -
 ```bash
 # Download Tor Browser from official site only:
 # https://www.torproject.org/
+# Tor Browser is built on a Firefox ESR base; verify current major
+# (Tor Browser 14.x branch shipped 2024) [verify 2026-04-26]
 
-# Verify GPG signature:
-gpg --verify tor-browser-linux64-*.tar.xz.asc
+# Verify GPG signature (key + .asc both fetched from torproject.org):
+gpg --verify tor-browser-linux-x86_64-*.tar.xz.asc
 
-# Security slider: Set to "Safest" (disables JavaScript)
+# Security slider: Set to "Safest" (disables JavaScript globally,
+# blocks some fonts/images, disables MathML/SVG in HTTPS)
 # about:preferences#privacy → Security Level → Safest
 
-# Never resize Tor Browser window (fingerprinting risk)
-# Never install extensions (fingerprinting risk)
+# Never resize Tor Browser window (fingerprinting via letterboxing exit)
+# Never install extensions (fingerprinting via extension detection)
 # Never login to personal accounts over Tor
+```
+
+**Mullvad Browser (non-Tor anti-fingerprinting alternative):**
+
+```text
+Tor Project + Mullvad collaboration, launched April 2023.
+Same anti-fingerprinting hardening as Tor Browser, designed to be used
+behind a trusted VPN (Mullvad or any other) instead of the Tor network.
+Use case: investigations where Tor exit nodes are blocked or where
+hostile destinations correlate Tor users heavily, but the analyst
+still wants the Tor-Browser-grade fingerprint defenses.
+Download: https://mullvad.net/en/browser  [verify 2026-04-26]
 ```
 
 **Tor over VPN (Recommended for High-Risk):**
@@ -380,19 +405,31 @@ Your Computer → VPN → Tor Network → Internet
 # /etc/resolv.conf:
 nameserver 10.8.0.1  # VPN DNS server only
 
-# Prevent DHCP from overwriting:
+# Prevent DHCP from overwriting (note: systemd-resolved manages
+# /etc/resolv.conf on most modern distros — use `resolvectl dns`
+# or disable systemd-resolved before pinning):
 sudo chattr +i /etc/resolv.conf
 
-# Test for DNS leaks:
-curl -s https://www.dnsleaktest.com/ | grep -i "your ip"
+# Test for DNS leaks (the page is JS-rendered, so use the
+# extended-test JSON or a dedicated CLI rather than scraping HTML):
+# Browser-based:  https://dnsleaktest.com/  (run "Extended test")
+# CLI:            https://github.com/macvk/dnsleaktest  (open-source script)
 ```
 
-**Encrypted DNS (DNS-over-HTTPS):**
+**Encrypted DNS — protocol options (2024+):**
+
+| Protocol | Port | Notes |
+|---|---|---|
+| **DoH** (DNS-over-HTTPS, RFC 8484) | 443 | Hides DNS in HTTPS traffic; broad client support (Firefox, Chrome, Edge, Safari). |
+| **DoT** (DNS-over-TLS, RFC 7858) | 853 | Easier to fingerprint than DoH (dedicated port) but cleaner separation; Android Private DNS uses DoT. |
+| **DoQ** (DNS-over-QUIC, RFC 9250) | 853/UDP | Lower latency than DoT/DoH; AdGuard, NextDNS, Cloudflare support [verify 2026-04-26]. |
+| **ODoH** (Oblivious DoH, RFC 9230) | 443 | Decouples client IP from DNS query via a proxy — resolver never sees who asked. Limited deployment (Cloudflare, ISC) [verify 2026-04-26]. |
 
 ```javascript
 // Firefox: Enable DNS-over-HTTPS
-// about:config → network.trr.mode → 3 (enforce DoH)
+// about:config → network.trr.mode → 3 (enforce DoH; mode 5 disables it)
 // network.trr.uri → https://mozilla.cloudflare-dns.com/dns-query
+// Alternatives: https://dns.quad9.net/dns-query, https://dns.nextdns.io/<id>
 ```
 
 **DNS-over-Tor (Maximum Privacy):**
@@ -402,6 +439,16 @@ curl -s https://www.dnsleaktest.com/ | grep -i "your ip"
 force_tcp = true
 proxy = 'socks5://127.0.0.1:9050'  # Tor SOCKS proxy
 ```
+
+**Encrypted Client Hello (ECH):**
+
+ECH is a TLS 1.3 extension that encrypts the SNI (Server Name Indication),
+hiding the destination hostname from on-path observers (ISPs, DPI). Without
+ECH, even DoH leaves the SNI in cleartext during TLS handshake. ECH is
+deployed on Cloudflare (default in Firefox / Tor Browser when both ends
+support it) and rolling out across major browsers / Chrome through
+2024–2026 [verify 2026-04-26]. Enable explicitly in Firefox via
+`network.dns.echconfig.enabled` and `network.dns.use_https_rr_as_altsvc`.
 
 ---
 
@@ -438,7 +485,7 @@ Name: Sarah Martinez
 Age: 32
 Location: Austin, TX
 Occupation: Marketing Consultant
-Email: sarah.martinez.atx@protonmail.com
+Email: sarah.martinez.atx@proton.me
 Phone: +1-512-555-0198 (Google Voice)
 Photo: thispersondoesnotexist.com (saved as sarah_martinez_profile.jpg)
 
@@ -486,7 +533,7 @@ Platforms:
 **Profile Warming Log Template:**
 
 ```markdown
-# Persona Warming Log: sarah.martinez.atx@protonmail.com
+# Persona Warming Log: sarah.martinez.atx@proton.me
 
 ## Week 1 (2025-09-01 to 2025-09-07)
 - 2025-09-01: Created Twitter @sarahm_atx, followed 15 marketing accounts
@@ -512,35 +559,42 @@ Platforms:
 ### Burner Accounts & Email
 
 **Email Providers (Anonymity-focused):**
-- **ProtonMail** (encrypted, no phone required for paid accounts)
-- **Tutanota** (encrypted, German jurisdiction)
+- **Proton Mail** (encrypted, Swiss jurisdiction, no phone required for paid plans; rebranded from ProtonMail in 2022 — current domain `proton.me`. **Teaching case:** 2021 Swiss court order forced Proton to log a French climate-activist account's IP and hand it to French police via Swiss MLAT — Proton complies with Swiss legal orders, "no-logs" applies only to mail content, not to enforced metadata logging.)
+- **Tuta** (encrypted, German jurisdiction; rebranded from Tutanota in late 2023 — current domain `tuta.com`) [verify 2026-04-26]
 - **Guerrilla Mail** (temporary, disposable, no signup)
-- **SimpleLogin** (email aliasing, masks real address)
+- **SimpleLogin** (email aliasing, masks real address; acquired by Proton 2022)
+- **Addy.io** (email aliasing, rebranded from AnonAddy in 2024) [verify 2026-04-26]
+- **Apple Hide My Email** (iCloud+ subscribers, generates `@icloud.com` aliases per site)
+- **Firefox Relay** (Mozilla; free tier with limited aliases, premium adds custom subdomain + phone masking in US)
 
 **Email Creation Best Practices:**
 
 ```bash
-# Create ProtonMail account via Tor Browser
-# https://protonmail.com/ (Tor onion: https://protonmailrmez3lotccipshtkleegetolb73fuirgj7r4o4vfu7ozyd.onion/)
+# Create Proton Mail account via Tor Browser
+# https://proton.me/mail
+# Tor onion (verify current v3 address from https://proton.me/tor):
+#   https://protonmailrmez3lotccipshtkleegetolb73fuirgj7r4o4vfu7ozyd.onion/  [verify 2026-04-26]
 
 # Use password manager for unique passwords:
 # Generate 20-character random password
 openssl rand -base64 20
 
 # Store credentials in KeePassXC (offline password manager):
-keepassxc-cli add /home/analyst/personas.kdbx "Sarah Martinez - ProtonMail"
+keepassxc-cli add /home/analyst/personas.kdbx "Sarah Martinez - Proton Mail"
 ```
 
 **Phone Numbers (Verification):**
 - **Google Voice** (US only, requires real Google account for setup)
-- **MySudo** (multiple numbers, privacy-focused, $0.99/month per number)
-- **Burner SIM cards** (purchased with cash, disposable)
-- **SMS verification services** (sms-activate.org, 5sim.net - use with caution, no privacy)
+- **MySudo** (multiple numbers, privacy-focused, tiered subscription [verify 2026-04-26 for current pricing])
+- **Burner SIM cards** (purchased with cash, disposable). Note: US iPhone 14 and newer are eSIM-only — physical SIM swap into a stock US iPhone is no longer possible; use an Android handset or non-US iPhone for physical-SIM burners.
+- **eSIM resellers** (Airalo, Silent.link [verify 2026-04-26 for current sign-up posture]) — convenient for short-term cellular data without SIM swap, but most still require an identity check at top-up tier.
+- **SMS verification services** (sms-activate.org, 5sim.net, smspva — use with caution; numbers are recycled, no privacy guarantee, and many platforms block known SMS-PVA ranges).
 
 **Payment Methods (Anonymous):**
-- Cryptocurrency (Bitcoin, Monero for maximum privacy)
-- Prepaid debit cards (purchased with cash, no ID required)
-- Cash by mail (some VPN providers accept)
+- Cryptocurrency (Bitcoin via mixer-free CoinJoin / Monero for maximum privacy on-chain)
+- Prepaid debit cards (purchased with cash; KYC requirements vary by jurisdiction — US prepaid cards over a threshold now require ID under FinCEN rules) [verify 2026-04-26]
+- Cash by mail (Mullvad, IVPN historically accepted; verify current posture)
+- Provider-issued vouchers (Mullvad voucher codes via resellers — air-gaps the analyst from any direct payment trail)
 
 ### Password Management
 
@@ -552,7 +606,7 @@ keepassxc-cli db-create /home/analyst/osint_personas.kdbx
 
 # Add persona credentials
 keepassxc-cli add /home/analyst/osint_personas.kdbx "Twitter - @sarahm_atx" \
-  --username sarah.martinez.atx@protonmail.com \
+  --username sarah.martinez.atx@proton.me \
   --password-prompt \
   -u "https://twitter.com/sarahm_atx" \
   --notes "Created 2023-06-10, warming complete 2023-07-10"
@@ -572,7 +626,7 @@ OSINT Personas Database
 │   ├── sarah-martinez-marketing
 │   ├── john-doe-crypto
 ├── Email Accounts/
-│   ├── sarah.martinez.atx@protonmail.com
+│   ├── sarah.martinez.atx@proton.me
 │   ├── j.doe.crypto@tutanota.com
 ├── VPN Credentials/
 │   ├── Mullvad VPN (Account: 1234567890123456)
@@ -658,9 +712,21 @@ dom.security.https_only_mode → true
 - Cookies: Block all third-party cookies
 - WebRTC: Disabled or proxied through VPN
 - HTTPS Everywhere: Enabled
-- Private window with Tor: Use for high-risk investigations
+- Private window with Tor: Use for high-risk investigations (note: Brave's Tor mode is convenience-tier, not Tor-Browser-grade — for adversaries above Level 3, use real Tor Browser)
 
-**Option 3: Tor Browser (Maximum Anonymity)**
+**Option 3: LibreWolf (Pre-hardened Firefox fork)**
+
+```text
+Open-source Firefox fork shipping with telemetry disabled,
+RFP (`privacy.resistFingerprinting`) on by default, uBlock Origin
+pre-installed, DRM disabled, and search engines pruned. Useful as a
+"sane defaults" privacy browser for analysts who don't want to maintain
+the about:config tweak list manually. Not anti-fingerprinting at the
+Tor Browser level, but a strong baseline.
+Download: https://librewolf.net/  [verify 2026-04-26]
+```
+
+**Option 4: Tor Browser (Maximum Anonymity)**
 
 **Tor Browser Configuration:**
 - Security Level: **Safest** (disables JavaScript, some fonts, images)
@@ -889,10 +955,16 @@ Private Mode OFF:
 **OPSEC Measures:**
 
 ```text
-✅ Use Nitter (privacy frontend) for passive viewing: https://nitter.net/
-✅ Burner account not required for viewing public tweets
-✅ For archiving, use Nitter RSS feeds or yt-dlp:
-   yt-dlp "https://twitter.com/USERNAME" --skip-download --write-info-json
+⚠️ Nitter status: most public Nitter instances were shut down in 2023–2024
+   after X tightened API access; surviving instances are unstable and
+   intermittently rate-limited. Treat Nitter as best-effort, not reliable.
+   Track current state: https://github.com/zedeus/nitter/wiki/Instances  [verify 2026-04-26]
+✅ Burner account NOT required for many public tweets via X's logged-out
+   web view (verify per-page; X has progressively gated read access).
+✅ For archiving, prefer:
+   - Wayback Machine (archive.org/web/) — rate-limited but stable
+   - Archive.today (archive.is) — captures dynamic content well
+   - yt-dlp for media: yt-dlp "https://x.com/USERNAME" --skip-download --write-info-json
 ✅ Avoid liking, retweeting, or following targets (creates audit trail)
 ```
 
@@ -911,9 +983,12 @@ Private Mode OFF:
 ✅ Use burner account with realistic profile (profile photo, bio, 10+ posts)
 ✅ NEVER view Instagram Stories (target sees viewer list)
 ✅ Use Instagram web viewer (no app installation, harder to track)
-✅ Download posts with yt-dlp instead of viewing in Instagram:
+✅ Download posts with yt-dlp / gallery-dl instead of viewing in Instagram:
    yt-dlp "https://www.instagram.com/p/POST_ID/"
-✅ Alternative: Bibliogram (privacy frontend, often rate-limited)
+   gallery-dl "https://www.instagram.com/USERNAME/"
+⚠️ Bibliogram is DEFUNCT (project shut down ~2022; Meta blocked frontends).
+   No reliable Instagram privacy frontend currently exists; archive via
+   Wayback Machine / archive.today, or use a fully isolated burner browser.
 ```
 
 ### Telegram
@@ -949,10 +1024,18 @@ Private Mode OFF:
 **OPSEC Measures:**
 
 ```text
-✅ Use Teddit or Libreddit (privacy frontends): https://teddit.net/
-✅ No account required for viewing public subreddits/posts
+✅ Privacy frontends (status as of 2025):
+   - Redlib (active fork of the archived Libreddit project): https://github.com/redlib-org/redlib  [verify 2026-04-26]
+   - Teddit: status varies — main instance has been intermittently down [verify 2026-04-26]
+   Reddit's mid-2023 API pricing change broke many third-party clients;
+   privacy frontends rely on scraping and degrade when Reddit changes its HTML.
+✅ No account required for viewing public subreddits/posts via old.reddit.com
 ✅ For account creation: burner email, unique password, VPN
+   (Note: Reddit increasingly requires SMS verification for new accounts on
+   suspicious IP ranges, including known VPN exits.) [verify 2026-04-26]
 ✅ Avoid commenting or posting (creates audit trail)
+✅ Pushshift historical archive is now mod-restricted; arctic_shift /
+   academic mirrors (e.g., Watchful1's torrents) are the public route. [verify 2026-04-26]
 ```
 
 ### Facebook
@@ -1247,56 +1330,86 @@ What went wrong?
 
 | Tool                         | Category          | Purpose                                      | Platform              |
 | ---------------------------- | ----------------- | -------------------------------------------- | --------------------- |
-| **Mullvad VPN**              | Network Security  | Anonymous VPN with no-logs policy            | Windows, Linux, macOS |
-| **ProtonVPN**                | Network Security  | Secure Core, Tor over VPN                    | Windows, Linux, macOS |
-| **Tor Browser**              | Anonymity         | Maximum anonymity, anti-fingerprinting       | Windows, Linux, macOS |
-| **Whonix**                   | Anonymity         | Tor-routed VM by design                      | Linux (VM)            |
+| **Mullvad VPN**              | Network Security  | Account-number-only VPN, audited no-logs (2023 server seizure validated) | Windows, Linux, macOS |
+| **Proton VPN**               | Network Security  | Secure Core multi-hop, Tor over VPN; Swiss jurisdiction | Windows, Linux, macOS |
+| **IVPN**                     | Network Security  | Account-number-only, audited no-logs        | Windows, Linux, macOS |
+| **Tor Browser**              | Anonymity         | Maximum anonymity, anti-fingerprinting; Firefox-ESR base | Windows, Linux, macOS |
+| **Mullvad Browser**          | Anonymity         | Tor-Browser-grade fingerprint defenses for use behind a VPN (no Tor) | Windows, Linux, macOS |
+| **Whonix**                   | Anonymity         | Tor-routed VM by design (best inside Qubes OS) | Linux (VM)            |
 | **Tails**                    | Anonymity         | Amnesic live OS, leaves no traces            | USB boot              |
+| **Qubes OS**                 | Isolation         | Compartmentalization via xen domains; Whonix-aware | Bare metal (x86_64)   |
 | **Exegol**                   | Security Testing  | Pre-configured Docker environment with OSINT tools | Linux (Docker)        |
 | **Kasm Workspaces**          | Isolation         | Browser-based containerized desktop streaming | Linux (self-hosted)   |
 | **Firefox**                  | Browser           | Privacy-hardened with about:config           | Windows, Linux, macOS |
+| **LibreWolf**                | Browser           | Pre-hardened Firefox fork (RFP, no telemetry, uBO bundled) | Windows, Linux, macOS |
 | **Brave**                    | Browser           | Chromium-based, built-in ad/tracker blocking | Windows, Linux, macOS |
-| **uBlock Origin**            | Browser Extension | Ad/tracker blocking                          | Firefox, Chrome       |
+| **uBlock Origin**            | Browser Extension | Ad/tracker blocking                          | Firefox, Chromium*    |
 | **NoScript**                 | Browser Extension | JavaScript blocking                          | Firefox               |
 | **Multi-Account Containers** | Browser Extension | Isolate cookies per persona                  | Firefox               |
 | **KeePassXC**                | Password Manager  | Offline, encrypted password storage          | Windows, Linux, macOS |
-| **ProtonMail**               | Email             | Encrypted email, no phone required           | Web, mobile           |
+| **Proton Mail**              | Email             | Encrypted email, no phone required for paid plans | Web, mobile           |
+| **Tuta** (formerly Tutanota) | Email             | Encrypted email, German jurisdiction         | Web, mobile           |
+| **SimpleLogin**              | Email Aliasing    | Hides real address (Proton-acquired 2022)    | Web, browser ext.     |
+| **Addy.io**                  | Email Aliasing    | Self-hostable email aliasing (formerly AnonAddy) | Web, browser ext.     |
 | **MySudo**                   | Phone Number      | Virtual phone numbers for verification       | iOS, Android          |
+| **YubiKey 5 / Bio**          | Hardware Token    | FIDO2/U2F + smart card; persona MFA          | USB-A/USB-C/NFC       |
+| **Nitrokey 3**               | Hardware Token    | Open hardware FIDO2 alternative              | USB-A/USB-C           |
 | **ExifTool**                 | Metadata          | Scrub EXIF from images                       | CLI (all platforms)   |
+| **mat2**                     | Metadata          | Scrub metadata from a wide range of formats  | CLI / Nautilus ext.   |
 | **VirtualBox**               | Virtualization    | Free VM software                             | Windows, Linux, macOS |
 | **VMware Workstation**       | Virtualization    | Commercial VM software (more features)       | Windows, Linux        |
 
+*uBlock Origin Manifest V3 status on Chromium varies — uBO Lite is the MV3 build; the full uBO MV2 build has been deprecated in Chrome 2024+. [verify 2026-04-26]
+
 ### Resources & References
 
-**OPSEC Frameworks:**
-- ODNI OPSEC Guidelines: https://www.dni.gov/index.php/ncsc-how-we-work/ncsc-know-the-risk-raise-your-shield/ncsc-opsec
-- NIST SP 800-53 (Operational Security Controls): https://csrc.nist.gov/publications/detail/sp/800-53/rev-5/final
+**OPSEC Frameworks & Threat-Modeling:**
+- ODNI / NCSC OPSEC: https://www.dni.gov/index.php/ncsc-how-we-work/ncsc-know-the-risk-raise-your-shield/ncsc-opsec  [verify 2026-04-26]
+- NIST SP 800-53 Rev. 5 (Operational Security Controls): https://csrc.nist.gov/publications/detail/sp/800-53/rev-5/final
+- EFF Surveillance Self-Defense: https://ssd.eff.org/
+- Tactical Tech "Holistic Security": https://holistic-security.tacticaltech.org/  [verify 2026-04-26]
+- Front Line Defenders Workbook on Security: https://www.frontlinedefenders.org/en/resource-publication/workbook-security-practical-steps-human-rights-defenders-risk  [verify 2026-04-26]
 - Bellingcat OSINT Ethics Guide: https://www.bellingcat.com/resources/2022/11/23/a-guide-to-ethics-in-open-source-research/
+- UN OHCHR Berkeley Protocol on Digital Open Source Investigations (see §III "Methodology" for OPSEC-relevant guidance): https://www.ohchr.org/en/publications/policy-and-methodological-publications/berkeley-protocol-digital-open-source
 
 **Privacy Testing:**
-- Cover Your Tracks (Browser Fingerprinting): https://coveryourtracks.eff.org/
+- Cover Your Tracks (Browser Fingerprinting, EFF): https://coveryourtracks.eff.org/
 - DNS Leak Test: https://www.dnsleaktest.com/
 - IP Leak Test: https://ipleak.net/
-- Browser Leaks: https://browserleaks.com/
+- Browser Leaks (canvas/WebGL/WebRTC/WebGPU): https://browserleaks.com/
+- AmIUnique (browser fingerprint research): https://amiunique.org/
 
-**Anonymity Networks:**
+**Anonymity Networks & Privacy Browsers:**
 - Tor Project: https://www.torproject.org/
+- Tor Project — bridges database: https://bridges.torproject.org/
+- Mullvad Browser: https://mullvad.net/en/browser  [verify 2026-04-26]
 - Whonix: https://www.whonix.org/
-- Tails OS: https://tails.boum.org/
+- Tails OS: https://tails.net/  (canonical domain since 2024; legacy `tails.boum.org` redirects) [verify 2026-04-26]
+- Qubes OS: https://www.qubes-os.org/
+- LibreWolf: https://librewolf.net/  [verify 2026-04-26]
 
 **Investigation Environments:**
 - Exegol: https://exegol.com/
 - Kasm Workspaces: https://www.kasmweb.com/
 
 **Persona Management:**
-- This Person Does Not Exist (AI-generated faces): https://thispersondoesnotexist.com/
+- This Person Does Not Exist (AI-generated faces; reverse-search the candidate before use, GAN faces have known artifacts): https://thispersondoesnotexist.com/
 - Fake Name Generator: https://www.fakenamegenerator.com/
 - Guerrilla Mail (Temporary Email): https://www.guerrillamail.com/
 
+**Operator OPSEC failure case studies (teaching cases):**
+
+- Marcus Hutchins (MalwareTechBlog) — early-career WannaCry-mitigation researcher, prior history surfaced via Twitter timezone correlation + screenshot metadata.
+- Ross Ulbricht (Silk Road) — early Stack Overflow / Bitcointalk post under real name + library-network login during operator activity led to physical takedown (2013).
+- Maksym Yastremskiy ("Maksik") — language settings and forum cross-posting helped attribution.
+- Reality Winner — printer microdot pattern (yellow tracking dots) on a leaked NSA document tied print job to a specific workstation/time.
+
+These reinforce the rule that **OPSEC is durable, not perfect** — analysts should assume any single-channel anonymity layer can fail and rely on compartmentalization across persona, network, device, and timing.
+
 ---
 
-**Version:** 2.0
-**Last Updated:** 2025-10-05
+**Version:** 2.1
+**Last Updated:** 2026-04-26
 **Review Cycle:** Yearly
 
 ---

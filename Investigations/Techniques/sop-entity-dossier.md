@@ -14,7 +14,7 @@ tags:
   - entity
   - osint
 created: 2025-10-05
-updated: 2025-10-05
+updated: 2026-04-26
 analyst:
 case_id:
 ---
@@ -237,14 +237,24 @@ shodan search "http.favicon.hash:-1234567890"
 
 **Username Enumeration:**
 ```bash
-# Nuclei - find usernames across platforms
-nuclei -tags osint -var user=entity_name
+# WhatsMyName (canonical username-enumeration ruleset; >600 sites)
+# https://github.com/WebBreacher/WhatsMyName  (web UI: whatsmyname.app)
+python3 web_accounts_list_checker.py -u entity_name
 
-# WhatsMyName
-python3 whatsmyname.py -u entity_name
+# Maigret (WhatsMyName fork + parsing of returned profiles)
+# https://github.com/soxoj/maigret
+maigret entity_name --html
 
-# Manual check
-# Twitter: https://twitter.com/entity_name
+# Sherlock (legacy but still maintained)
+# https://github.com/sherlock-project/sherlock
+sherlock entity_name
+
+# Nuclei OSINT templates (template tag `osint` exists, but is not a username-enumeration
+# replacement for the above — use for surface-level recon only) [verify 2026-04-26]
+nuclei -t http/osint/ -var user=entity_name
+
+# Manual spot-check
+# X (Twitter): https://x.com/entity_name
 # Instagram: https://instagram.com/entity_name
 # GitHub: https://github.com/entityname
 ```
@@ -254,6 +264,45 @@ python3 whatsmyname.py -u entity_name
 - Instagram bio: "☕ Crypto & Privacy | DM for collabs"
 - LinkedIn bio: "Cryptocurrency consultant specializing in privacy tech"
 - **Common themes:** Cryptocurrency, privacy, professional availability
+
+### Sanctions, Beneficial-Ownership & Corporate Registries
+
+Run every named entity (person, company, wallet, vessel) against the canonical lists below before finalizing risk rating. For deeper financial-crime methodology see [[sop-financial-aml-osint|Financial / AML OSINT]].
+
+**Sanctions screening:**
+
+| Source | URL | Notes |
+|--------|-----|-------|
+| OFAC SDN + Consolidated (US) | `sanctionssearch.ofac.treas.gov` | Authoritative US Treasury list; CSV/XML downloads at `home.treasury.gov/policy-issues/financial-sanctions/` |
+| EU Consolidated Financial Sanctions | `data.europa.eu/en/datasets/consolidated-list-of-persons-groups-and-entities-subject-to-eu-financial-sanctions` | XML / CSV; mirrored by FSF |
+| UK OFSI Consolidated List | `gov.uk/government/publications/financial-sanctions-consolidated-list-of-targets` | HM Treasury OFSI |
+| UN Security Council Consolidated | `un.org/securitycouncil/sanctions/un-sc-consolidated-list` | UN-1267, UN-1718, etc. |
+| OpenSanctions | `opensanctions.org` | Aggregated multi-jurisdiction sanctions + PEPs (FollowTheMoney schema) |
+| AU DFAT / CA SEMA / CH SECO | per-government portals | Verify URL at use time `[verify 2026-04-26]` |
+
+**Beneficial-ownership / corporate registries:**
+
+| Source | URL | Notes |
+|--------|-----|-------|
+| OpenCorporates | `opencorporates.com` | Largest open-data corporate registry index |
+| UK Companies House — People with Significant Control (PSC) | `find-and-update.company-information.service.gov.uk` | Public; ID-verification phase-in under ECCT Act 2023 `[verify 2026-04-26]` |
+| US FinCEN Beneficial Ownership Information (BOI) | `fincen.gov/boi` | Scope materially narrowed by **Treasury's March 2025 interim final rule** to foreign reporting companies only — verify current state before relying on it `[verify 2026-04-26]` |
+| EU UBO registers (5AMLD/6AMLD) | per-member-state portal | **CJEU C-37/20 + C-601/20 (Nov 2022)** invalidated unrestricted public access; most member states now require "legitimate interest" — document the access pathway used `[verify 2026-04-26]` |
+| ICIJ OffshoreLeaks | `offshoreleaks.icij.org` | Panama / Paradise / Pandora / Pandora-2 / Cyprus / Bahamas leaks |
+| OCCRP Aleph | `aleph.occrp.org` | Investigative document + leak corpus search |
+| Sayari Graph / Moody's Orbis (BvD) / LSEG World-Check | commercial | Document use without endorsement |
+
+**Threat-actor / cyber-TI dossier sources** (when entity is an adversary group):
+
+| Source | URL | Notes |
+|--------|-----|-------|
+| MITRE ATT&CK Groups | `attack.mitre.org/groups/` | Curated TTP-attribution dossiers |
+| MISP | `misp-project.org` | Threat-sharing platform; community feeds |
+| OpenCTI (Filigran / ANSSI) | `opencti.io` | TI knowledge graph (STIX 2.1) |
+| Mandiant Advantage / Recorded Future / CrowdStrike Falcon Intelligence | commercial | Document without endorsement |
+| DFIR Report / Talos Intelligence (Cisco) / Unit 42 (Palo Alto) | OSS write-ups | Useful for incident-derived attribution |
+
+> **Sanctions hits are not a verdict** — name collisions (esp. PEP-class lists) require corroborating identifiers (DOB, country of citizenship, primary identifier) before downgrading confidence to "match." Annotate every hit with the source list, list version/date, and confirming identifier(s).
 
 ---
 
@@ -285,15 +334,23 @@ curl -H "hibp-api-key: YOUR_API_KEY" \
 ```markdown
 **Bitcoin Analysis:**
 ```bash
-# Check wallet balance and transactions
+# Balance + tx history — blockchain.info endpoints still respond but are legacy;
+# prefer mempool.space or Blockstream Esplora for modern, rate-limit-friendly access.
+# (blockchain.com rebrand kept the blockchain.info JSON paths live — [verify 2026-04-26])
 curl -s "https://blockchain.info/balance?active=bc1qxy2kgdygjrsqtzq2n0yrf2493p83kkfjhx0wlh"
-
-# Transaction history
 curl -s "https://blockchain.info/rawaddr/bc1qxy2kgdygjrsqtzq2n0yrf2493p83kkfjhx0wlh" | jq '.txs'
 
-# Cluster analysis (wallet.explorer.btc.com)
+# Modern equivalents (prefer for new dossiers):
+curl -s "https://mempool.space/api/address/bc1qxy2kgdygjrsqtzq2n0yrf2493p83kkfjhx0wlh"
+curl -s "https://blockstream.info/api/address/bc1qxy2kgdygjrsqtzq2n0yrf2493p83kkfjhx0wlh/txs"
+
+# Cluster analysis — note: walletexplorer.com (Sam Rushing / formerly btc.com) is the
+# legacy free clusterer; verify currency before citing in evidence. Modern alternatives:
+#   - mempool.space (open, on-chain only, no clustering)
+#   - oxt.me (closed/limited post-Samourai enforcement [verify 2026-04-26])
+#   - Chainalysis Reactor / TRM Labs / Elliptic / Crystal / GraphSense (commercial / OSS)
 # Linked wallets: 5 addresses in same cluster
-# Total balance across cluster: 15.3 BTC (~$450,000 USD at 2024 rates)
+# Total balance across cluster: 15.3 BTC (illustrative — convert at audit time, not template time)
 ```
 
 **Key Transactions:**
@@ -416,6 +473,8 @@ theHarvester -d example.com -b all > evidence/theharvester_output.txt
 
 ### Confidence Rating
 
+> **Anchor frameworks:** rate every claim against (a) the **Berkeley Protocol on Digital Open Source Investigations §V — Information Verification** (corroboration, source assessment, three-source rule) and (b) the **NATO Admiralty Code (STANAG 2511 / AJP-2)** 6×6 source-credibility × information-credibility matrix (A–F × 1–6). Use the [[sop-collection-log|Collection Log]] for evidentiary traceability and the **Cone of Plausibility** to bound analytic uncertainty on forward-looking claims.
+
 ```markdown
 **Overall Confidence: MEDIUM-HIGH**
 
@@ -486,12 +545,14 @@ theHarvester -d example.com -b all > evidence/theharvester_output.txt
 
 ### OPSEC Considerations
 
+> Canonical guidance lives in [[sop-opsec-plan|OPSEC Plan]] — the example block below records the dossier-specific **execution log**, not the policy. Do not re-derive sock-puppet provisioning, network egress, or device-hardening doctrine here.
+
 ```markdown
-**Investigator OPSEC:**
+**Investigator OPSEC (per-dossier execution log):**
 - ✅ All queries performed via VPN (exit node: Switzerland)
-- ✅ Burner email used for service registrations (tempmail@proton.me)
-- ✅ Browser fingerprinting protection enabled (Mullvad Browser)
-- ⚠️ Avoid direct contact with entity's social media (may alert target)
+- ✅ Burner email used for service registrations (e.g. ProtonMail / SimpleLogin alias — pick per [[sop-opsec-plan|OPSEC]] §Identities)
+- ✅ Browser fingerprinting protection enabled (Mullvad Browser, or Tor Browser for higher-risk pivots)
+- ⚠️ Avoid direct contact with entity's social media (may alert target — LinkedIn especially: anonymous viewing requires Premium and is not perfectly opaque [verify 2026-04-26])
 - ⚠️ Use passive OSINT only; no active probing of infrastructure
 
 **Sensitive Actions Log:**
@@ -519,35 +580,39 @@ theHarvester -d example.com -b all > evidence/theharvester_output.txt
 
 **Long-Term Monitoring:**
 - [ ] Set up Google Alerts for entity name + aliases
-- [ ] Configure social media monitoring (Hootsuite, TweetDeck)
+- [ ] Configure social media monitoring (Hootsuite, X Pro [formerly TweetDeck — renamed Aug 2023, gated behind X Premium], Bluesky deck.blue, Mastodon Elk/Phanpy)
 - [ ] Subscribe to blockchain transaction alerts (Whale Alert)
 - [ ] Periodic review every 30 days
 ```
 
 ### Legal & Compliance
 
+> Jurisdictional framing (CFAA, CMA, EU Cybercrime Directive 2013/40/EU, GDPR Art. 6/9, DPA 2018, BIPA/CUBI, etc.) is canonical in [[sop-legal-ethics|Legal & Ethics]] — **do not re-derive here**. Capture only the per-dossier authorization record below; flag minor-related, exploitation, or trafficking content per [[sop-sensitive-crime-intake-escalation|Sensitive-Crime Intake]] *immediately* and stop collection until escalation completes.
+
 ```markdown
-**Authorization:**
+**Per-dossier authorization record:**
 - Case ID: CASE-2025-1005-001
 - Authorized by: [Legal Team / Supervisor Name]
 - Authorization date: 2025-10-01
 - Scope: Open-source intelligence only (no hacking, no illegal access)
 - Expiration: 2025-12-31 (renewable)
+- Lawful basis (GDPR Art. 6 / Art. 9 if special-category data): [select + cite]
 
-**Data Handling:**
+**Data handling (align with [[sop-collection-log|Collection Log]] retention schedule):**
 - Classification: CONFIDENTIAL
-- Storage: Encrypted vault (AES-256)
-- Access: Analyst + supervisor only
-- Retention: 7 years per policy
-- Disposal: Secure deletion after retention period
+- Storage: Encrypted vault (AES-256-GCM or stronger; document KMS / passphrase custody)
+- Access: Analyst + supervisor only (RBAC enforced)
+- Retention: 7 years per policy (verify against jurisdictional limit)
+- Disposal: Secure deletion after retention period (NIST SP 800-88 Rev. 1 sanitization)
 
-**Legal Boundaries:**
-- ✅ Public records search (WHOIS, social media, blockchain)
-- ✅ Data breach database queries (HIBP, Dehashed)
-- ✅ Commercial data brokers (within licensing terms)
+**Operational boundaries (canonical list in [[sop-legal-ethics|Legal & Ethics]]):**
+- ✅ Public records search (WHOIS / RDAP, social media, blockchain, court PACER, etc.)
+- ✅ Data breach database queries (HIBP, Dehashed, IntelX — per licensing + jurisdiction)
+- ✅ Commercial data brokers (within licensing terms; document the dataset version)
 - ❌ Unauthorized access to private accounts
 - ❌ Social engineering or pretexting
 - ❌ Exploitation of vulnerabilities
+- ❌ Scraping in violation of CFAA / CMA / GDPR Art. 6 lawful-basis tests (see [[sop-legal-ethics|Legal & Ethics]] §Scraping)
 ```
 
 ---
@@ -556,30 +621,112 @@ theHarvester -d example.com -b all > evidence/theharvester_output.txt
 
 ### Tools Used
 
-| Tool              | Version | Purpose                      | Command/Link                                     |
-| ----------------- | ------- | ---------------------------- | ------------------------------------------------ |
-| Nuclei            | 9.15    | Username enumeration         | `nuclei -tags osint -var user=username`          |
-| theHarvester      | 4.5.0   | Email/domain OSINT           | `theHarvester -d domain.com -b all`              |
-| WHOIS             | CLI     | Domain registration lookup   | `whois domain.com`                               |
-| Shodan            | Web/CLI | Internet-wide device search  | `shodan search query`                            |
-| Have I Been Pwned | API     | Data breach check            | [haveibeenpwned.com](https://haveibeenpwned.com) |
-| Blockchain.info   | API     | Bitcoin blockchain analysis  | [blockchain.info](https://blockchain.info)       |
-| Etherscan         | API     | Ethereum blockchain analysis | [etherscan.io](https://etherscan.io)             |
-| ExifTool          | CLI     | Metadata extraction          | `exiftool image.jpg`                             |
-| Maltego           | CE      | Link analysis                | [maltego.com](https://www.maltego.com)           |
+Replace fictional version pins with `--version` invocations at audit time. Versions below are illustrative anchors `[verify 2026-04-26]`.
 
-### References
+| Tool              | Type    | Purpose                                | Command / Link                                                                 |
+| ----------------- | ------- | -------------------------------------- | ------------------------------------------------------------------------------ |
+| WhatsMyName       | CLI/Web | Username enumeration (canonical)       | [whatsmyname.app](https://whatsmyname.app) / [WebBreacher/WhatsMyName](https://github.com/WebBreacher/WhatsMyName) |
+| Maigret           | CLI     | Username enumeration + profile parse   | [soxoj/maigret](https://github.com/soxoj/maigret)                              |
+| Sherlock          | CLI     | Username enumeration (legacy, active)  | [sherlock-project/sherlock](https://github.com/sherlock-project/sherlock)      |
+| Nuclei (v3.x)     | CLI     | Surface-level OSINT templates          | `nuclei -t http/osint/`                                                        |
+| theHarvester      | CLI     | Email/domain OSINT                     | `theHarvester -d domain.com -b all` (current 4.x)                              |
+| WHOIS / RDAP      | CLI     | Domain registration lookup             | `whois domain.com` / `openrdap` / `rdap.org`                                   |
+| Shodan / Censys / FOFA / ZoomEye | Web/CLI | Internet-wide attribution         | `shodan search ...` (verify tier + active credits)                             |
+| Have I Been Pwned | API     | Data breach check (v3 API key required) | [haveibeenpwned.com](https://haveibeenpwned.com)                               |
+| Dehashed / IntelX | Web/API | Breach + leak corpus search            | per licensing                                                                  |
+| mempool.space / Blockstream Esplora | API | Bitcoin chain analysis (open)     | `https://mempool.space/api/...`                                                |
+| Etherscan         | API     | Ethereum chain analysis                | [etherscan.io](https://etherscan.io)                                           |
+| Chainalysis Reactor / TRM Labs / Elliptic / Crystal / GraphSense | Commercial / OSS | Wallet clustering & risk scoring | per licensing                          |
+| OpenSanctions     | Web/API | Sanctions + PEP aggregation            | [opensanctions.org](https://www.opensanctions.org)                             |
+| OpenCorporates    | Web/API | Corporate registry index               | [opencorporates.com](https://opencorporates.com)                               |
+| ICIJ OffshoreLeaks / OCCRP Aleph | Web | Investigative leak corpus            | [offshoreleaks.icij.org](https://offshoreleaks.icij.org) / [aleph.occrp.org](https://aleph.occrp.org) |
+| ExifTool          | CLI     | Metadata extraction                    | `exiftool image.jpg`                                                           |
+| Maltego CE        | GUI     | Link analysis                          | [maltego.com](https://www.maltego.com) (Maltego Technology GmbH)               |
+| i2 Analyst's Notebook | GUI | Link analysis (commercial)             | N. Harris Computer Corp acquired from IBM 2022 `[verify 2026-04-26]`           |
+| Neo4j Bloom / Linkurious / Gephi | GUI/OSS | Graph relationship viz             | per vendor                                                                     |
+| Spiderfoot / Recon-ng | CLI | Automated OSINT enumeration            | [spiderfoot.net](https://www.spiderfoot.net) / [lanmaster53/recon-ng](https://github.com/lanmaster53/recon-ng) |
 
-- Case file: `/cases/CASE-2025-1005-001/`
-- Evidence repository: `/evidence/CASE-2025-1005-001/entity_name/`
-- Related entities:
-  - [Example Investigation](../../Cases/2025-001-Example-Investigation/README.md)
-  - [Case Template](../../Cases/Case-Template/README.md)
+### Common Pitfalls
 
+- **Name-collision sanctions hits** — common names produce false positives on PEP / SDN lists; require ≥1 corroborating identifier (DOB, country, primary identifier) before "match."
+- **Stale alias confidence** — "confirmed via Twitter 2024-05-10" doesn't survive a platform sale or account migration; re-verify before publishing.
+- **Cluster claims without provenance** — wallet-clustering output (Chainalysis, TRM, OXT) is an opinion of the analytics provider, not a chain-of-custody fact. Cite the provider + dataset version + run date.
+- **Geolocation overconfidence** — IP geo-lookups, EXIF, and check-ins are independently weak; Berkeley Protocol §V three-source rule applies.
+- **VPN / Tor false negatives** — counter-intel use of residential proxies and CGNAT collapses simple geo signals; flag rather than discard a contradicting datum.
+- **Schema drift** — if you rename a front-matter field (`primary_id`, `risk`, `confidence`), every downstream Case dossier inherits the break. Add new fields rather than rename.
+- **C2PA / Content Credentials absence ≠ authenticity** — see [[sop-image-video-osint|Image / Video OSINT]] §6 for synthetic-media verification limits before crediting profile photos.
+- **LinkedIn anonymous-view leak** — Premium "anonymous viewer" still surfaces region/industry on the target's "Who's Viewed Your Profile" panel `[verify 2026-04-26]`. Use a clean sock-puppet account per [[sop-opsec-plan|OPSEC]].
+
+### Related SOPs
+
+**Methodology & authorization:**
+- [[sop-legal-ethics|Legal & Ethics]] — jurisdictional framing (canonical)
+- [[sop-opsec-plan|OPSEC Plan]] — investigator OPSEC, sock-puppet provisioning (canonical)
+- [[sop-collection-log|Collection Log]] — chain-of-custody, evidence hashing, retention (canonical)
+- [[sop-sensitive-crime-intake-escalation|Sensitive-Crime Intake & Escalation]] — escalation triggers if dossier touches CSAM, trafficking, or imminent-harm content
+- [[sop-reporting-packaging-disclosure|Reporting, Packaging & Disclosure]] — final-report packaging, defang conventions
+
+**OSINT collection feeders:**
+- [[sop-web-dns-whois-osint|Web / DNS / WHOIS OSINT]] — infrastructure pivots feeding §3
+- [[sop-image-video-osint|Image / Video OSINT]] — visual identifiers, reverse search, C2PA
+- [[sop-financial-aml-osint|Financial / AML OSINT]] — sanctions, beneficial ownership, mixers, Travel Rule
+- [[sop-platform-twitter-x|X (Twitter)]] · [[sop-platform-linkedin|LinkedIn]] · [[sop-platform-instagram|Instagram]] · [[sop-platform-telegram|Telegram]] · [[sop-platform-reddit|Reddit]] · [[sop-platform-tiktok|TikTok]] · [[sop-platform-bluesky|Bluesky]] — per-platform handle/profile collection
+
+**Evidence-side handoffs:**
+- [[sop-hash-generation-methods|Hash Generation Methods]] — SHA-256 / BLAKE3 hashing of evidence artefacts
+- [[sop-forensics-investigation|Forensics Investigation]] — when an OSINT dossier escalates to live-system acquisition
+
+### External / Reference Resources
+
+**Methodology:**
+- **Berkeley Protocol on Digital Open Source Investigations** (UN OHCHR + UC Berkeley HRC, 2022) — canonical methodology, esp. §V Information Verification.
+- **NATO STANAG 2511 / AJP-2 — Admiralty Code** — A–F source-credibility × 1–6 information-credibility matrix.
+- **Cone of Plausibility** (Charles W. Taylor / UK MoD) — bounding analytic uncertainty on forward-looking claims.
+- **NIST SP 800-88 Rev. 1** — media sanitization (used at retention-period disposal).
+- **SWGDE / SWGIT Best Practices** — digital-evidence forensic baseline.
+
+**Sanctions & beneficial ownership:**
+- OFAC SDN / Consolidated — `sanctionssearch.ofac.treas.gov`
+- EU Consolidated Financial Sanctions — `data.europa.eu` (search "consolidated list ... financial sanctions")
+- UK OFSI Consolidated List — `gov.uk/government/publications/financial-sanctions-consolidated-list-of-targets`
+- UN Security Council Consolidated — `un.org/securitycouncil/sanctions/un-sc-consolidated-list`
+- OpenSanctions — `opensanctions.org`
+- OpenCorporates — `opencorporates.com`
+- ICIJ OffshoreLeaks — `offshoreleaks.icij.org`
+- OCCRP Aleph — `aleph.occrp.org`
+- UK PSC (Companies House) — `find-and-update.company-information.service.gov.uk`
+- US FinCEN BOI — `fincen.gov/boi` (scope narrowed by 2025 Treasury interim final rule `[verify 2026-04-26]`)
+
+**Threat-actor / cyber-TI:**
+- MITRE ATT&CK Groups — `attack.mitre.org/groups/`
+- MISP — `misp-project.org`
+- OpenCTI — `opencti.io`
+
+**Identity verification (jurisdictional, with consent):**
+- eIDAS (EU), GOV.UK One Login (UK), India Aadhaar (jurisdictional), US REAL ID (full enforcement May 7 2025 `[verify 2026-04-26]`)
+- KYC vendors: Onfido, Jumio, Trulioo, Persona (document without endorsement)
+
+### Case References
+
+- Case file: `Cases/<YYYY-NNN-Brief-Description>/` (per CLAUDE.md naming)
+- Evidence repository: `Cases/<YYYY-NNN-Brief-Description>/Evidence/<entity_name>/`
+- Worked example: [Example Investigation](../../Cases/2025-001-Example-Investigation/README.md)
+- Template: [Case Template](../../Cases/Case-Template/README.md)
+
+## Legal & Ethical Considerations
+
+Canonical text lives in [[sop-legal-ethics|Legal & Ethics]]. Dossier-specific reminders:
+
+- **Lawful basis required.** GDPR Art. 6 (and Art. 9 for special-category data: biometric/health/political/religion/sexuality/criminal-conviction). Document the basis on the dossier front matter or in §7 authorization record.
+- **Profiling restrictions.** GDPR Art. 22 limits decisions made solely on automated profiling — flag if downstream consumers will use the dossier in automated decisioning.
+- **Cross-border transfer.** If the dossier subject is in the EU/EEA/UK and the receiving analyst is not, document the transfer mechanism (SCCs, adequacy decision, derogation).
+- **Sensitive-crime triggers.** If collection surfaces CSAM, trafficking, imminent-harm threats, or terrorism content, **stop and escalate per [[sop-sensitive-crime-intake-escalation|Sensitive-Crime Intake]]**. Do not download, hash, or screenshot until escalation completes.
+- **Defamation surface.** Risk-rating language ("Critical", "High") is adversarial-context-only; avoid it in client-facing summaries unless evidence supports the claim under the relevant jurisdiction's defamation standard.
+- **Subject-access / GDPR Art. 15.** Investigated subjects can request their data; prepare for SAR handling in the retention plan.
 
 ---
 
 **Analyst:** gl0bal01
-**Date Created:** 2025-10-10
-**Last Updated:** 2025-10-10
-**Review Cycle:** Yearly
+**Date Created:** 2025-10-05
+**Last Updated:** 2026-04-26
+**Review Cycle:** Yearly (slow-rot anchor SOP per CLAUDE.md watchlist)

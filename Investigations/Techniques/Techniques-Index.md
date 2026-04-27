@@ -4,7 +4,8 @@ title: OSINT Investigation Techniques
 description: "Advanced OSINT methods: social media intelligence, domain reconnaissance, geolocation, people search & comprehensive open-source investigation tactics."
 tags: [index, techniques, osint, investigation, sop]
 created: 2025-10-09
-updated: 2025-10-09
+updated: 2026-04-26
+template_version: 2026-04-26
 ---
 
 # OSINT Investigation Techniques Index
@@ -76,6 +77,52 @@ This directory contains detailed SOPs covering core investigation techniques, ev
   - Sanctions screening and compliance checks
   - Transaction pattern analysis
   - Money laundering red flags
+
+### Blockchain & Crypto-Asset Tracing
+
+#### [[sop-blockchain-investigation|Blockchain Investigation]]
+- **Purpose:** Multi-chain crypto-asset tracing methodology for OSINT, compliance, and investigative work
+- **Coverage:** Bitcoin and EVM-family ledgers, address clustering, cross-chain bridge read-flow, sanctions integration, commercial and open-source analytics, court-admissibility tradecraft
+- **Key Topics:**
+  - Multi-chain landscape (UTXO vs account, EVM L2s, non-EVM L1s, privacy coins)
+  - Address clustering heuristics (common-input ownership, change-address detection, peel chains, account clustering)
+  - Cross-chain bridge tracing — pairing source-chain lock/burn with destination-chain mint/release events (Wormhole, LayerZero, Synapse, Across, THORChain, Hop, native L2 bridges)
+  - Sanctions integration (OFAC SDN DCA, EU TFR / MiCA, UK OFSI, FATF Travel Rule)
+  - Commercial analytics tools (Chainalysis Reactor, TRM Labs, Elliptic, Crystal, Arkham) and their evidentiary limitations
+  - Open-source analytics workflows (GraphSense, Breadcrumbs, BigQuery datasets, self-hosted nodes)
+  - Exchange and VASP pivots — deposit-address clustering, KYC subpoena pathway, Travel Rule data flow
+  - Court-admissibility tradecraft — Sterlingov / Bitcoin Fog precedent, Daubert posture toward heuristic clustering, expert-witness considerations
+  - Hand-off boundaries: stops at mixer entry → mixer-tracing; smart-contract code review → smart-contract-audit; receives wallet observations from darkweb-investigation §13
+
+### Mixer & Privacy-Pool Tracing
+
+#### [[sop-mixer-tracing|Mixer & Privacy-Pool Tracing]]
+- **Purpose:** Mixer, CoinJoin, and privacy-pool de-obfuscation methodology — picks up where blockchain-investigation stops (at mixer entry and deliberate cross-chain obfuscation)
+- **Coverage:** CoinJoin clustering attacks, Tornado Cash on-chain heuristics, cross-chain bridge laundering defeat, privacy-coin traceability research limits, regulatory event timeline
+- **Key Topics:**
+  - CoinJoin clustering attacks — Wasabi (ZeroLink → WabiSabi era), Samourai Whirlpool (Tx0 + doxxic-change linkage), JoinMarket maker-taker analysis, post-mix consolidation discipline
+  - Tornado Cash deposit-withdrawal linkage heuristics — address-reuse, gas-price, time-window, multi-deposit, single-relay, anonymity-set sizing (Tutela / Wu et al. 2022, Beres et al. 2021)
+  - Cross-chain bridge obfuscation defeat — round-tripping, fragmentation, decoy bridges, chain-hopping, DEX-laundering between bridges, THORChain-mediated obfuscation, aggregator-call decomposition
+  - Privacy-coin traceability research limits — Monero RingCT (Möser 2017, Kumar 2017, Yu 2019), Zcash shielded-pool egress (Kappos 2018, Quesnelle 2017), Dash PrivateSend, Decred opt-in mixing
+  - Regulatory event timeline — Tornado Cash 2022-08-08 → 2024-11-26 *Van Loon* → 2025-03-21 delist, Samourai indictment 2024-04-24, Wasabi / zkSNACKs 2024 shutdown, ChipMixer / Blender.io / Sinbad takedowns, Helix and Bitcoin Fog precedents
+  - Court-admissibility for mixer findings — elevated Daubert challenge surface (Sterlingov, Storm, Pertsev) — multi-heuristic discipline, off-chain corroboration, academic-citation pinning, tool-version pinning
+  - Hand-off boundaries: receives mixer-entry observations from blockchain-investigation §11.6; routes back for downstream pursuit; stops at smart-contract source review (→ smart-contract-audit)
+
+### Darkweb & Hidden-Service Investigation
+
+#### [[sop-darkweb-investigation|Darkweb Investigation]]
+- **Purpose:** Open-source observation of Tor / I2P hidden services for investigative, journalistic, and threat-intelligence purposes
+- **Coverage:** Tor / I2P navigation, hidden-service discovery, marketplace OSINT, vendor PGP pivots, ransomware leak-site tracking, analyst hygiene
+- **Key Topics:**
+  - Network access (Tor Browser, Mullvad Browser, Tails, Whonix, Qubes, I2P)
+  - Hidden-service discovery (Ahmia, dark.fail, Tor.taxi, clearnet pivots)
+  - Marketplace observation-only methodology and lifecycle (LE takedowns, exit scams)
+  - Vendor PGP key pivots and operator-continuity attribution
+  - Forum and community investigation (BreachForums lineage, hacking forums)
+  - Ransomware leak-site tracking (LockBit, Cl0p, BlackCat lineage; ransomwatch / ransomware.live aggregators)
+  - State-actor and sanctions-evasion indicators
+  - Cross-context separation, session discipline, researcher wellness
+  - Hand-off boundaries: stops at "wallet address X observed" → blockchain-investigation; CSAM hard-stop → sensitive-crime-escalation
 
 ### Multimedia Analysis
 
