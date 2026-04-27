@@ -71,7 +71,7 @@ This SOP focuses on **AWS, Azure, and GCP IaaS-plane forensics** because they to
 - **Offensive cloud testing.** Pre-engagement enumeration, IAM-privesc methodology, lateral movement, persistence, exfil tradecraft live in [[../Pentesting/sop-cloud-pentest|Cloud Pentesting]]. Forensic readers benefit from understanding the offensive playbook (it is the threat model) but should not derive offensive instructions from this SOP.
 - **General host / disk / memory forensics.** Image acquisition, memory acquisition (LiME / AVML / WinPmem), MFT / USN / Prefetch / Amcache / ShimCache parsing, Volatility 3 plugins, and timeline construction all live in [[sop-forensics-investigation|Digital Forensics Investigation]]. This SOP layers on top: a snapshot-derived volume is mounted and parsed using forensics-investigation methodology; the cloud-specific surface is the snapshot-creation, integrity, and chain-of-custody discipline, not the offline parsing.
 - **Smart-contract / on-chain forensics.** Web3 / blockchain post-exploit fund tracing routes to [[../../Investigations/Techniques/sop-blockchain-investigation|Blockchain Investigation]]; mixer-defeat tradecraft routes to [[../../Investigations/Techniques/sop-mixer-tracing|Mixer & Privacy-Pool Tracing]]; smart-contract code review routes to [[sop-smart-contract-audit|Smart Contract Audit]]. Cloud-resident crypto-mining / wallet-stealer payloads are dual-routed: malware artifacts to [[sop-malware-analysis|Malware Analysis]], on-chain consequences to the investigations track.
-- **Container / Kubernetes offensive testing.** Pod escapes, RBAC abuse, admission-controller bypass, runtime exploitation route to (planned) `sop-container-k8s-pentest` (referenced by [[../Pentesting/sop-cloud-pentest|Cloud Pentesting]]). This SOP covers control-plane audit-log forensics and runtime-detection artifact collection only.
+- **Container / Kubernetes offensive testing.** Pod escapes, RBAC abuse, admission-controller bypass, runtime exploitation route to [[../Pentesting/sop-container-k8s-pentest|Container & Kubernetes Pentesting]] (referenced by [[../Pentesting/sop-cloud-pentest|Cloud Pentesting]]). This SOP covers control-plane audit-log forensics and runtime-detection artifact collection only.
 
 ### Engagement types covered
 
@@ -859,7 +859,7 @@ gsutil retention lock gs://<sink-bucket>     # irrevocable
 
 ## 10. Container & Kubernetes Runtime Artifacts
 
-Managed Kubernetes (EKS / AKS / GKE) splits forensic surfaces between the **cloud-provider control plane** (where managed-Kubernetes audit logs live) and the **node / pod runtime** (where classic host forensics applies, see [[sop-forensics-investigation|Digital Forensics Investigation]]). This SOP owns the cloud-side; pod-internal exploitation methodology lives in (planned) `sop-container-k8s-pentest`.
+Managed Kubernetes (EKS / AKS / GKE) splits forensic surfaces between the **cloud-provider control plane** (where managed-Kubernetes audit logs live) and the **node / pod runtime** (where classic host forensics applies, see [[sop-forensics-investigation|Digital Forensics Investigation]]). This SOP owns the cloud-side; pod-internal exploitation methodology lives in [[../Pentesting/sop-container-k8s-pentest|Container & Kubernetes Pentesting]].
 
 ### 10.1 Kubernetes Audit Logs (apiserver)
 
@@ -1121,7 +1121,7 @@ Multi-cloud incidents are routine — adversaries pivot from a compromised AWS a
 | Mixer / privacy-pool laundering downstream of cloud-resident wallet drain | [[../../Investigations/Techniques/sop-mixer-tracing|Mixer & Privacy-Pool Tracing]] |
 | Smart-contract code review (post-exploit smart-contract analysis) | [[sop-smart-contract-audit|Smart Contract Audit]] |
 | Cryptographic primitive concern in customer-managed KMS key (curve / hash / KEM choice) | [[sop-cryptography-analysis|Cryptography Analysis]] |
-| Pod escape / RBAC abuse / admission-controller bypass methodology | (planned) `sop-container-k8s-pentest` |
+| Pod escape / RBAC abuse / admission-controller bypass methodology | [[../Pentesting/sop-container-k8s-pentest|Container & Kubernetes Pentesting]] |
 | Host / disk / memory parsing of a snapshot-derived volume | [[sop-forensics-investigation|Digital Forensics Investigation]] |
 | Authorized offensive cloud testing (red-team, post-incident validation, purple-team) | [[../Pentesting/sop-cloud-pentest|Cloud Pentesting]] |
 | SIEM-evasion / detection-coverage validation | [[../Pentesting/sop-detection-evasion-testing|Detection & Evasion Testing]] |
@@ -1265,7 +1265,7 @@ The scenarios below abstract observed cloud-incident patterns to illustrate how 
 
 **Forensic catch.** §6.1 Cloud Audit Logs identify the service-account token use from the pod; §7.4 service-account impersonation forensics reconstructs the chain (in this case, no impersonation — direct token use). §10.1 Kubernetes apiserver audit logs identify the pod's service-account binding and the absence of a Workload Identity binding. §10.4 Container Threat Detection (if enabled) may have flagged the runtime SSRF execution. §6.6 VPC Flow Logs from the GKE pod's egress show the connection to the GCP metadata server (an unusual egress pattern). §11.3 persistent-disk snapshots of the affected pod nodes preserve container layer state.
 
-**Hand-off.** Pod / container exploit methodology (the SSRF itself, container-escape primitives) routes to (planned) `sop-container-k8s-pentest`. SSRF web-app-side analysis routes to [[../Pentesting/sop-web-application-security|Web Application Security]]. Bucket-data sensitivity analysis (PII / PHI / regulated data) routes to compliance counsel via [[sop-legal-ethics|Legal & Ethics]] for breach-notification timeline. Hardening recommendation: bind workloads to dedicated service accounts via Workload Identity; disable default service account; deploy [[../Pentesting/sop-cloud-pentest|Cloud Pentesting]] purple-team validation against the new boundary.
+**Hand-off.** Pod / container exploit methodology (the SSRF itself, container-escape primitives) routes to [[../Pentesting/sop-container-k8s-pentest|Container & Kubernetes Pentesting]]. SSRF web-app-side analysis routes to [[../Pentesting/sop-web-application-security|Web Application Security]]. Bucket-data sensitivity analysis (PII / PHI / regulated data) routes to compliance counsel via [[sop-legal-ethics|Legal & Ethics]] for breach-notification timeline. Hardening recommendation: bind workloads to dedicated service accounts via Workload Identity; disable default service account; deploy [[../Pentesting/sop-cloud-pentest|Cloud Pentesting]] purple-team validation against the new boundary.
 
 ### 18.4 Scenario — Adversary Disables Logging Before Action
 
@@ -1295,6 +1295,7 @@ The scenarios below abstract observed cloud-incident patterns to illustrate how 
 - [[../Pentesting/sop-vulnerability-research|Vulnerability Research]] — for 0-day discovery in CSP service surfaces during investigation.
 - [[../Pentesting/sop-web-application-security|Web Application Security]] — when the initial vector is a web-app vulnerability in a cloud-hosted workload.
 - [[../Pentesting/sop-mobile-security|Mobile Security]] — for mobile-app integrations with cloud back-ends.
+- [[../Pentesting/sop-container-k8s-pentest|Container & Kubernetes Pentesting]] — pod escapes / RBAC abuse / admission-controller bypass methodology; the offensive counterpart to §10 Container & Kubernetes Runtime Artifacts.
 
 **Investigations (cross-domain):**
 - [[../../Investigations/Techniques/sop-collection-log|Collection Log]] — canonical chain-of-custody and evidence-hashing workflow.
@@ -1311,9 +1312,6 @@ The scenarios below abstract observed cloud-incident patterns to illustrate how 
 **Cross-cutting:**
 - [[sop-legal-ethics|Legal & Ethics]] — canonical jurisdictional framework, breach-notification timelines, cross-border data-transfer constraints.
 - [[sop-opsec-plan|OPSEC]] — investigator infrastructure, artifact hygiene, and pre-disclosure handling discipline.
-
-**Forward references (planned, not yet built):**
-- (planned) `sop-container-k8s-pentest` — pod escapes / RBAC abuse / admission-controller bypass methodology.
 
 ---
 

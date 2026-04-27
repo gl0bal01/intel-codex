@@ -54,11 +54,12 @@ generator: tools/build-vault-state.sh
 - `sop-saas-log-forensics` — SaaS Log Forensics SOP (updated 2026-04-27)
 - `sop-smart-contract-audit` — Smart Contract Audit SOP (updated 2026-04-26)
 
-### Security/Pentesting (10 SOPs)
+### Security/Pentesting (11 SOPs)
 
 - `sop-ad-pentest` — Active Directory Pentesting SOP (Authorized) (updated 2026-04-26)
 - `sop-bug-bounty` — Bug Bounty Methodology SOP (updated 2026-04-25)
-- `sop-cloud-pentest` — Cloud Pentesting SOP (Authorized) (updated 2026-04-26)
+- `sop-cloud-pentest` — Cloud Pentesting SOP (Authorized) (updated 2026-04-27)
+- `sop-container-k8s-pentest` — Container & Kubernetes Pentesting SOP (Authorized) (updated 2026-04-27)
 - `sop-detection-evasion-testing` — Detection & Evasion Testing SOP (Purple Team) (updated 2026-04-25)
 - `sop-firmware-reverse-engineering` — Firmware Reverse Engineering (updated 2026-04-26)
 - `sop-linux-pentest` — Linux Pentesting SOP (Authorized) (updated 2026-04-25)
@@ -74,10 +75,10 @@ generator: tools/build-vault-state.sh
 | Investigations/Platforms | 7 |
 | Investigations/Techniques | 12 |
 | Security/Analysis | 10 |
-| Security/Pentesting | 10 |
+| Security/Pentesting | 11 |
 | **Investigations total** | **19** |
-| **Security total** | **20** |
-| **Vault total** | **39** |
+| **Security total** | **21** |
+| **Vault total** | **40** |
 
 These counts are the source of truth. `README.md`, `index.md`, and per-folder `*-Index.md` files should match.
 
@@ -91,6 +92,7 @@ Recommended review cadence per tier. SOPs in **Fast** rotate fastest (platform A
 - All `Investigations/Platforms/*` (7 SOPs: bluesky, instagram, linkedin, reddit, telegram, tiktok, twitter-x) — platform APIs, scraping surfaces, ToS, and attacker TTPs rotate frequently
 - `sop-ad-pentest`
 - `sop-cloud-pentest`
+- `sop-container-k8s-pentest` — k8s minor-version cycle, admission-controller projects (Gatekeeper / Kyverno / kubewarden), runtime CVEs (runc / containerd / CRI-O), Pod Security Standards drift, and managed-k8s feature drift across EKS / AKS / GKE rotate quarterly; cluster-RBAC and IAM-bridge fundamentals are slower
 - `sop-darkweb-investigation` — marketplace / leak-site / forum landscape rotates monthly (quarterly review); Tor / I2P / PGP fundamentals are slower
 - `sop-detection-evasion-testing`
 - `sop-mixer-tracing` — mixer enforcement timeline, prosecution outcomes (Pertsev appeal, Storm trial, Samourai prosecution) and vendor heuristic implementations rotate quarterly; CoinJoin / Tornado heuristic methodology is slower
@@ -132,7 +134,6 @@ Recommended review cadence per tier. SOPs in **Fast** rotate fastest (platform A
 Capabilities not covered by a dedicated SOP. Add a new SOP only on explicit user decision (no auto-promotion).
 
 - **SaaS pentesting** — M365 / Workspace as a SaaS attack surface (offensive). Defensive side covered by `sop-saas-log-forensics`.
-- **Container / k8s pentesting** — `(planned) sop-container-k8s-pentest` referenced as forward-link from `sop-cloud-pentest`, `sop-cloud-forensics`, `sop-email-bec-forensics`. Strong candidate for next buildout.
 - **Mobile device forensics** — standalone (acquisition, decoding, app-data carving, trust-store analysis). Currently subsumed under `sop-forensics-investigation`.
 - **Encrypted-messenger forensics** — Signal / Session / Matrix / WhatsApp.
 - **Discord, YouTube, Mastodon, Facebook OSINT** — no platform SOPs yet.

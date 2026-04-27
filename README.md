@@ -18,7 +18,7 @@ All content reflects current best practices and is actively maintained.
 
 ## 📊 By the Numbers
 
-**39+ SOPs** across all disciplines | **19 Investigation Guides** | **20 Security Procedures** | **9 CTF Resources**
+**40+ SOPs** across all disciplines | **19 Investigation Guides** | **21 Security Procedures** | **9 CTF Resources**
 
 ---
 
@@ -90,6 +90,7 @@ Comprehensive guides for offensive security operations across multiple domains.
 - [Detection Evasion Testing](Security/Pentesting/sop-detection-evasion-testing.md)
 - [Cloud Pentesting (AWS/Azure/GCP)](Security/Pentesting/sop-cloud-pentest.md)
 - [Wireless & RF Pentesting](Security/Pentesting/sop-wireless-rf-pentest.md)
+- [Container & Kubernetes Pentesting](Security/Pentesting/sop-container-k8s-pentest.md)
 
 
 #### Security Analysis Procedures

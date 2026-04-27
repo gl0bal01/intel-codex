@@ -1140,7 +1140,7 @@ The wire-recall section of the BEC report typically contains:
 | Adversary-tied account / handle / persona dossier | [[../../Investigations/Techniques/sop-entity-dossier|Entity Dossier]] |
 | Marketplace / forum / leak-site presence of BEC-related credentials, kit listings, tutorials | [[../../Investigations/Techniques/sop-darkweb-investigation|Darkweb Investigation]] |
 | Authorized offensive phishing / red-team email tradecraft | (no SOP yet — `CLAUDE.md` Gaps item) |
-| Container / Kubernetes runtime forensics that follow a cloud-credential exfiltration | (planned) `sop-container-k8s-pentest` for offensive aspects; [[sop-cloud-forensics|Cloud Forensics]] §10 for forensics |
+| Container / Kubernetes runtime forensics that follow a cloud-credential exfiltration | [[../Pentesting/sop-container-k8s-pentest|Container & Kubernetes Pentesting]] for offensive aspects; [[sop-cloud-forensics|Cloud Forensics]] §10 for forensics |
 | SIEM / SEG / EDR detection-coverage validation (purple-team for BEC) | [[../Pentesting/sop-detection-evasion-testing|Detection & Evasion Testing]] |
 | Bug-bounty-style web-app vulnerability in a customer-facing portal whose abuse enabled the BEC | [[../Pentesting/sop-web-application-security|Web Application Security]] + [[../Pentesting/sop-bug-bounty|Bug Bounty]] |
 | Sensitive-crime indicators (CSAM in attachments / linked content; trafficking-pattern in BEC-adjacent extortion / sextortion mail; threat-to-life findings) | [[../../Investigations/Techniques/sop-sensitive-crime-intake-escalation|Sensitive-Crime Intake & Escalation]] — **hard-stop** for CSAM; URL + timestamp only, no content preservation |
@@ -1372,9 +1372,6 @@ The scenarios below abstract observed BEC patterns to illustrate how the methodo
 **Cross-cutting:**
 - [[sop-legal-ethics|Legal & Ethics]] — canonical jurisdictional framework, breach-notification timelines, wire-fraud-statute interaction (18 U.S.C. §1343 wire fraud, §1349 conspiracy, §1956 / §1957 money-laundering; UK Fraud Act 2006; equivalent EU and other-jurisdiction wire-fraud statutes), insurance-coverage interaction, and counsel-led decisions on cross-border evidence transfer.
 - [[sop-opsec-plan|OPSEC]] — investigator infrastructure, artifact hygiene, pre-disclosure handling discipline; particular attention during active wire-fraud incidents where adversary may be monitoring victim infrastructure and IR-team operational signal can leak.
-
-**Forward references (planned, not yet built):**
-- (planned) `sop-container-k8s-pentest` — referenced from [[sop-cloud-forensics|Cloud Forensics]] §1; not directly referenced from this SOP except indirectly via cloud-pivot scenarios.
 
 ---
 

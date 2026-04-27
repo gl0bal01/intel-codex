@@ -1444,4 +1444,94 @@ Session goal: shrink the auto-loaded `CLAUDE.md` and stop hand-curating the part
 - [x] `sop-reporting-packaging-disclosure.md` `updated:` YAML field
 - [x] **`sop-malware-analysis.md` Legal & Ethics cross-reference** — landed same session after user confirmation. Added: 4-link Investigations/governance block in Related SOPs (`sop-legal-ethics`, `sop-opsec-plan`, `sop-collection-log`, `sop-sensitive-crime-intake-escalation`); 3 sibling cross-links in Analysis block (`sop-forensics-investigation` post-move basename fix, `sop-email-bec-forensics`, `sop-cloud-forensics`); fixed broken `[[../Pentesting/sop-forensics-investigation]]` to basename form per CLAUDE.md post-move convention; new `## Legal & Ethical Considerations` block with canonical pointer + 9 malware-analysis-specific guardrails (authorization-in-writing, sample-handling discipline, no-live-C2, CSAM hard-stop, VirusTotal/public-sandbox discipline, PII minimization, customer-first disclosure path, court-admissibility tradecraft, mandatory reporting, log-every-action). Also added `Malware Analysis Claude Skills` (https://github.com/gl0bal01/malware-analysis-claude-skills) under §📚 Additional Resources / Reference Materials. YAML `updated:` and `template_version:` 2026-04-25 → 2026-04-27. `tools/check-vault.sh` post-fix: `OK: vault clean.`
 - [ ] Platforms refresh (Option A from prior brainstorm: date bump + cross-links to Group A/G surfaces from `Investigations/Platforms/*` Related-SOPs blocks). Not landed this session — Read-before-Edit per-file-per-session requirement was the blocker. Re-attempt: `Read` each of the 7 platform files first, then issue Edits.
-- [ ] (planned) `sop-container-k8s-pentest` — Container/k8s pentesting. Lone `(planned) sop-...` reference in active vault files (7 sites). Strong candidate for next buildout. User decision.
+- [x] **`sop-container-k8s-pentest`** — Container/k8s pentesting. Built and wired in 2026-04-27 (Group G #10, post-current-queue). All 8 forward-link sites promoted from `(planned)` → wikilinks; the `Forward references (planned, not yet built):` subsections in `sop-cloud-forensics.md` §19 and `sop-email-bec-forensics.md` §19 are now empty and have been removed (cloud-forensics's k8s-pentest entry moved to the Pentesting block). Vault total: 40 SOPs. See entry below.
+
+## 2026-04-27 — Group G #10: sop-container-k8s-pentest (new)
+
+**Scope:** Tenth entry in the Group G buildout track and the first post-original-queue addition. Closes the lone surviving `(planned) sop-...` reference in the vault. User authorized 2026-04-27 after a prioritization read of `.omc/gaps.md` flagged the file's own "Strong candidate for next buildout" note plus the 8-site forward-link debt across `sop-cloud-pentest`, `sop-cloud-forensics`, and `sop-email-bec-forensics` as the sharpest reason to build.
+
+### `Security/Pentesting/sop-container-k8s-pentest.md` — new file (1153 lines, 78.2K)
+
+Net file: +1153/-0 (new). Closest-shape templates: `sop-cloud-pentest.md` (numbered-§ pentest skeleton + Pre-Engagement 3-block + ops-then-support tail order) + `sop-linux-pentest.md` (§4 Container & runtime-escape methodology continuity — hand-off anchor for "you've-escaped-now-what" flows). Followed canonical pentest pattern: front matter (list-form tags, all dates 2026-04-27), top blockquote `> **Authorized environments only.** ...` with the three-trust-boundaries framing (cluster API plane / workload-identity bridge / node host), TOC, `## Pre-Engagement & Authorization` (Group F-style 3-block: Authorization Checklist + Lab Environment Requirements + Disclosure-Ready Posture), then numbered §1-§18 procedural body with **ops-then-support tail order** matching `sop-cloud-pentest`, then tail blocks (Legal & Ethical Considerations → Related SOPs → footer).
+
+**Body sections (12 numbered methodology + 3 numbered ops + 2 numbered support + 1 numbered pitfalls):** §1 Engagement Setup; §2 Cluster Reconnaissance (authenticated + unauthenticated + pod-internal); §3 Authentication & Identity (SA tokens, kubeconfig, OIDC / cloud IAM federation); §4 RBAC Enumeration & Abuse (`can-i` mining, RBAC graph dump, canonical escalation primitives, default-SA over-permission); §5 Pod Escape Primitives (privileged/hostPID/hostNetwork/hostPath, capabilities, mounted runtime sockets, container-runtime CVE rehearsals); §6 Admission-Controller Bypass (PSS, webhook ordering & failurePolicy, Gatekeeper, Kyverno); §7 Workload Identity → Cloud Bridge (EKS IRSA, GKE Workload Identity, AKS Microsoft Entra Workload Identity); §8 Secrets, etcd & KMS; §9 Container Images & Supply Chain (registry creds, image signing, ArgoCD/Flux/Tekton); §10 Cluster Network Plane (CNI policy, in-cluster DNS, service-mesh, NodePort/LB/Ingress); §11 Persistence Inside the Cluster; §12 Detection Coverage Validation (audit policy review, Falco/Tetragon, coverage-validation playbook); §13 Common Misconfigurations Checklist (8-category, ~35 items); §14 Evidence Collection (k8s-specific evidence-pack tree); §15 Reporting (Finding Format + Remediation Priority); §16 Tools Reference (28 tools); §17 Reference Resources (knowledge bases, hardening, attack research, CSP-specific docs, practice platforms, certifications); §18 Common Pitfalls.
+
+**Marker counts:** 17 `[verify 2026-04-27]`, 0 `[inferred]`. Markers cover: CSP managed-k8s pentesting policy current language (AWS/Azure/GCP), Bishop Fox Bad-Pods recipe count, `kubectl auth can-i --list --all-namespaces` 1.27+ scope behavior, `patch pods/ephemeralcontainers` 1.25+ GA status, runc/containerd/Docker Engine patched-baseline triple (Leaky Vessels CVE-2024-21626), kubelet read-only port 10255 removal version, basic-auth removal version (1.19+), aws-auth ConfigMap → `system:masters` mapping primitive, ValidatingAdmissionPolicy 1.30 GA status, AKS KMS etcd-encryption preview/GA per-region, EKS KMS envelope-encryption Secrets retrofit posture, Pod Security Policy / Pod Security Standards transition, AWS VPC CNI Calico add-on for NetworkPolicy enforcement, ArgoCD admin-bootstrap secret current location, NSA/CISA Kubernetes Hardening Guide v1.2 (Aug 2022) URL, OWASP Kubernetes Top 10 status, KubeStriker/cdk maintenance status, CNCF simulator project current state, antitree.com / bradgeesaman.com URL stability, HackTricks Kubernetes URL, Kubescape CNCF Sandbox status.
+
+**Cross-link contract enforced:** all 18 outbound wikilinks verified against existing files (verified by `tools/check-vault.sh` check #4). Cross-folder links use relative path (`[[../Analysis/sop-cloud-forensics|...]]`); in-folder use basename (`[[sop-cloud-pentest|...]]`). **Zero deferred wikilinks** — this is the SOP that *was* the deferred reference for 9 prior SOPs, so its build closes a forward-link contract rather than opening a new one.
+
+**Scope-boundary discipline (zero overlap with sibling SOPs):**
+- Hands off **EKS / AKS / GKE control-plane / management-API** review (IAM bindings, public endpoint, control-plane logging-config) to existing `sop-cloud-pentest` §6 (already owns this; this SOP picks up at the cluster API plane).
+- Hands off **Linux host-shell post pod escape** (kernel-CVE detonation, host-resident persistence on the worker node) to existing `sop-linux-pentest` §4 (already owns container→host).
+- Hands off **defensive apiserver audit-log forensics + IR reconstruction** to existing `sop-cloud-forensics` §10 (already owns this).
+- Hands off **SSRF web-app side** of metadata→SA-token chain to existing `sop-web-application-security`.
+- Hands off **container image static analysis** as malware (cryptominer, sealed payload) to existing `sop-malware-analysis`.
+- Hands off **image-signing / TLS / kubeconfig primitive review** to existing `sop-cryptography-analysis`.
+- Hands off **SIEM / EDR detection-coverage validation** to existing `sop-detection-evasion-testing` (called out explicitly in §12).
+- Hands off **CSAM / sensitive-crime indicators in cluster storage** to existing `sop-sensitive-crime-intake-escalation` per Legal & Ethics block.
+
+### Production-readiness pass findings (Stage C, same session)
+
+- **Tail-block reorder.** Stage B initial draft put §13 Tools Reference + §14 Reference Resources BEFORE §15 Common Misconfigurations / §16 Evidence Collection / §17 Reporting — diverged from the closest-shape `sop-cloud-pentest` template, which orders the tail as **ops (Misconfigs/Evidence/Reporting) → support (Tools/References) → Common Pitfalls**. Single-block swap executed: §13 Common Misconfigurations Checklist → §14 Evidence Collection → §15 Reporting → §16 Tools Reference → §17 Reference Resources → §18 Common Pitfalls. TOC entries renumbered. Three internal §-number cross-references rewritten: `from §13 runs` (Pre-Engagement → Tools Reference) → `§16`; `referenced in §16 below` (Disclosure-Ready Posture → Evidence Collection) → `§14`; `referenced by §16` (Related SOPs → Evidence Collection) → `§14`.
+- **Marker discipline.** 17 `[verify 2026-04-27]` markers across 1153 lines is slightly under-marked vs `sop-cloud-pentest`'s 26-in-835 ratio (1.5% vs 3.1%). Held at 17 — every load-bearing claim (CSP policies, version pins, GA-status, URL stability) carries a marker; lower density reflects k8s-spec primitives (PSS, RBAC verb names, capability semantics) being well-fixed by upstream.
+- **Bloat trim.** None. The 1153-line size vs cloud-pentest's 835 reflects k8s having more attack surface (RBAC + admission + WI + supply-chain + persistence) than IaaS-only, not bloat.
+- **Heading-slug stability.** All 18 numbered §-anchors round-trip (verified TOC against post-reorder `^## ` headings). The §7 heading "Workload Identity → Cloud Bridge" produces slug `#7-workload-identity--cloud-bridge` (the arrow `→` collapses to `--` per GitHub's heading-anchor algorithm); intentional.
+- **Wikilink check.** `tools/check-vault.sh` post-fix: `OK: vault clean.` All 18 outbound wikilinks resolve.
+
+### Forward-link debt closed (8 sites in 3 files promoted from `(planned)` → wikilinks)
+
+| File | Line (pre-edit) | Site | Form |
+|---|---|---|---|
+| `Security/Pentesting/sop-cloud-pentest.md` | 546 | §6 Compute Layer hand-off | basename in-folder |
+| `Security/Analysis/sop-cloud-forensics.md` | 74 | §1 hard-exclusion | cross-folder relative |
+| `Security/Analysis/sop-cloud-forensics.md` | 862 | §10 managed-Kubernetes split paragraph | cross-folder relative |
+| `Security/Analysis/sop-cloud-forensics.md` | 1124 | §14 Hand-off table row | cross-folder relative |
+| `Security/Analysis/sop-cloud-forensics.md` | 1268 | §18.3 GKE-cluster scenario hand-off | cross-folder relative |
+| `Security/Analysis/sop-cloud-forensics.md` | 1316 | §19 Forward-references entry | **moved** to Pentesting block |
+| `Security/Analysis/sop-email-bec-forensics.md` | 1143 | §14 Hand-off table row | cross-folder relative |
+| `Security/Analysis/sop-email-bec-forensics.md` | 1377 | §19 Forward-references entry | **deleted** (entry self-described as indirect via cloud-pivot scenarios; site #7 already covered the only direct reference) |
+
+**Forward-references subsection deletion in cloud-forensics + email-bec-forensics §19.** Both `**Forward references (planned, not yet built):**` subsections are now empty and have been removed. Cloud-forensics's k8s-pentest entry was relocated to the **Pentesting (offensive counterparts):** block as `[[../Pentesting/sop-container-k8s-pentest|Container & Kubernetes Pentesting]] — pod escapes / RBAC abuse / admission-controller bypass methodology; the offensive counterpart to §10 Container & Kubernetes Runtime Artifacts.` Email-bec-forensics's entry was deleted outright (self-described as indirect; no Pentesting-block target).
+
+### Navigation updates (Stage D)
+
+- `.omc/vault-state.md` — regenerated via `./tools/build-vault-state.sh`. Pentesting count `10 SOPs` → `11 SOPs`; total `39 SOPs` → `40 SOPs`. Entry added to Pentesting inventory table.
+- `.omc/watchlist.md` — added `sop-container-k8s-pentest` to **Fast — quarterly review** tier, alphabetically after `sop-cloud-pentest`. Rationale captured in scope qualifier (k8s minor-version cycle, admission-controller projects, runtime CVEs, PSS drift, managed-k8s feature drift rotate quarterly; cluster-RBAC and IAM-bridge fundamentals are slower).
+- `.omc/gaps.md` — removed the "Container / k8s pentesting" entry. SaaS-pentesting and the other 10 gaps remain.
+- `Security/Pentesting/Pentesting-Index.md` — added `[[sop-container-k8s-pentest|Container & Kubernetes Pentesting]]` under "Infrastructure & Systems" (alongside Linux + AD + Cloud).
+- `README.md` L21 — `39+ SOPs` → `40+ SOPs`; `20 Security Procedures` → `21 Security Procedures`. Added `[Container & Kubernetes Pentesting]` bullet to Pentesting block (after Wireless & RF, matching build-order convention).
+- `index.md` L24-25 — `Total SOPs: 39+` → `40+`; `Security (20)` → `Security (21)`. Added `[[intel-codex/Security/Pentesting/sop-container-k8s-pentest|Container & Kubernetes Pentesting]]` wikilink under Pentesting & Vulnerability Research, after Wireless & RF, before the Full Pentesting Index pointer.
+- `Security/Security-Index.md` — **not updated.** Per pattern established by #1 cloud-pentest and #2 wireless-rf-pentest builds, this index doesn't enumerate every Pentesting SOP (Cloud Pentesting and Wireless RF Pentesting were also not added there). It's a higher-level domain summary; the comprehensive list lives in Pentesting-Index.md.
+- `CLAUDE.md` — **not updated.** Per the 2026-04-27 trim, SOP inventory + counts + watchlist + gaps live in `.omc/vault-state.md` (regenerated above), `.omc/watchlist.md`, and `.omc/gaps.md` rather than CLAUDE.md.
+- `Security/Pentesting/sop-cloud-pentest.md` — YAML `updated:` 2026-04-26 → 2026-04-27 and footer `**Last Updated:**` 2026-04-26 → 2026-04-27 (one substantive edit at line 546: forward-link promotion).
+- `Security/Analysis/sop-cloud-forensics.md` — five forward-link promotions + Forward-references-subsection cleanup. YAML `updated:` already 2026-04-27 (unchanged).
+- `Security/Analysis/sop-email-bec-forensics.md` — one forward-link promotion + Forward-references-subsection deletion. YAML `updated:` already 2026-04-27 (unchanged).
+
+### Known limitations / cross-cutting follow-ups
+
+- **CSP managed-k8s penetration-testing policy WebFetch deferred.** Three policy-status `[verify 2026-04-27]` markers in §1 / Pre-Engagement reference current AWS / Azure / GCP managed-k8s pentesting guidance; should be WebFetched in a coordinated batch before the SOP is treated as production-ready by an operator. Per pass spec, lower-stakes policy claims marked rather than fetched in this pass.
+- **Bishop Fox Bad-Pods recipe count "Eight"** marked `[verify]` — the canonical 2021 post enumerated eight; subsequent additions are possible. Verify on next quarterly refresh.
+- **Leaky Vessels patched-baseline triple** (runc 1.1.12 / containerd 1.7.13 / Docker Engine 25.0.2) is the original Snyk disclosure baseline; downstream distros may pin to different patched releases. Marked `[verify]`.
+- **NVIDIA Container Toolkit CVE-2024-0132** referenced in §5 — applies only to NVIDIA-GPU clusters; toolkit version landscape rotates faster than other rows. Marked `[verify]`.
+- **`kubectl auth can-i --list --all-namespaces`** (1.27+ scope-`*` behavior) marked `[verify]` — feature is GA per upstream but managed offerings sometimes lag minor-version uptake.
+- **MITRE ATT&CK for Containers technique IDs** referenced in §4-§7-§11; MITRE retires/relabels technique IDs per quarterly release. Pinned to the IDs current as of 2026-04-27; verify on next refresh.
+- **Kubescape CNCF status** — Kubescape was accepted into CNCF Sandbox 2023; Incubating-tier promotion has been discussed [verify]. Status row in §16 Tools Reference flagged.
+- **Forward-references subsection deletion (Stage D minor restructure).** The cloud-forensics and email-bec-forensics §19 Related-SOPs blocks no longer carry a "Forward references (planned, not yet built):" subsection. If a future SOP forward-link is needed before that SOP is built, restoring the subsection-with-explicit-(planned)-prefix convention is the documented fallback (per the pattern set by `sop-cloud-pentest` §6 in 2026-04-26 #1 build).
+- **Hooks observed reporting "Edit operation failed" after every successful Edit during this session.** The actual Edit tool results all reported "updated successfully" and post-edit verification confirmed each change landed. The `PostToolUse:Edit` hook's generic failure message conflicted with the tool's own success status throughout Stage B-D. No remediation needed in this SOP; flagged here for whoever maintains the Claude Code hook configuration.
+
+### Group G post-completion ledger
+
+- [x] Group G #1-#9 (sop-cloud-pentest, sop-wireless-rf-pentest, sop-darkweb-investigation, sop-blockchain-investigation, sop-mixer-tracing, sop-smart-contract-audit, sop-cloud-forensics, sop-saas-log-forensics, sop-email-bec-forensics)
+- [x] Phase-3 refactor: `sop-financial-aml-osint` §5 trim
+- [x] Tooling: `build-vault-state.sh` + `check-vault.sh` + `vault-state.md`
+- [x] CLAUDE.md trim
+- [x] **Group G #10 (post-original-queue): sop-container-k8s-pentest** — landed 2026-04-27. Closes the lone surviving `(planned) sop-...` reference in the active vault.
+- [ ] Platforms refresh (Option A from prior brainstorm: date bump + cross-links to Group A/G surfaces from `Investigations/Platforms/*` Related-SOPs blocks). Still not landed; Read-before-Edit per-file-per-session requirement remains the blocker.
+
+### Verification
+
+- `./tools/build-vault-state.sh` — succeeded; emitted `.omc/vault-state.md` with `Total: 40 SOPs`. Pentesting per-folder count = 11.
+- `./tools/check-vault.sh` post-build — `OK: vault clean.` All five checks pass (front-matter `updated:` present, Legal & Ethics cross-reference present, no stale `[verify]` markers older than 180 days in this SOP, all 18 wikilink targets resolve, `vault-state.md` count parity matches filesystem).
+- Closing grep `grep -rnF "(planned) \`sop-" Investigations/ Security/` — **zero hits**. The vault `(planned) sop-...` graph is now empty. All forward-references in active SOPs resolve to live files.
+- `grep -nE "container-k8s-pentest" Investigations/ Security/` — every site is now a wikilink form (`[[sop-container-k8s-pentest|...]]` in-folder or `[[../Pentesting/sop-container-k8s-pentest|...]]` cross-folder); zero remaining `(planned)` annotations or backtick-text references.
+- No commits performed (user runs commits).

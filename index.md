@@ -21,8 +21,8 @@ All content reflects current best practices and is actively maintained.
 
 ## 📊 Quick Stats
 
-**Total SOPs:** 39+
-**Categories:** Investigations (19) | Security (20) | CTF (9)
+**Total SOPs:** 40+
+**Categories:** Investigations (19) | Security (21) | CTF (9)
 
 ---
 
@@ -98,6 +98,7 @@ All content reflects current best practices and is actively maintained.
 - [[intel-codex/Security/Pentesting/sop-detection-evasion-testing|Detection & Evasion Testing]]
 - [[intel-codex/Security/Pentesting/sop-cloud-pentest|Cloud Pentesting (AWS/Azure/GCP)]]
 - [[intel-codex/Security/Pentesting/sop-wireless-rf-pentest|Wireless & RF Pentesting]]
+- [[intel-codex/Security/Pentesting/sop-container-k8s-pentest|Container & Kubernetes Pentesting]]
 - [[intel-codex/Security/Pentesting/Pentesting-Index|Full Pentesting Index]]
 
 ---
