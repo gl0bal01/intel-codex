@@ -16,13 +16,14 @@ generator: tools/build-vault-state.sh
 
 ## SOP inventory
 
-### Investigations/Platforms (7 SOPs)
+### Investigations/Platforms (8 SOPs)
 
 - `sop-platform-bluesky` — Bluesky SOP (updated 2025-09-06)
+- `sop-platform-discord` — Discord SOP (updated 2026-04-27)
 - `sop-platform-instagram` — Instagram SOP (updated 2025-10-01)
 - `sop-platform-linkedin` — LinkedIn SOP (updated 2025-10-06)
 - `sop-platform-reddit` — Reddit SOP (updated 2025-10-02)
-- `sop-platform-telegram` — Telegram SOP (updated 2025-08-11)
+- `sop-platform-telegram` — Telegram SOP (updated 2026-04-27)
 - `sop-platform-tiktok` — TikTok SOP (updated 2025-10-08)
 - `sop-platform-twitter-x` — Twitter/X SOP (updated 2025-10-08)
 
@@ -72,13 +73,13 @@ generator: tools/build-vault-state.sh
 
 | Folder | SOPs |
 |--------|------|
-| Investigations/Platforms | 7 |
+| Investigations/Platforms | 8 |
 | Investigations/Techniques | 12 |
 | Security/Analysis | 10 |
 | Security/Pentesting | 11 |
-| **Investigations total** | **19** |
+| **Investigations total** | **20** |
 | **Security total** | **21** |
-| **Vault total** | **40** |
+| **Vault total** | **41** |
 
 These counts are the source of truth. `README.md`, `index.md`, and per-folder `*-Index.md` files should match.
 
@@ -89,7 +90,7 @@ Recommended review cadence per tier. SOPs in **Fast** rotate fastest (platform A
 
 ### Fast — quarterly review
 
-- All `Investigations/Platforms/*` (7 SOPs: bluesky, instagram, linkedin, reddit, telegram, tiktok, twitter-x) — platform APIs, scraping surfaces, ToS, and attacker TTPs rotate frequently
+- All `Investigations/Platforms/*` (8 SOPs: bluesky, discord, instagram, linkedin, reddit, telegram, tiktok, twitter-x) — platform APIs, scraping surfaces, ToS, and attacker TTPs rotate frequently
 - `sop-ad-pentest`
 - `sop-cloud-pentest`
 - `sop-container-k8s-pentest` — k8s minor-version cycle, admission-controller projects (Gatekeeper / Kyverno / kubewarden), runtime CVEs (runc / containerd / CRI-O), Pod Security Standards drift, and managed-k8s feature drift across EKS / AKS / GKE rotate quarterly; cluster-RBAC and IAM-bridge fundamentals are slower
@@ -136,7 +137,7 @@ Capabilities not covered by a dedicated SOP. Add a new SOP only on explicit user
 - **SaaS pentesting** — M365 / Workspace as a SaaS attack surface (offensive). Defensive side covered by `sop-saas-log-forensics`.
 - **Mobile device forensics** — standalone (acquisition, decoding, app-data carving, trust-store analysis). Currently subsumed under `sop-forensics-investigation`.
 - **Encrypted-messenger forensics** — Signal / Session / Matrix / WhatsApp.
-- **Discord, YouTube, Mastodon, Facebook OSINT** — no platform SOPs yet.
+- **YouTube, Mastodon, Facebook OSINT** — no platform SOPs yet (Discord landed 2026-04-27).
 - **LLM-assisted OSINT** — methodology + verification + bias-control.
 - **Deepfake detection workflow** — image / video / audio synthetic-media verification.
 - **Phishing-kit analysis** — kit-decomposition methodology covered defensively in `sop-email-bec-forensics` §12; deeper standalone SOP remains a gap.

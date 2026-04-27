@@ -4,7 +4,7 @@ Recommended review cadence per tier. SOPs in **Fast** rotate fastest (platform A
 
 ### Fast — quarterly review
 
-- All `Investigations/Platforms/*` (7 SOPs: bluesky, instagram, linkedin, reddit, telegram, tiktok, twitter-x) — platform APIs, scraping surfaces, ToS, and attacker TTPs rotate frequently
+- All `Investigations/Platforms/*` (8 SOPs: bluesky, discord, instagram, linkedin, reddit, telegram, tiktok, twitter-x) — platform APIs, scraping surfaces, ToS, and attacker TTPs rotate frequently
 - `sop-ad-pentest`
 - `sop-cloud-pentest`
 - `sop-container-k8s-pentest` — k8s minor-version cycle, admission-controller projects (Gatekeeper / Kyverno / kubewarden), runtime CVEs (runc / containerd / CRI-O), Pod Security Standards drift, and managed-k8s feature drift across EKS / AKS / GKE rotate quarterly; cluster-RBAC and IAM-bridge fundamentals are slower

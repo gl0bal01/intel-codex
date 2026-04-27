@@ -18,7 +18,7 @@ All content reflects current best practices and is actively maintained.
 
 ## 📊 By the Numbers
 
-**40+ SOPs** across all disciplines | **19 Investigation Guides** | **21 Security Procedures** | **9 CTF Resources**
+**41+ SOPs** across all disciplines | **20 Investigation Guides** | **21 Security Procedures** | **9 CTF Resources**
 
 ---
 
@@ -30,7 +30,7 @@ Comprehensive investigation techniques, platform guides, and operational procedu
 
 **Quick Links:**
 - [Investigation Techniques Index](Investigations/Investigations-Index.md) - Complete guide to investigation workflows
-- [Platform-Specific SOPs](Investigations/Platforms/Platforms-Index.md) - Twitter/X, Instagram, Telegram, LinkedIn, Reddit, TikTok, Bluesky
+- [Platform-Specific SOPs](Investigations/Platforms/Platforms-Index.md) - Twitter/X, Instagram, Telegram, Discord, LinkedIn, Reddit, TikTok, Bluesky
 - [Investigation Techniques](Investigations/Techniques/Techniques-Index.md) - Entity dossiers, collection logs, legal/ethics, OPSEC
 
 **Core SOPs:**

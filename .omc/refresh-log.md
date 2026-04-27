@@ -1535,3 +1535,74 @@ Net file: +1153/-0 (new). Closest-shape templates: `sop-cloud-pentest.md` (numbe
 - Closing grep `grep -rnF "(planned) \`sop-" Investigations/ Security/` — **zero hits**. The vault `(planned) sop-...` graph is now empty. All forward-references in active SOPs resolve to live files.
 - `grep -nE "container-k8s-pentest" Investigations/ Security/` — every site is now a wikilink form (`[[sop-container-k8s-pentest|...]]` in-folder or `[[../Pentesting/sop-container-k8s-pentest|...]]` cross-folder); zero remaining `(planned)` annotations or backtick-text references.
 - No commits performed (user runs commits).
+
+## 2026-04-27 (Group H #1 — sop-platform-discord build)
+
+Built the lone surviving Group H queue entry, `Investigations/Platforms/sop-platform-discord.md`. Group H closes with this build (the originally-queued sop-saas-pentest was absorbed into `sop-cloud-pentest §12 SaaS Collaboration Plane` on 2026-04-27 as a ~218-line in-place extension, per user decision; no standalone SOP built for that slot). Vault total `40 SOPs` → `41 SOPs`. Investigations/Platforms `7 SOPs` → `8 SOPs`. Closes the Discord entry in `.omc/gaps.md` (the row also covered YouTube / Mastodon / Facebook — those three remain).
+
+**Closest-shape template:** `sop-platform-telegram.md` (server / channel / bot / invite-graph methodology, lurking discipline, OPSEC carve-outs, Tools section with platform-specific clients).
+
+**Stage B draft pass (Sonnet 4.6 — single-pass write):** 598 lines, 18 numbered sections matching the platform-telegram tail order. Front matter: `type: sop`, list-form tags `[sop, platform, discord, messaging, osint]`, `created: 2026-04-27`, `updated: 2026-04-27`, `template_version: 1.0`. H1 + canonical authorized-use blockquote with three cross-links (legal-ethics, opsec-plan, sensitive-crime-intake-escalation). 14 outbound wikilinks; **zero deferred** (all targets verified live on disk pre-write).
+
+**Discord-specific carve-outs landed:**
+
+- §6 **Discord Snowflake Structure** — closes the forward-link the telegram SOP §6 had been carrying since 2026-04-27 ("Cross-link to a dedicated Discord SOP will be added when it lands"). Includes the extraction formula `unix_ms = (snowflake_id >> 22) + 1420070400000`, a Python helper, a shell one-liner, and operational uses for user / server / channel / message / webhook snowflakes. Worked example: snowflake `175928847299117063` → `2016-04-30 11:18:25.796 UTC` (verified by long-division: `175928847299117063 >> 22 = 41,944,705,796`; `+ 1,420,070,400,000 = 1,462,015,105,796 ms`; `→ 2016-04-30 11:18:25.796 UTC`). Discord epoch `1,420,070,400,000 ms` confirmed = `2015-01-01 00:00:00 UTC` (16,436 days since Unix epoch).
+- §8 **DiscordChatExporter ToS framing** — three-tier classification: self-owned data (clear), authorized customer-server (clear), third-party server lurker (gray area; route to legal-ethics; document basis in collection-log). Plus the user-token-vs-bot-token distinction.
+- §9 **Webhook discovery & triage** — POST-to-third-party-webhook is unauthorized access regardless of how publicly the URL was exposed; GET metadata only when read-only access is in scope; webhook leaks discovered during bug-bounty engagements route through `sop-bug-bounty`.
+- §9 + §12 **Voice-channel announce trap** — there is no silent observe mode for voice channels; Stage Channel audience list is visible to speakers/mods.
+- §9 **Bot scope & slash-command surface review** — permissions-integer bit decoding, high-risk permission combinations on community bots (Manage Webhooks + Manage Server, Manage Roles + position above @everyone, Read Message History + Send Messages + Message Content Intent).
+- §15 **Sensitive-crime hard stop** — CSAM / threat-to-life / trafficking → URL+timestamp+snowflake-ID metadata only; route per `sop-sensitive-crime-intake-escalation`; NCMEC CyberTipline for CSAM (US).
+- §16 **Sock-puppet & pretexting framing** — lurking via public invite is OSINT; sustained false-identity engagement (fake vendor persona, fake buyer interaction, paid VIP-tier access) crosses into pretexting in several frameworks (US state-level, EU GDPR Recital 47, UK CMA prohibitions); document legal basis in collection-log. Wiretap statutes flagged for surreptitious voice/Stage recording.
+
+**Stage C production-readiness pass (Opus 4.7, same session):**
+
+- 4 additional `[verify 2026-04-27]` markers added on factual claims that have rotated in the past or are vendor-dependent: vanity-URL boost-tier threshold (Discord rotated boost rewards in 2024), audit-log retention (sources cite 45 vs 90 days inconsistently — softened to "limited window" with explicit verify directive), privileged-intent verification server-count threshold, EXIF-stripping behavior on uploads (changed in 2022, may have shifted again).
+- Total `[verify 2026-04-27]` markers: **8** (4 from draft pass + 4 from prod-pass) — within the 1.5–3% density band the platform SOPs use.
+- Tail order audited against `sop-platform-telegram` template: §11 Tools → §12 Risks → §13 QA → §14 Real-World → §15 Emergency → §16 Legal & Ethics → §17 Related SOPs → §18 External Resources. Match exact.
+- Heading-slug stability: every numbered §-anchor in the TOC round-trips against the `^## ` headings (verified TOC — Reading 11, 12, 13, 14, 15, 16, 17, 18 → all anchors match the GitHub heading-anchor algorithm).
+- Cross-link contract: all 14 unique outbound wikilink targets verified by `tools/check-vault.sh` (check #4) post-build. In-folder `[[sop-platform-telegram|...]]` (1 ref); cross-folder relative `../Techniques/` (10 unique targets across 12 refs); cross-folder relative `../../Security/` (3 unique targets — sop-cloud-pentest, sop-bug-bounty, sop-malware-analysis).
+- Bloat trim: none. 598 lines vs. telegram's 446 reflects Discord-specific content (snowflake math + webhook §9 + bot scope review + DiscordChatExporter ToS framing) that has no telegram analog.
+
+**Marker counts:** 8 `[verify 2026-04-27]`, 0 `[inferred]`. Markers cover: invite endpoint version (`/api/v10/invites/...?with_counts=true`), member-list update gateway opcode behavior, vanity-URL boost-tier threshold, audit-log retention window, privileged-intent verification server-count threshold, EXIF-stripping on upload pipeline, snowsta.mp third-party site availability, webhook GET-metadata behavior. Lower-stakes claims (slash-command operator surface, Connections-panel field list, Forum/Media/Stage channel types) intentionally unmarked — they are well-fixed by the Discord Developer Portal and rotate slowly.
+
+**Forward-link debt closed (1 site in 1 file):**
+
+| File | Line (pre-edit) | Site | Form |
+|---|---|---|---|
+| `Investigations/Platforms/sop-platform-telegram.md` | 120 | §6 Telegram User ID structure note | (no edit needed — telegram already framed the forward reference as "Cross-link to a dedicated Discord SOP will be added when it lands"; the new Discord SOP §6 now satisfies that promise via its own contrast back to telegram. No edit to telegram required for the forward-link to resolve.) |
+
+The telegram §6 prose is already discoverable-in-both-directions: telegram says "contrast with Discord, which uses snowflake IDs" and Discord's new §6 says "Contrast with Telegram, where user IDs are monotonically-increasing integers" with `[[sop-platform-telegram|Telegram SOP §6]]` wikilink. Symmetric reference; no telegram edit needed.
+
+### Navigation updates (Stage D)
+
+- `Investigations/Platforms/Platforms-Index.md` — added `[[sop-platform-discord|Discord]]` between `[[sop-platform-bluesky]]` and `[[sop-platform-instagram]]` (alphabetical).
+- `Investigations/Investigations-Index.md` — added Discord row to the `## 📱 Platform-Specific SOPs` table after Telegram (`Servers, channels, bots, snowflake-ID forensics | Hard | [[Platforms/sop-platform-discord|Discord SOP]]`).
+- `README.md` L21 — `40+ SOPs` → `41+ SOPs`; `19 Investigation Guides` → `20 Investigation Guides`. L33 — Platforms summary `Twitter/X, Instagram, Telegram, LinkedIn, Reddit, TikTok, Bluesky` → `Twitter/X, Instagram, Telegram, Discord, LinkedIn, Reddit, TikTok, Bluesky`.
+- `index.md` L24-25 — `Total SOPs: 40+` → `41+`; `Investigations (19)` → `Investigations (20)`. L46-48 — Platforms wikilink block now includes `[[intel-codex/Investigations/Platforms/sop-platform-discord|Discord]]` on the second row alongside LinkedIn / Reddit (Docusaurus long-form per `index.md` convention).
+- `.omc/watchlist.md` — Fast-tier platforms entry `(7 SOPs: bluesky, instagram, linkedin, reddit, telegram, tiktok, twitter-x)` → `(8 SOPs: bluesky, discord, instagram, linkedin, reddit, telegram, tiktok, twitter-x)`. Discord rotates quarterly per the Fast-tier umbrella; no per-SOP rationale row added (telegram, instagram, etc. don't carry one either — the umbrella row covers it).
+- `.omc/gaps.md` — `**Discord, YouTube, Mastodon, Facebook OSINT** — no platform SOPs yet.` → `**YouTube, Mastodon, Facebook OSINT** — no platform SOPs yet (Discord landed 2026-04-27).` Discord row removed from gaps; the remaining three platforms continue to be tracked.
+- `.omc/vault-state.md` — regenerated via `./tools/build-vault-state.sh`. Investigations/Platforms `7 SOPs` → `8 SOPs`; Investigations total `19` → `20`; Vault total `40 SOPs` → `41 SOPs`. Discord entry added to the Investigations/Platforms inventory list.
+- `Security/Security-Index.md` — **not updated** (no Investigations content; out of scope per established pattern).
+- `CLAUDE.md` — **not updated** (per the 2026-04-27 trim, SOP inventory + counts + watchlist + gaps live in `.omc/vault-state.md`, `.omc/watchlist.md`, `.omc/gaps.md` — all of which are now refreshed).
+
+### Known limitations / cross-cutting follow-ups
+
+- **8 `[verify 2026-04-27]` markers** are time-dependent and quarterly-cadence per the Fast-tier review schedule. Specifically: vanity-URL boost-tier threshold and audit-log retention window are the highest-rotation; the `/api/v10/...` invite endpoint and member-list gateway opcode versions also rotate when Discord increments API versions. Should be WebFetched in a coordinated batch on next quarterly refresh.
+- **Snowflake worked example** (`175928847299117063` → `2016-04-30 11:18:25.796 UTC`) was hand-verified by long-division at build time; the analytical formula and Discord epoch (`1,420,070,400,000 ms` = `2015-01-01 00:00:00 UTC`) are upstream-stable and unlikely to change. The `[verify]` marker on the snowsta.mp third-party decoder site availability covers the third-party-site-rot risk only, not the formula.
+- **Wiretap statute list** in §16 (US state-level two-party consent, EU varies) is illustrative and pre-existing in the Legal & Ethics SOP — re-derivation here is intentional cross-link rather than fresh research.
+- **Discord enforcement landscape** — coordinated-inauthentic-behavior detection methodology (shared payment / IP / device-fingerprint / registration cadence linkage) is the most rotation-prone Risks-section claim. Discord rotates its detection signals frequently; the SOP's framing is principle-level rather than detection-tier-specific, which should age gracefully but verify on next quarterly refresh.
+
+### Group H post-completion ledger
+
+- ~~[ ] sop-saas-pentest~~ — **ABSORBED 2026-04-27** into `sop-cloud-pentest §12 SaaS Collaboration Plane` per user decision (no standalone SOP built; the §12 subsection covers Microsoft 365 / Workspace / Slack / Salesforce / GitHub offensive surfaces).
+- [x] **Group H #1: sop-platform-discord** — landed 2026-04-27. Closes the Discord row in `.omc/gaps.md`; closes Group H.
+
+Group H is now fully discharged. With Group G + #10 + Group H all complete, the post-Group-G `(planned) sop-...` reference graph remains empty (zero forward-link debt); Discord is the third platform SOP cross-referenced by both directions (telegram ↔ discord symmetric reference at §6 each).
+
+### Verification
+
+- `./tools/build-vault-state.sh` — succeeded; emitted `.omc/vault-state.md` with `Total: 41 SOPs`. Investigations/Platforms per-folder count = 8.
+- `./tools/check-vault.sh` post-build — `OK: vault clean.` All five checks pass.
+- Closing grep `grep -rnF "(planned) \`sop-" Investigations/ Security/` — **zero hits** (graph remains empty).
+- Closing grep `grep -rnE "sop-platform-discord" Investigations/ Security/` — every site is a wikilink form (basename in-folder, relative cross-folder, Docusaurus long-form in index.md only). Zero deferred references.
+- No commits performed (user runs commits).

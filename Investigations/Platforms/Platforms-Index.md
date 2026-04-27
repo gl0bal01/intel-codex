@@ -10,6 +10,7 @@ This directory contains Standard Operating Procedures (SOPs) for investigating v
 ## Available Platform SOPs
 
 - [[sop-platform-bluesky|Bluesky]]
+- [[sop-platform-discord|Discord]]
 - [[sop-platform-instagram|Instagram]]
 - [[sop-platform-linkedin|LinkedIn]]
 - [[sop-platform-reddit|Reddit]]

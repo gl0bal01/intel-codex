@@ -21,8 +21,8 @@ All content reflects current best practices and is actively maintained.
 
 ## 📊 Quick Stats
 
-**Total SOPs:** 40+
-**Categories:** Investigations (19) | Security (21) | CTF (9)
+**Total SOPs:** 41+
+**Categories:** Investigations (20) | Security (21) | CTF (9)
 
 ---
 
@@ -44,7 +44,7 @@ All content reflects current best practices and is actively maintained.
 
 ### Platform-Specific Guides
 - [[intel-codex/Investigations/Platforms/sop-platform-twitter-x|Twitter/X]] | [[intel-codex/Investigations/Platforms/sop-platform-instagram|Instagram]] | [[intel-codex/Investigations/Platforms/sop-platform-telegram|Telegram]]
-- [[intel-codex/Investigations/Platforms/sop-platform-linkedin|LinkedIn]] | [[intel-codex/Investigations/Platforms/sop-platform-reddit|Reddit]]
+- [[intel-codex/Investigations/Platforms/sop-platform-discord|Discord]] | [[intel-codex/Investigations/Platforms/sop-platform-linkedin|LinkedIn]] | [[intel-codex/Investigations/Platforms/sop-platform-reddit|Reddit]]
 - [[intel-codex/Investigations/Platforms/sop-platform-tiktok|TikTok]] | [[intel-codex/Investigations/Platforms/sop-platform-bluesky|Bluesky]]
 - [[intel-codex/Investigations/Platforms/Platforms-Index|Full Platforms Index]]
 

@@ -46,6 +46,7 @@ graph LR
 | **LinkedIn**  | Professional networks, employment history, B2B         | Easy       | [[Platforms/sop-platform-linkedin\|LinkedIn SOP]]   |
 | **Reddit**    | Anonymous communities, niche topics, AMAs              | Medium     | [[Platforms/sop-platform-reddit\|Reddit SOP]]       |
 | **Telegram**  | Encrypted messaging, groups, channels                  | Hard       | [[Platforms/sop-platform-telegram\|Telegram SOP]]   |
+| **Discord**   | Servers, channels, bots, snowflake-ID forensics        | Hard       | [[Platforms/sop-platform-discord\|Discord SOP]]     |
 | **Bluesky**   | Decentralized Twitter alternative, tech early adopters | Easy       | [[Platforms/sop-platform-bluesky\|Bluesky SOP]]     |
 
 ### Quick Platform Comparison
