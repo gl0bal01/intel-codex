@@ -1,3 +1,8 @@
+---
+title: "Case 2025-001: Example Investigation"
+description: "A fully worked, fictional OSINT case file: subject profiling, collection logging, verification and reporting, shown end to end as a reference for real investigations."
+---
+
 # Case 2025-001: Example Investigation
 
 **⚠️ IMPORTANT: This is a DUMMY CASE for demonstration purposes only. All data is fictional.**

@@ -1,3 +1,8 @@
+---
+title: "Exercise 03: Social Media Timeline Reconstruction"
+description: "Hands-on OSINT exercise: rebuild a subject's timeline from social media activity and verify each event against corroborating sources."
+---
+
 # Exercise 03: Social Media Timeline Reconstruction
 
 **Difficulty:** 📙 Intermediate

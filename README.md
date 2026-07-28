@@ -1,3 +1,8 @@
+---
+title: "Intel Codex"
+description: "Operational manual for digital investigators: OSINT platform techniques, security procedures, forensics and real-world case studies."
+---
+
 # Intel Codex
 
 [![Obsidian](https://img.shields.io/badge/Obsidian-1.0+-purple?logo=obsidian)](https://obsidian.md)

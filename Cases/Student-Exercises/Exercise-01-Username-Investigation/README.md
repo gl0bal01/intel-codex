@@ -1,3 +1,8 @@
+---
+title: "Exercise 01: Username Investigation"
+description: "Hands-on OSINT exercise: pivot from a single username across platforms, correlate accounts and document the evidence trail."
+---
+
 # Exercise 01: Username Investigation
 
 **Difficulty:** 📗 Beginner

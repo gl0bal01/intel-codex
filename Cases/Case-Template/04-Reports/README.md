@@ -1,3 +1,8 @@
+---
+title: "Investigation Reports"
+description: "Report templates for closing an OSINT investigation: findings, evidence index, confidence assessment and disclosure packaging."
+---
+
 # Investigation Reports
 
 **Case ID:** YYYY-NNN

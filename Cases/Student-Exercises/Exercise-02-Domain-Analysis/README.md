@@ -1,3 +1,8 @@
+---
+title: "Exercise 02: Domain Analysis"
+description: "Hands-on OSINT exercise: analyse a domain through DNS, WHOIS, certificates and hosting history to map the infrastructure behind it."
+---
+
 # Exercise 02: Domain Analysis
 
 **Difficulty:** 📗 Beginner
