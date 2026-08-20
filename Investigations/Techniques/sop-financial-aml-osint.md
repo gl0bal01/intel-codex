@@ -348,6 +348,7 @@ OPSEC for the investigator (separation of attribution, network egress, wallet/ac
 | Companies House (UK) | UK registry | [find-and-update.company-information.service.gov.uk](https://find-and-update.company-information.service.gov.uk/) |
 | OpenOwnership | Beneficial ownership register | [register.openownership.org](https://register.openownership.org/) |
 | OCCRP Aleph | Investigative document graph | [aleph.occrp.org](https://aleph.occrp.org/) |
+| C4ADS Horizons | Investigative document search | [Horizons](https://horizons.c4ads.org/about) |
 | OFAC SDN Search | US sanctions | [sanctionssearch.ofac.treas.gov](https://sanctionssearch.ofac.treas.gov/) |
 | OFAC Sanctions List Service | US sanctions data feeds | [sanctionslistservice.ofac.treas.gov](https://sanctionslistservice.ofac.treas.gov/) [verify 2026-04-25] |
 | EU Sanctions Map | EU sanctions | [sanctionsmap.eu](https://www.sanctionsmap.eu/) |
