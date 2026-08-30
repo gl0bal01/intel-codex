@@ -14,6 +14,7 @@ Written to be executed during a case, not read once and bookmarked.
 
 `OSINT` · `DFIR` · `Malware` · `Pentesting` · `Blockchain` · `Cloud` · `OPSEC` · `CTF`
 
+[![Vault check](https://github.com/gl0bal01/intel-codex/actions/workflows/vault-check.yml/badge.svg)](https://github.com/gl0bal01/intel-codex/actions/workflows/vault-check.yml)
 [![Browse online](https://img.shields.io/badge/Browse-lecodex.xyz-2ea44f)](https://lecodex.xyz)
 [![Obsidian](https://img.shields.io/badge/Obsidian-1.0+-purple?logo=obsidian)](https://obsidian.md)
 [![License](https://img.shields.io/badge/License-MIT-blue.svg)](https://github.com/gl0bal01/intel-codex/blob/main/LICENSE)

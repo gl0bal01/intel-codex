@@ -1,0 +1,45 @@
+name: Vault check
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+concurrency:
+  group: vault-check-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v5
+
+      # tools/check-vault.sh: front-matter, Legal & Ethics cross-references,
+      # stale [verify] markers, wikilink targets, count parity. Exits 1 on any.
+      - name: Lint the vault
+        run: |
+          set -euo pipefail
+          chmod +x tools/check-vault.sh
+          ./tools/check-vault.sh
+
+      # A SOP added without re-running the generator leaves the published counts
+      # lying. Regenerate and fail if that produces a diff, so the contributor is
+      # told exactly which command to run rather than being guessed at in review.
+      - name: Generated counts are up to date
+        run: |
+          set -euo pipefail
+          chmod +x tools/build-vault-state.sh
+          ./tools/build-vault-state.sh
+          if ! git diff --quiet; then
+            echo "::error::Generated files are stale. Run ./tools/build-vault-state.sh and commit the result."
+            git --no-pager diff --stat
+            git --no-pager diff
+            exit 1
+          fi
+          echo "Generated counts match the filesystem."
