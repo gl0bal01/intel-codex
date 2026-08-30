@@ -1,5 +1,5 @@
 ---
-generated: 2026-04-27
+generated: 2026-08-30
 generator: tools/build-vault-state.sh
 ---
 

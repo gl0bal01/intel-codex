@@ -115,4 +115,17 @@ if [[ -f "$GAPS" ]]; then
   cat "$GAPS" >> "$OUT"
 fi
 
+# Keep the README badge line honest: rewrite the marked block in place so the
+# published count can never drift from the filesystem. No markers, no rewrite.
+README="README.md"
+if [[ -f "$README" ]] && grep -q '<!-- vault-state:begin' "$README"; then
+  COUNT_LINE="**$TOTAL SOPs** · $INVESTIGATIONS_COUNT investigation · $SECURITY_COUNT security"
+  awk -v line="$COUNT_LINE" '
+    /<!-- vault-state:begin/ { print; print line; skip = 1; next }
+    /<!-- vault-state:end/   { skip = 0 }
+    !skip                    { print }
+  ' "$README" > "$README.tmp" && mv "$README.tmp" "$README"
+  echo "Updated $README count block ($TOTAL SOPs)"
+fi
+
 echo "Wrote $OUT (Total: $TOTAL SOPs)"
