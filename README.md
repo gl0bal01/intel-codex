@@ -5,6 +5,8 @@ description: "Operational manual for digital investigators: OSINT platform techn
 
 # Intel Codex
 
+[![Intel Codex](assets/hero.jpg)](https://lecodex.xyz)
+
 **The open-source field manual for OSINT, DFIR and cybersecurity investigations.**
 
 Standard operating procedures for investigators, security researchers and CTF players.
