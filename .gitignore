@@ -39,3 +39,6 @@ desktop.ini
 .omc/artifacts/
 .omc/project-memory.json
 .omc/resume.md
+
+# Codex/OMO agent runtime — never curated, never tracked.
+.omo/
