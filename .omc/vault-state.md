@@ -1,5 +1,5 @@
 ---
-generated: 2026-08-30
+generated: 2026-09-20
 generator: tools/build-vault-state.sh
 ---
 
@@ -31,8 +31,8 @@ generator: tools/build-vault-state.sh
 
 - `sop-blockchain-investigation` — Blockchain Investigation (updated 2026-04-26)
 - `sop-collection-log` — OSINT Collection Log & Chain of Custody (updated 2026-04-26)
-- `sop-darkweb-investigation` — Darkweb Investigation (updated 2026-04-26)
-- `sop-entity-dossier` — Entity Dossier Guide (updated 2026-04-26)
+- `sop-darkweb-investigation` — Darkweb Investigation (updated 2026-09-20)
+- `sop-entity-dossier` — Entity Dossier Guide (updated 2026-09-20)
 - `sop-financial-aml-osint` — Financial Crime & AML OSINT (updated 2026-04-27)
 - `sop-image-video-osint` — Image & Video OSINT (updated 2026-04-25)
 - `sop-legal-ethics` — Legal, Ethics & Data Governance for OSINT (updated 2026-04-26)
@@ -64,7 +64,7 @@ generator: tools/build-vault-state.sh
 - `sop-detection-evasion-testing` — Detection & Evasion Testing SOP (Purple Team) (updated 2026-04-25)
 - `sop-firmware-reverse-engineering` — Firmware Reverse Engineering (updated 2026-04-26)
 - `sop-linux-pentest` — Linux Pentesting SOP (Authorized) (updated 2026-04-25)
-- `sop-mobile-security` — Mobile Security (iOS & Android) (updated 2026-04-26)
+- `sop-mobile-security` — Mobile Security (iOS & Android) (updated 2026-09-20)
 - `sop-vulnerability-research` — Vulnerability Research SOP (updated 2026-04-25)
 - `sop-web-application-security` — Web Application Security Testing SOP (updated 2026-04-25)
 - `sop-wireless-rf-pentest` — Wireless & RF Pentesting (Authorized) (updated 2026-04-26)
