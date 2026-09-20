@@ -21,7 +21,9 @@ warn() { echo "WARN: $*"; WARN=1; }
 declare -A KNOWN
 while IFS= read -r b; do
   KNOWN[$b]=1
-done < <(find Investigations Security Cases CTF -name '*.md' -type f -printf '%f\n' 2>/dev/null | sed 's/\.md$//')
+done < <({ find Investigations Security Cases CTF -name '*.md' -type f -printf '%f\n' 2>/dev/null
+            # Root-level notes (index.md, README.md, ...) are valid wikilink targets too
+            find . -maxdepth 1 -name '*.md' -type f -printf '%f\n' 2>/dev/null; } | sed 's/\.md$//')
 
 # 1. updated: in front matter
 echo "[1/5] Checking front-matter 'updated:' ..."
