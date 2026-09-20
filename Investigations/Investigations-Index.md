@@ -111,7 +111,7 @@ A
 
 **To create a new entity:**
 1. Use [[Techniques/sop-entity-dossier|Entity Dossier SOP]] as reference
-2. Start from blank [[../Cases/Case-Template/01-Subject-Profiles|Subject Profiles template]]
+2. Start from blank [Subject Profiles template](https://github.com/gl0bal01/intel-codex/blob/main/Cases/Case-Template/01-Subject-Profiles.md)
 3. Name format: `entity-[type]-[identifier].md` (e.g., `entity-person-john-doe.md`)
 4. Update entity type in frontmatter: `person | org | domain | wallet | asset`
 5. Set risk level: `low | medium | high | critical`
@@ -230,14 +230,14 @@ A
 **Comprehensive tool lists:**
 - Platform SOPs: Tool sections in each SOP
 - Technique SOPs: Specialized tool references
-- Main index: [[../README|START]] → Security section
+- Main index: [[index|START]] → Security section
 
 ---
 
 ## 📚 Related Resources
 
 ### Internal References
-- **Main navigation:** [[../README|Vault Home (START)]]
+- **Main navigation:** [[index|Vault Home (START)]]
 - **Security tools:** [[../Security/Analysis/sop-malware-analysis|Malware Analysis]] | [[../Security/Analysis/sop-hash-generation-methods|Hash Generation]]
 - **Pentesting:** [[../Security/Pentesting/sop-linux-pentest|Linux]] | [[../Security/Pentesting/sop-ad-pentest|Active Directory]]
 - **CTF guides:** [[../CTF/CTF-Index.md|CTF Getting Started]]
@@ -330,4 +330,4 @@ SORT updated DESC
 
 ---
 
-**Quick Links:** [[../README|🏠 Home]] | [[Techniques/sop-legal-ethics|⚖️ Legal]] | [[Techniques/sop-opsec-plan|🔒 OPSEC]] | [[Techniques/sop-entity-dossier|👤 Entity Template]] | [[Techniques/sop-reporting-packaging-disclosure|📄 Reporting]]
+**Quick Links:** [[index|🏠 Home]] | [[Techniques/sop-legal-ethics|⚖️ Legal]] | [[Techniques/sop-opsec-plan|🔒 OPSEC]] | [[Techniques/sop-entity-dossier|👤 Entity Template]] | [[Techniques/sop-reporting-packaging-disclosure|📄 Reporting]]

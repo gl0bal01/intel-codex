@@ -14,7 +14,7 @@ tags:
   - entity
   - osint
 created: 2025-10-05
-updated: 2026-04-26
+updated: 2026-09-20
 analyst:
 case_id:
 ---
@@ -710,8 +710,8 @@ Replace fictional version pins with `--version` invocations at audit time. Versi
 
 - Case file: `Cases/<YYYY-NNN-Brief-Description>/` (per CLAUDE.md naming)
 - Evidence repository: `Cases/<YYYY-NNN-Brief-Description>/Evidence/<entity_name>/`
-- Worked example: [Example Investigation](../../Cases/2025-001-Example-Investigation/README.md)
-- Template: [Case Template](../../Cases/Case-Template/README.md)
+- Worked example: [Example Investigation](https://github.com/gl0bal01/intel-codex/blob/main/Cases/2025-001-Example-Investigation/README.md)
+- Template: [Case Template](https://github.com/gl0bal01/intel-codex/blob/main/Cases/Case-Template/README.md)
 
 ## Legal & Ethical Considerations
 
@@ -728,5 +728,5 @@ Canonical text lives in [[sop-legal-ethics|Legal & Ethics]]. Dossier-specific re
 
 **Analyst:** gl0bal01
 **Date Created:** 2025-10-05
-**Last Updated:** 2026-04-26
+**Last Updated:** 2026-09-20
 **Review Cycle:** Yearly (slow-rot anchor SOP per CLAUDE.md watchlist)
