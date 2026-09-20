@@ -164,7 +164,7 @@ https://gl0bal01.com/blog/ctf-platforms-training
 
 ---
 
-**[🏠 Back to CTF Main](../README.md)** | **[📖 CTF Methodology](../CTF_Challenge_Methodology.md)**
+**[[CTF-Index|🏠 Back to CTF Main]]** | **[[CTF_Challenge_Methodology|📖 CTF Methodology]]**
 
 ---
 

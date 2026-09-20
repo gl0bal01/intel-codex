@@ -3,7 +3,7 @@ type: sop
 title: Reporting, Packaging & Disclosure
 description: "Professional OSINT reporting: executive summaries, evidence packaging, chain of custody, law enforcement disclosure & responsible reporting protocols."
 created: 2025-10-10
-updated: 2026-04-27
+updated: 2026-09-20
 tags: [sop, reporting, evidence, disclosure, documentation]
 ---
 
@@ -1096,10 +1096,10 @@ gpg --decrypt file.pdf.gpg > file.pdf
 ---
 
 **Version:** 2.0
-**Last Updated:** 2025-10-10
+**Last Updated:** 2026-09-20
 **Review Cycle:** Yearly
 
 ---
 
 **Related SOPs:**
-[[sop-legal-ethics|Legal & Ethics]] | [[sop-opsec-plan|OPSEC Planning]] | [[sop-collection-log|Collection Log]] | [[sop-entity-dossier|Entity Dossier]] | [Investigations-Index](../Investigations-Index.md)
+[[sop-legal-ethics|Legal & Ethics]] | [[sop-opsec-plan|OPSEC Planning]] | [[sop-collection-log|Collection Log]] | [[sop-entity-dossier|Entity Dossier]] | [[Investigations-Index|Investigations Index]]

@@ -608,11 +608,11 @@ Total: 30-45 hours over 3 weeks (part-time)
 - [OPSEC Planning SOP](../Investigations/Techniques/sop-opsec-plan.md)
 - [Collection Logging SOP](../Investigations/Techniques/sop-collection-log.md)
 - [Reporting & Disclosure SOP](../Investigations/Techniques/sop-reporting-packaging-disclosure.md)
-- [Case Completion Checklist](Case-Template/Case-Completion-Checklist.md)
+- [Case Completion Checklist](https://github.com/gl0bal01/intel-codex/blob/main/Cases/Case-Template/Case-Completion-Checklist.md)
 - [Glossary](Glossary.md)
 
 ---
 
 **Document Version:** 1.0
-**Last Updated:** 2025-10-12
+**Last Updated:** 2026-09-20
 **Maintainer:** gl0bal01

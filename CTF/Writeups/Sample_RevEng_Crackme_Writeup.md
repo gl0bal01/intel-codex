@@ -445,15 +445,15 @@ Actually, we can see the flag directly in strings! But the proper approach teach
 ## 📷 Screenshots
 
 ### Ghidra Decompilation
-![Ghidra Analysis](path/to/ghidra_screenshot.png)
+`![Ghidra Analysis](path/to/ghidra_screenshot.png)`
 *Caption: Ghidra showing decompiled validate_license function*
 
 ### GDB Dynamic Analysis  
-![GDB Session](path/to/gdb_screenshot.png)
+`![GDB Session](path/to/gdb_screenshot.png)`
 *Caption: GDB breakpoint showing validation logic execution*
 
 ### Successful Execution
-![Flag Output](path/to/success_screenshot.png)  
+`![Flag Output](path/to/success_screenshot.png)`  
 *Caption: Successful license validation revealing the flag*
 
 ---

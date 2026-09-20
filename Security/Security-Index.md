@@ -173,4 +173,4 @@ See individual SOP pages for detailed tool lists.
 
 ---
 
-**Navigation:** [[index|🏠 Home]] | [[Analysis/Analysis-Index|🔬 Analysis]] | [[Pentesting/Pentesting-Index|🔓 Pentesting]] | [[../Investigations/Investigations-Index|🔍 Investigations]]
+**Navigation:** [🏠 Home](https://lecodex.xyz) | [[Analysis/Analysis-Index|🔬 Analysis]] | [[Pentesting/Pentesting-Index|🔓 Pentesting]] | [[../Investigations/Investigations-Index|🔍 Investigations]]

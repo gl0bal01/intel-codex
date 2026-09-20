@@ -3,8 +3,8 @@ type: sop
 title: Reverse Engineering
 description: "Binary reverse engineering: Ghidra, IDA Pro, disassembly, decompilation, debugging & exploit development for security research and CTF challenges."
 created: 2025-10-11
-updated: 2026-04-25
-template_version: 2026-04-25
+updated: 2026-09-20
+template_version: 2026-09-20
 tags:
   - sop
   - reverse-engineering
@@ -2639,4 +2639,4 @@ emit data.bin | xor key:0x13 | zl | carve url | peek
 - [[../Pentesting/sop-vulnerability-research|Vulnerability Research]] - Finding and analyzing security flaws
 - [[../Pentesting/sop-bug-bounty|Bug Bounty Hunting]] - Responsible vulnerability disclosure
 - [[../Pentesting/sop-detection-evasion-testing|Detection Evasion Testing]] - Bypassing security controls
-- [[../Pentesting/sop-forensics-investigation|Forensics Investigation]] - Digital forensics and incident response
+- [[sop-forensics-investigation|Forensics Investigation]] - Digital forensics and incident response

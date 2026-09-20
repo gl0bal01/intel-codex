@@ -3,8 +3,8 @@ type: sop
 title: OPSEC Planning for OSINT Investigations
 description: "Protect yourself during investigations: VPN setup, burner accounts, browser isolation & operational security best practices for safe OSINT work."
 created: 2025-10-05
-updated: 2026-04-26
-template_version: 2026-04-26
+updated: 2026-09-20
+template_version: 2026-09-20
 tags: [sop, opsec, operational-security, investigation]
 ---
 
@@ -1409,11 +1409,11 @@ These reinforce the rule that **OPSEC is durable, not perfect** — analysts sho
 ---
 
 **Version:** 2.1
-**Last Updated:** 2026-04-26
+**Last Updated:** 2026-09-20
 **Review Cycle:** Yearly
 
 ---
 
 **Related SOPs:**
-[[sop-legal-ethics|Legal & Ethics]] | [[sop-collection-log|Collection Log]] | [[sop-entity-dossier|Entity Dossier]] | [[sop-reporting-packaging-disclosure|Reporting & Disclosure]] | [Investigations-Index](../Investigations-Index.md)
+[[sop-legal-ethics|Legal & Ethics]] | [[sop-collection-log|Collection Log]] | [[sop-entity-dossier|Entity Dossier]] | [[sop-reporting-packaging-disclosure|Reporting & Disclosure]] | [[Investigations-Index|Investigations Index]]
 

@@ -345,15 +345,15 @@ flag{steganography_is_everywhere_in_the_pixels_2024}
 ## 📷 Screenshots
 
 ### Initial Analysis
-![EXIF Analysis](path/to/exif_screenshot.png)
+`![EXIF Analysis](path/to/exif_screenshot.png)`
 *Caption: ExifTool revealing Base64-encoded comment*
 
 ### LSB Extraction Process  
-![LSB Visualization](path/to/lsb_screenshot.png)
+`![LSB Visualization](path/to/lsb_screenshot.png)`
 *Caption: Visual representation of LSB extraction from red channel*
 
 ### Final Success
-![Flag Discovery](path/to/flag_screenshot.png)  
+`![Flag Discovery](path/to/flag_screenshot.png)`  
 *Caption: Flag found in extracted ASCII data*
 
 ---
