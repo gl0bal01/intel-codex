@@ -128,4 +128,136 @@ if [[ -f "$README" ]] && grep -q '<!-- vault-state:begin' "$README"; then
   echo "Updated $README count block ($TOTAL SOPs)"
 fi
 
+# --- published verification status ------------------------------------------
+# Every SOP carries inline `[verify YYYY-MM-DD]` markers: one claim checked
+# against its primary source on that date. That record only ever existed inside
+# the prose and in .omc/, neither of which reaches a reader. Publish it, so the
+# age of a procedure is visible without having to trust the page.
+
+STATUS="Verification-Status.md"
+CURRENT_DAYS=90
+OVERDUE_DAYS=180
+
+n_current=0
+n_due=0
+n_overdue=0
+n_none=0
+
+status_rows() {
+  local dir="$1"
+  find "$dir" -maxdepth 1 -name 'sop-*.md' -type f -printf '%f\n' 2>/dev/null \
+    | sort \
+    | while read -r f; do
+      local base="${f%.md}"
+      local title updated count oldest age state
+      title=$(awk '/^title:/{sub(/^title:[[:space:]]*/,""); gsub(/^"|"$/,""); print; exit}' "$dir/$f")
+      updated=$(awk '/^updated:/{sub(/^updated:[[:space:]]*/,""); print; exit}' "$dir/$f")
+      [[ -z "$updated" ]] && updated="—"
+      [[ -z "$title" ]] && title="(no title)"
+      # grep exits 1 on no match, which pipefail would turn into a script abort.
+      count=$({ grep -oE '\[verify [0-9]{4}-[0-9]{2}-[0-9]{2}\]' "$dir/$f" || true; } | wc -l)
+      oldest=$(grep -oE '\[verify [0-9]{4}-[0-9]{2}-[0-9]{2}\]' "$dir/$f" \
+               | grep -oE '[0-9]{4}-[0-9]{2}-[0-9]{2}' | sort | head -1 || true)
+      if [[ -z "$oldest" ]]; then
+        oldest="—"; age="—"; state="no source checks"
+      else
+        age=$(( ( $(date +%s) - $(date -d "$oldest" +%s) ) / 86400 ))
+        if   (( age <= CURRENT_DAYS )); then state="current"
+        elif (( age <= OVERDUE_DAYS )); then state="review due"
+        else                                state="overdue"
+        fi
+      fi
+      # Alias-free wikilink: an alias pipe would split the table cell, and the
+      # Docusaurus sync de-links targets it excludes instead of emitting a 404.
+      echo "| $title | [[$base]] | $updated | $count | $oldest | $age | $state |"
+    done
+}
+
+# Counted in the parent shell: the pipeline above runs in a subshell.
+for dir in "$PLATFORMS_DIR" "$TECHNIQUES_DIR" "$ANALYSIS_DIR" "$PENTEST_DIR"; do
+  while IFS= read -r f; do
+    oldest=$(grep -oE '\[verify [0-9]{4}-[0-9]{2}-[0-9]{2}\]' "$f" \
+             | grep -oE '[0-9]{4}-[0-9]{2}-[0-9]{2}' | sort | head -1 || true)
+    if [[ -z "$oldest" ]]; then
+      n_none=$((n_none + 1)); continue
+    fi
+    age=$(( ( $(date +%s) - $(date -d "$oldest" +%s) ) / 86400 ))
+    if   (( age <= CURRENT_DAYS )); then n_current=$((n_current + 1))
+    elif (( age <= OVERDUE_DAYS )); then n_due=$((n_due + 1))
+    else                                n_overdue=$((n_overdue + 1))
+    fi
+  done < <(find "$dir" -maxdepth 1 -name 'sop-*.md' -type f)
+done
+
+cat > "$STATUS" <<EOF
+---
+type: index
+title: Verification Status
+description: "Per-SOP verification record for the Intel Codex vault: source-check counts, oldest check, and review age for all $TOTAL procedures."
+generated: $today
+generator: tools/build-vault-state.sh
+tags:
+  - index
+  - verification
+---
+
+# Verification Status
+
+> **Generated file. Do not edit directly.** Re-run \`./tools/build-vault-state.sh\`.
+
+Every SOP in this vault carries inline \`[verify YYYY-MM-DD]\` markers. One marker
+is one claim — a command flag, a statute reference, a vendor behaviour, a tool
+default — checked against its primary source on that date.
+
+This page publishes that record so the age of a procedure is visible without
+having to take the page's word for it. Read it for what it is: **it reports when
+claims were last checked against sources, not that a procedure was executed end
+to end in a lab.** No SOP here is labelled field-tested, because none of them has
+the evidence that label would require.
+
+A SOP counts as \`current\` at $CURRENT_DAYS days or less, \`review due\` up to
+$OVERDUE_DAYS, and \`overdue\` beyond that. Age is measured from the **oldest**
+marker in the file, so a SOP is only as fresh as its stalest claim.
+
+## Summary
+
+| State | SOPs |
+|-------|------|
+| current (≤ $CURRENT_DAYS days) | $n_current |
+| review due ($((CURRENT_DAYS + 1))–$OVERDUE_DAYS days) | $n_due |
+| overdue (> $OVERDUE_DAYS days) | $n_overdue |
+| no source checks recorded | $n_none |
+| **Total** | **$TOTAL** |
+
+## Investigations / Platforms
+
+| SOP | File | Updated | Checks | Oldest check | Age (days) | State |
+|-----|------|---------|-------:|--------------|-----------:|-------|
+$(status_rows "$PLATFORMS_DIR")
+
+## Investigations / Techniques
+
+| SOP | File | Updated | Checks | Oldest check | Age (days) | State |
+|-----|------|---------|-------:|--------------|-----------:|-------|
+$(status_rows "$TECHNIQUES_DIR")
+
+## Security / Analysis
+
+| SOP | File | Updated | Checks | Oldest check | Age (days) | State |
+|-----|------|---------|-------:|--------------|-----------:|-------|
+$(status_rows "$ANALYSIS_DIR")
+
+## Security / Pentesting
+
+| SOP | File | Updated | Checks | Oldest check | Age (days) | State |
+|-----|------|---------|-------:|--------------|-----------:|-------|
+$(status_rows "$PENTEST_DIR")
+
+---
+
+**Generated:** $today
+EOF
+
+echo "Wrote $STATUS ($n_current current, $n_due due, $n_overdue overdue, $n_none unrecorded)"
+
 echo "Wrote $OUT (Total: $TOTAL SOPs)"

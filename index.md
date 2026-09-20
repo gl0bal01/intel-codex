@@ -24,6 +24,8 @@ All content reflects current best practices and is actively maintained.
 **Total SOPs:** 41+
 **Categories:** Investigations (20) | Security (21) | CTF (9)
 
+See [[intel-codex/Verification-Status|Verification Status]] for when each SOP's claims were last checked against their sources.
+
 ---
 
 ## 🎯 First Time Here?

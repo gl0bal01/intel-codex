@@ -30,15 +30,15 @@ generator: tools/build-vault-state.sh
 ### Investigations/Techniques (12 SOPs)
 
 - `sop-blockchain-investigation` — Blockchain Investigation (updated 2026-04-26)
-- `sop-collection-log` — OSINT Collection Log & Chain of Custody (updated 2026-04-26)
+- `sop-collection-log` — OSINT Collection Log & Chain of Custody (updated 2026-09-20)
 - `sop-darkweb-investigation` — Darkweb Investigation (updated 2026-09-20)
 - `sop-entity-dossier` — Entity Dossier Guide (updated 2026-09-20)
 - `sop-financial-aml-osint` — Financial Crime & AML OSINT (updated 2026-04-27)
 - `sop-image-video-osint` — Image & Video OSINT (updated 2026-04-25)
 - `sop-legal-ethics` — Legal, Ethics & Data Governance for OSINT (updated 2026-04-26)
 - `sop-mixer-tracing` — Mixer & Privacy-Pool Tracing (updated 2026-04-26)
-- `sop-opsec-plan` — OPSEC Planning for OSINT Investigations (updated 2026-04-26)
-- `sop-reporting-packaging-disclosure` — Reporting, Packaging & Disclosure (updated 2026-04-27)
+- `sop-opsec-plan` — OPSEC Planning for OSINT Investigations (updated 2026-09-20)
+- `sop-reporting-packaging-disclosure` — Reporting, Packaging & Disclosure (updated 2026-09-20)
 - `sop-sensitive-crime-intake-escalation` — Sensitive Crime Intake & Escalation (updated 2026-04-26)
 - `sop-web-dns-whois-osint` — Web, DNS & WHOIS OSINT (updated 2026-04-25)
 
@@ -47,11 +47,11 @@ generator: tools/build-vault-state.sh
 - `sop-ai-vulnerability-evasion` — AI/ML Vulnerability & Evasion Testing SOP (updated 2026-04-26)
 - `sop-cloud-forensics` — Cloud Forensics SOP (updated 2026-04-27)
 - `sop-cryptography-analysis` — Cryptography Analysis SOP (updated 2026-04-25)
-- `sop-email-bec-forensics` — Email & BEC Forensics SOP (updated 2026-04-27)
+- `sop-email-bec-forensics` — Email & BEC Forensics SOP (updated 2026-09-20)
 - `sop-forensics-investigation` — Digital Forensics Investigation SOP (updated 2026-04-25)
 - `sop-hash-generation-methods` — Hash Generation Methods for Evidence Integrity (updated 2026-04-26)
-- `sop-malware-analysis` — Malware Analysis SOP (updated 2026-04-27)
-- `sop-reverse-engineering` — Reverse Engineering (updated 2026-04-25)
+- `sop-malware-analysis` — Malware Analysis SOP (updated 2026-09-20)
+- `sop-reverse-engineering` — Reverse Engineering (updated 2026-09-20)
 - `sop-saas-log-forensics` — SaaS Log Forensics SOP (updated 2026-04-27)
 - `sop-smart-contract-audit` — Smart Contract Audit SOP (updated 2026-04-26)
 
@@ -66,7 +66,7 @@ generator: tools/build-vault-state.sh
 - `sop-linux-pentest` — Linux Pentesting SOP (Authorized) (updated 2026-04-25)
 - `sop-mobile-security` — Mobile Security (iOS & Android) (updated 2026-09-20)
 - `sop-vulnerability-research` — Vulnerability Research SOP (updated 2026-04-25)
-- `sop-web-application-security` — Web Application Security Testing SOP (updated 2026-04-25)
+- `sop-web-application-security` — Web Application Security Testing SOP (updated 2026-09-20)
 - `sop-wireless-rf-pentest` — Wireless & RF Pentesting (Authorized) (updated 2026-04-26)
 
 ## Counts

@@ -29,6 +29,11 @@ legal boundaries, the commands to run on Windows, Linux and macOS, what the outp
 means, how to preserve it as evidence, and where to hand off. The malware SOP is 2,385
 lines; the web application one is 3,588.
 
+Claims that were checked against a primary source carry a dated marker in the text.
+[Verification Status](Verification-Status.md) publishes that record per SOP: how many
+checks it carries, when the oldest was made, and how old that makes it. Nothing here
+is labelled field-tested, because nothing here has the evidence for it.
+
 ---
 
 ## Three ways to use it
