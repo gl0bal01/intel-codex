@@ -15,8 +15,8 @@ tags:
   - phishing-kit
   - wire-recall
 created: 2026-04-27
-updated: 2026-04-27
-template_version: 2026-04-27
+updated: 2026-09-20
+template_version: 2026-09-20
 ---
 
 # Email & BEC Forensics SOP
@@ -25,6 +25,7 @@ template_version: 2026-04-27
 
 ## Table of Contents
 
+0. [Quick Mode](#quick-mode)
 1. [Objectives & Scope](#1-objectives--scope)
 2. [Pre-Engagement & Authorization](#2-pre-engagement--authorization)
 3. [BEC Forensics Landscape](#3-bec-forensics-landscape)
@@ -45,6 +46,34 @@ template_version: 2026-04-27
 18. [Real-World Scenarios](#18-real-world-scenarios)
 19. [Related SOPs](#19-related-sops)
 20. [External & Reference Resources](#20-external--reference-resources)
+
+---
+
+## Quick Mode
+
+> One screen for an operator already mid-task. Every line points at the section
+> that actually tells you how. This is an order-of-operations aid, not a
+> substitute for the procedure.
+
+**First hour — the money moves faster than the forensics**
+- [ ] Wire-recall pathway opened in parallel with the analysis, not after it — [§13](#13-wire-recall-pathway--financial-recovery)
+- [ ] Authorisation, scope and the disclosure clock confirmed — [§2](#2-pre-engagement--authorization)
+- [ ] Original message preserved with full headers, before anyone "cleans up"
+
+**Header chain, in this order**
+- [ ] Received chain read bottom-up — [§4](#4-email-header-forensics)
+- [ ] SPF — [§5](#5-spf-forensics) · DKIM — [§6](#6-dkim-forensics) · DMARC — [§7](#7-dmarc-forensics--reporting-infrastructure)
+- [ ] ARC, if the message crossed a forwarder — [§8](#8-arc-forensics)
+
+**Then the surrounding infrastructure**
+- [ ] Lookalike domain and impersonation check — [§9](#9-lookalike-domain--brand-impersonation-detection)
+- [ ] Tenant-side trace: rules, sign-ins, delegation — [§10](#10-m365--workspace-message-tracing)
+- [ ] Gateway verdicts and why they missed — [§11](#11-secure-email-gateway-forensics)
+
+**Stop and hand off**
+- Analysis of the phishing kit stays defensive — [§12](#12-phishing-kit-analysis-defensive)
+- Anything beyond the scope contract — [§14](#14-hand-off-boundaries)
+- The victim's bank has its own SAR obligations; do not impede them — [§13](#13-wire-recall-pathway--financial-recovery)
 
 ---
 
@@ -1552,5 +1581,5 @@ Email and BEC forensics actions are typically read-only against tenants and infr
 ---
 
 **Version:** 1.0
-**Last Updated:** 2026-04-27
+**Last Updated:** 2026-09-20
 **Review Frequency:** Quarterly (BEC TTPs, AiTM kit landscape, lookalike-domain registrar patterns, M365 / Workspace / SEG message-trace API field renames, and IC3 / FFKC threshold guidance evolve on a quarterly cadence; RFC-level SPF / DKIM / DMARC / ARC fundamentals and chain-of-custody discipline are slower)

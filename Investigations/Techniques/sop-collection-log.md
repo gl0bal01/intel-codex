@@ -3,8 +3,8 @@ type: sop
 title: OSINT Collection Log & Chain of Custody
 description: "Evidence documentation guide: SHA-256 hashing, chain of custody, metadata preservation & forensically sound collection for legal admissibility."
 tags: [sop, log, chain-of-custody, evidence, documentation]
-template_version: 2026-04-26
-updated: 2026-04-26
+template_version: 2026-09-20
+updated: 2026-09-20
 ---
 
 # OSINT Collection Log & Chain of Custody
@@ -31,6 +31,32 @@ updated: 2026-04-26
 - Many jurisdictions require documented evidence handling (GDPR, CCPA, etc.)
 - Financial investigations may require specific documentation (FinCEN, AML regulations)
 - Internal policies often mandate evidence tracking
+
+---
+
+## Quick Mode
+
+> One screen for an operator already mid-task. Every line points at the section
+> that actually tells you how. This is an order-of-operations aid, not a
+> substitute for the procedure.
+
+**Before you capture anything**
+- [ ] Authorisation and lawful basis recorded — [[sop-legal-ethics|Legal & Ethics]]
+- [ ] Collection log entry opened *before* the capture, not after — [§1](#1-collection-log-template-integrate-with-entity-dossier)
+
+**Every single item, no exceptions**
+- [ ] Captured by the method that fits the source type — [§3](#3-collection-methods-by-source-type)
+- [ ] Hashed at capture time, hash recorded in the log — [§2](#2-capture-procedures)
+- [ ] Timestamped in UTC, with the tool and version used — [§2](#2-capture-procedures)
+- [ ] Packaged and stored in the sealed structure — [§4](#4-evidence-packaging--storage)
+- [ ] Custody transfer logged if it changes hands — [§5](#5-chain-of-custody-documentation)
+
+**Before the evidence is relied on**
+- [ ] Steps written so another analyst can reproduce the capture — [§6](#6-reproducibility--documentation)
+- [ ] Integrity re-verified against the capture-time hash — [§7](#7-quality-assurance--verification)
+
+**A gap in the log is a gap in the evidence.** If you notice one, record the gap
+as a gap. Do not reconstruct it from memory — [§8](#8-common-pitfalls--best-practices)
 
 ---
 
@@ -895,5 +921,5 @@ For chain-of-custody assertions that must survive challenges to local-clock accu
 ---
 
 **Version:** 1.1
-**Last Updated:** 2026-04-26
+**Last Updated:** 2026-09-20
 **Review Frequency:** Annual (anchor SOP — slow-rot; the underlying standards do move)

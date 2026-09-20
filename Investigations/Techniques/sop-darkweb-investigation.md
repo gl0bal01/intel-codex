@@ -26,6 +26,7 @@ template_version: 2026-09-20
 
 ## Table of Contents
 
+0. [Quick Mode](#quick-mode)
 1. [Objectives & Scope](#1-objectives--scope)
 2. [Pre-Engagement & Authorization](#2-pre-engagement--authorization)
 3. [Network Infrastructure & Access](#3-network-infrastructure--access)
@@ -46,6 +47,35 @@ template_version: 2026-09-20
 18. [Emergency Procedures](#18-emergency-procedures)
 19. [Related SOPs](#19-related-sops)
 20. [External / Reference Resources](#20-external--reference-resources)
+
+---
+
+## Quick Mode
+
+> One screen for an operator already mid-task. Every line points at the section
+> that actually tells you how. This is an order-of-operations aid, not a
+> substitute for the procedure.
+
+**Before you connect**
+- [ ] Objective written, scope bounded, authorisation on file — [§1](#1-objectives--scope) · [§2](#2-pre-engagement--authorization)
+- [ ] Isolated infrastructure and identity built — [§3](#3-network-infrastructure--access)
+- [ ] Session discipline agreed before the first visit — [§10](#10-analyst-hygiene--session-discipline)
+
+**Observation only**
+- [ ] Discovery, then read — [§4](#4-hidden-service-discovery)
+- [ ] Marketplaces observed, never transacted with — [§5](#5-marketplace-osint-observation-only)
+- [ ] Forums read; no registration on closed forums without written authorisation — [§7](#7-forum--community-investigation)
+- [ ] Every artefact captured to the evidence standard — [§11](#11-evidence-collection)
+
+**Hard stops — close the session**
+- CSAM or trafficking material of any kind → [[sop-sensitive-crime-intake-escalation|Sensitive Crime Intake & Escalation]], immediately, nothing preserved locally — [§18](#18-emergency-procedures)
+- Buying, paying, or validating credentials
+- Any attempt at deanonymisation
+- Anything past the scope contract — [§13](#13-hand-off-boundaries-scope-contract)
+
+**Before hand-off**
+- [ ] Pivots documented with confidence, not asserted — [§12](#12-pivots--cross-platform-correlation)
+- [ ] Known limits stated in the output — [§15](#15-risks--limitations)
 
 ---
 
