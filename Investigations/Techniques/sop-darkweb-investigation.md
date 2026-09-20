@@ -14,13 +14,13 @@ tags:
   - osint
   - investigation
 created: 2026-04-26
-updated: 2026-04-26
-template_version: 2026-04-26
+updated: 2026-09-20
+template_version: 2026-09-20
 ---
 
 # Darkweb Investigation
 
-> **Authorized environments only.** This SOP covers open-source observation of publicly reachable hidden services for lawful investigative, journalistic, threat-intelligence, or research purposes. It is **not** a buyer's guide, a vendor manual, or a deanonymization playbook. Several jurisdictions (UK Computer Misuse Act 1990, US 18 U.S.C. §1030, EU NIS2 / Directive 2013/40, AU Criminal Code Part 10.7, CA s.342.1) criminalize unauthorized access — operating an "investigation" account without written authorization, paying for goods, or registering on closed forums to gather intelligence can each cross the line from observation into participation. Read [[sop-legal-ethics|Legal & Ethics]] before every engagement and [[sop-opsec-plan|OPSEC Plan]] before configuring the environment. CSAM and trafficking findings are escalated immediately per [[sop-sensitive-crime-intake-escalation|Sensitive Crime Intake & Escalation]] — not preserved locally, not analyzed in-line, not cross-referenced.
+> **Authorized environments only.** This SOP covers open-source observation of publicly reachable hidden services for lawful investigative, journalistic, threat-intelligence, or research purposes. It is **not** a buyer's guide, a vendor manual, or a deanonymization playbook. Several jurisdictions (UK Computer Misuse Act 1990, US 18 U.S.C. §1030, EU Cybercrime Directive 2013/40/EU, AU Criminal Code Part 10.7, CA s.342.1) criminalize unauthorized access — operating an "investigation" account without written authorization, paying for goods, or registering on closed forums to gather intelligence can each cross the line from observation into participation. Read [[sop-legal-ethics|Legal & Ethics]] before every engagement and [[sop-opsec-plan|OPSEC Plan]] before configuring the environment. CSAM and trafficking findings are escalated immediately per [[sop-sensitive-crime-intake-escalation|Sensitive Crime Intake & Escalation]] — not preserved locally, not analyzed in-line, not cross-referenced.
 
 ---
 
@@ -917,5 +917,5 @@ See [[sop-opsec-plan|OPSEC Plan]] §"Operator OPSEC failure case studies" for th
 ---
 
 **Version:** 1.0 (Initial)
-**Last Updated:** 2026-04-26
+**Last Updated:** 2026-09-20
 **Review Frequency:** Quarterly (fast-rot — leak-site landscape, marketplace lifecycle, takedown timeline)
