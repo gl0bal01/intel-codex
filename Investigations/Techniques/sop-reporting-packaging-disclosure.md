@@ -3,7 +3,7 @@ type: sop
 title: Reporting, Packaging & Disclosure
 description: "Professional OSINT reporting: executive summaries, evidence packaging, chain of custody, law enforcement disclosure & responsible reporting protocols."
 created: 2025-10-10
-updated: 2026-09-20
+updated: 2026-10-18
 tags: [sop, reporting, evidence, disclosure, documentation]
 ---
 
@@ -26,6 +26,7 @@ tags: [sop, reporting, evidence, disclosure, documentation]
 9. [Quality Assurance Checklist](#quality-assurance-checklist)
 10. [Templates & Examples](#templates--examples)
 11. [Tools & Resources](#tools--resources)
+12. [Legal & Ethical Considerations](#legal--ethical-considerations)
 
 ---
 
@@ -98,7 +99,7 @@ Determine the identity and organizational affiliations of threat actor "DarkPhoe
 targeting our infrastructure between September-October 2025.
 
 **Key Findings:**
-- HIGH CONFIDENCE: DarkPhoenix is likely 32-year-old software developer based in Bucharest, Romania
+- HIGH CONFIDENCE: DarkPhoenix is a 32-year-old software developer based in Bucharest, Romania
 - MEDIUM CONFIDENCE: Individual operates as independent contractor, not part of organized group
 - HIGH CONFIDENCE: Previous targeting of 15+ organizations in financial services sector
 - LOW CONFIDENCE: Possible connection to 2023 XYZ Bank breach (weak correlation)
@@ -154,7 +155,7 @@ targeting our infrastructure between September-October 2025.
 - Maltego: Link analysis and visualization
 - theHarvester: Email and subdomain enumeration
 - Sherlock: Username enumeration across platforms
-- Bitcoin explorer (blockchain.info): Transaction tracing
+- Bitcoin explorer (Blockchain.com Explorer): Transaction tracing
 ```
 
 **OPSEC Measures:**
@@ -231,7 +232,7 @@ strong evidence that @DarkPhoenix1993 is John Doe, 32, software developer based 
 - Account compromise: No indicators of compromise (no sudden language/behavior changes)
 - Shared account: Unlikely due to single consistent writing style and posting patterns
 
-**Confidence: HIGH** (80-95% certainty) - Multiple independent indicators converge on same identity
+**Confidence: HIGH** - Multiple independent indicators converge on same identity
 ```
 
 **Inline Exhibits:**
@@ -240,10 +241,10 @@ strong evidence that @DarkPhoenix1993 is John Doe, 32, software developer based 
 - Place full-resolution exhibits in annexes
 
 **Confidence Levels** (see [Confidence & Caveats](#confidence--caveats)):
-- **HIGH:** 80-95% confidence - multiple independent sources confirm
-- **MEDIUM:** 50-79% confidence - some corroboration but gaps remain
-- **LOW:** 20-49% confidence - single source or weak correlation
-- **SPECULATIVE:** <20% confidence - hypothesis only, minimal evidence
+- **HIGH:** multiple independent sources confirm
+- **MEDIUM:** some corroboration but gaps remain
+- **LOW:** single source or weak correlation
+- **SPECULATIVE:** hypothesis only, minimal evidence
 
 **Writing Tips:**
 - Lead with evidence, then analysis
@@ -326,12 +327,20 @@ strong evidence that @DarkPhoenix1993 is John Doe, 32, software developer based 
 
 **Structured Confidence Language (Inspired by Intelligence Community Standards):**
 
-| Level | Range | Description | Usage |
-|-------|-------|-------------|-------|
-| **HIGH** | 80-95% | Multiple independent sources confirm; high-quality evidence | "We assess with high confidence that..." |
-| **MEDIUM** | 50-79% | Some corroboration; gaps remain; relies on credible sources | "We assess with medium confidence that..." |
-| **LOW** | 20-49% | Single source or weak correlation; significant uncertainties | "We assess with low confidence that..." |
-| **SPECULATIVE** | <20% | Hypothesis only; minimal evidence; included for completeness | "It is possible that..." or "One hypothesis is..." |
+Confidence rates the evidence behind a judgment (source quality, corroboration), not the probability of an event. ICD 203 attaches percentage bands only to its likelihood terms, and bars combining a confidence level and a likelihood term in the same sentence [verify 2026-10-18].
+
+| Level | Description | Usage |
+|-------|-------------|-------|
+| **HIGH** | Multiple independent sources confirm; high-quality evidence | "We assess with high confidence that..." |
+| **MEDIUM** | Some corroboration; gaps remain; relies on credible sources | "We assess with medium confidence that..." |
+| **LOW** | Single source or weak correlation; significant uncertainties | "We assess with low confidence that..." |
+| **SPECULATIVE** | Hypothesis only; minimal evidence; included for completeness | "It is possible that..." or "One hypothesis is..." |
+
+**Likelihood (ICD 203 terms, when a probability is needed):**
+
+| almost no chance | very unlikely | unlikely | roughly even chance | likely | very likely | almost certain(ly) |
+|---|---|---|---|---|---|---|
+| 01-05% | 05-20% | 20-45% | 45-55% | 55-80% | 80-95% | 95-99% |
 
 **Expressing Uncertainty:**
 
@@ -346,7 +355,7 @@ strong evidence that @DarkPhoenix1993 is John Doe, 32, software developer based 
 - Target's motivation (financial gain vs. ideology) (SPECULATIVE)
 
 **What would change our assessment:**
-- Government-issued ID or biometric confirmation would increase identity confidence to VERY HIGH
+- Government-issued ID or biometric confirmation would move identity from a high-confidence assessment to a confirmed fact
 - Discovery of encrypted communications would clarify organizational affiliation
 - Financial records showing payments would establish motivation
 ```
@@ -356,7 +365,7 @@ strong evidence that @DarkPhoenix1993 is John Doe, 32, software developer based 
 - ✅ "We assess with high confidence that DarkPhoenix is John Doe"
 
 - ❌ "Target will attack again in the next 30 days"
-- ✅ "Based on historical patterns, target is likely to resume activity within 30 days (MEDIUM CONFIDENCE)"
+- ✅ "Based on historical patterns, the target is likely to resume activity within 30 days. We hold this judgment with medium confidence." (likelihood and confidence in separate sentences, per ICD 203)
 
 ### Objective Tone
 
@@ -518,10 +527,10 @@ Timestamp,Action,Person,Role,File/Item,Purpose,Hash_Before,Hash_After,Notes
 For detailed hash generation methods, see [[../../Security/Analysis/sop-hash-generation-methods|Hash Generation Methods SOP]].
 
 ```bash
-# Linux/macOS: Generate hashes for all files
+# Linux/macOS: Generate hashes for all files [verify 2026-10-18]
 find . -type f -exec sha256sum {} \; > file_hashes.txt
 
-# Windows PowerShell:
+# Windows PowerShell [verify 2026-10-18]:
 Get-ChildItem -Recurse -File | ForEach-Object {
     "$($_.FullName): $((Get-FileHash $_.FullName -Algorithm SHA256).Hash)"
 } > file_hashes.txt
@@ -530,10 +539,10 @@ Get-ChildItem -Recurse -File | ForEach-Object {
 **Encrypt Evidence Bundle (AES-256):**
 
 ```bash
-# 7-Zip (Windows/Linux/macOS):
+# 7-Zip (Windows/Linux/macOS) [verify 2026-10-18]:
 7z a -t7z -m0=lzma2 -mx=9 -mfb=64 -md=32m -ms=on -mhe=on -p investigation_darkphoenix_2025-10-10.7z investigation_darkphoenix_2025-10-10/
 
-# OpenSSL (Linux/macOS):
+# OpenSSL (Linux/macOS) [verify 2026-10-18]:
 tar -czf - investigation_darkphoenix_2025-10-10/ | openssl enc -aes-256-cbc -salt -pbkdf2 -out investigation_darkphoenix_2025-10-10.tar.gz.enc
 
 # GPG (asymmetric encryption for specific recipients):
@@ -564,18 +573,18 @@ Metadata can leak investigator identity, location, tools, and methods:
 **ExifTool (Recommended - CLI):**
 
 ```bash
-# Remove ALL metadata from single image:
+# Remove ALL metadata from single image [verify 2026-10-18]:
 exiftool -all= photo.jpg
 
-# Remove metadata from entire directory (recursive):
+# Remove metadata from entire directory (recursive); keeps FILE_original backups that still hold the metadata, so delete them before packaging [verify 2026-10-18]:
 exiftool -all= -r ./evidence_photos/
 
 # Verify metadata removed:
 exiftool photo.jpg
 # Should show minimal metadata (dimensions, format only)
 
-# Batch process and backup originals:
-exiftool -all= -overwrite_original_in_place -r ./evidence_photos/
+# Overwrite in place, NO backup kept: run only on a disclosure copy, never on original evidence [verify 2026-10-18]:
+exiftool -all= -overwrite_original_in_place -r ./disclosure_copy/
 ```
 
 **Windows: Remove Properties:**
@@ -587,14 +596,14 @@ Right-click image → Properties → Details tab → "Remove Properties and Pers
 **macOS: ImageOptim (GUI):**
 - Download: https://imageoptim.com/
 - Drag images into ImageOptim window
-- Automatically strips EXIF and optimizes file size
+- Automatically strips EXIF and optimizes file size [verify 2026-10-18]
 
 ### Office Documents (Word, Excel, PowerPoint)
 
 **Microsoft Office (Built-in Inspector):**
 
 ```
-File → Info → Inspect Document → Check for Issues → Inspect Document
+File → Info → Check for Issues → Inspect Document
 → Check all boxes (Comments, Hidden Text, Personal Info, etc.) → Remove All
 ```
 
@@ -610,12 +619,18 @@ File → Properties → General tab → "Apply user data" (uncheck)
 **Adobe Acrobat Pro:**
 ```
 File → Properties → Description tab → Clear all fields (Author, Title, Subject, Keywords)
-→ File → Save As → Optimized PDF → Discard user data
+→ Mark redactions (see PDF Redaction below) → Apply → Continue (sanitize and remove
+  hidden information: comments, metadata, hidden layers)
 ```
+
+Without Acrobat, rewrite the file with `qpdf --linearize` (see ExifTool (PDF) below). [verify 2026-10-18]
 
 **ExifTool (PDF):**
 ```bash
 exiftool -all= report.pdf
+# ExifTool PDF edits are reversible: old metadata stays in the file until it is rewritten [verify 2026-10-18]
+qpdf --linearize report.pdf report_clean.pdf
+# Disclose report_clean.pdf only (report.pdf_original still holds the metadata)
 ```
 
 **PDF Redaction** (see [Redaction Techniques](#redaction-techniques))
@@ -628,7 +643,7 @@ exiftool -all= report.pdf
 - Remove visible file paths, usernames, timestamps
 - Use "Save As" to strip embedded metadata after editing
 
-**Greenshot (Windows - Free):**
+**Greenshot (Windows - Free):** [verify 2026-10-18]
 - Download: https://getgreenshot.org/
 - Capture region, window, or full screen
 - Built-in editor: redact sensitive areas, crop, blur
@@ -636,14 +651,14 @@ exiftool -all= report.pdf
 
 **ShareX (Windows - Free):**
 - Download: https://getsharex.com/
-- Advanced features: scrolling capture, URL shortening, OCR
+- Advanced features: scrolling capture, URL shortening, OCR [verify 2026-10-18]
 - Built-in editor with blur, pixelate, redaction tools
-- Auto-upload to cloud (disable for OPSEC)
+- Auto-upload to cloud (disable for OPSEC) [verify 2026-10-18]
 
-**Flameshot (Linux - Free):**
+**Flameshot (Linux, Windows, macOS - Free):** [verify 2026-10-18]
 ```bash
 sudo apt install flameshot
-flameshot gui  # Interactive screenshot with annotation
+flameshot gui  # Interactive screenshot with annotation [verify 2026-10-18]
 ```
 
 ---
@@ -678,24 +693,24 @@ flameshot gui  # Interactive screenshot with annotation
 **Adobe Acrobat Pro (Recommended for Legal/Forensic Reports):**
 
 ```
-Tools → Redact → Mark for Redaction → Draw boxes over sensitive text
-→ Apply Redactions → Permanently remove hidden information → OK
-→ File → Save As (creates redacted version)
+All tools → Redact a PDF → Redact text and images → Select sensitive text/areas
+→ Apply → Continue (sanitize and remove hidden information)
+→ Redacted, sanitized copy is saved to a new file
 ```
 
-**IMPORTANT:** "Mark for Redaction" is not final - must click "Apply Redactions" to permanently remove text.
+**IMPORTANT:** Marked redactions are not final - must select "Apply" in the Redact a PDF panel to permanently remove text. [verify 2026-10-18]
 
 **Verify Redaction:**
-- Open redacted PDF in text editor (Notepad++) - redacted text should not appear
+- Extract the text layer: `pdftotext redacted.pdf - | grep -i "<term>"` - redacted text should not appear [verify 2026-10-18]
 - Search PDF for sensitive terms - should return no results
 
-**PDF Redaction CLI (pdftk + ImageMagick):**
+**PDF Redaction CLI (Poppler + ImageMagick):**
 
 ```bash
-# Convert PDF to images, redact, then re-create PDF
-pdftk report.pdf burst
-# Manually redact images with image editor
-convert *.jpg redacted_report.pdf
+# Convert PDF pages to PNG images (page-N.png), redact, then re-create PDF [verify 2026-10-18]
+pdftoppm -r 200 -png report.pdf page
+# Manually redact the PNGs with an image editor (see Image Redaction below)
+magick page-*.png redacted_report.pdf  # pdftoppm zero-pads page numbers, so the glob keeps page order
 ```
 
 ### Image Redaction
@@ -708,13 +723,13 @@ Edit → Fill with FG Color (black) → Flatten Image → Export As PNG
 
 **ImageMagick (CLI):**
 ```bash
-# Draw black box over region (x, y, width, height):
-convert original.png -fill black -draw "rectangle 100,200,400,250" redacted.png
+# Draw black box from upper-left corner x0,y0 to lower-right corner x1,y1 [verify 2026-10-18]:
+magick original.png -fill black -draw "rectangle 100,200 400,250" redacted.png
 ```
 
 **Blur vs. Pixelate vs. Black Box:**
 - ❌ **Blur:** Can sometimes be reversed with image enhancement
-- ⚠️ **Pixelate:** More secure than blur, but some advanced techniques can de-pixelate
+- ⚠️ **Pixelate:** More secure than blur, but some advanced techniques can de-pixelate [verify 2026-10-18]
 - ✅ **Black box:** Most secure - complete data destruction
 
 **For high-security redactions:** Use black boxes, not blur/pixelate.
@@ -753,7 +768,7 @@ convert original.png -fill black -draw "rectangle 100,200,400,250" redacted.png
 **Option 1: Encrypted Email (GPG/PGP)**
 
 ```bash
-# Encrypt report for specific recipient:
+# Encrypt report for specific recipient [verify 2026-10-18]:
 gpg --encrypt --recipient legal@organization.com report_final.pdf
 
 # Result: report_final.pdf.gpg (encrypted file)
@@ -772,11 +787,11 @@ scp -r investigation_darkphoenix_2025-10-10.7z user@secure-server.org:/incoming/
 
 **Option 3: Secure Cloud Storage (Encrypted)**
 
-- **Tresorit** (end-to-end encrypted, zero-knowledge)
-- **ProtonDrive** (encrypted, privacy-focused)
-- **SpiderOak** (zero-knowledge encryption)
+- **Tresorit** (end-to-end encrypted, zero-knowledge) [verify 2026-10-18]
+- **Proton Drive** (encrypted, privacy-focused) [verify 2026-10-18]
+- **SpiderOak** (zero-knowledge encryption) [verify 2026-10-18]
 
-❌ **Avoid:** Google Drive, Dropbox, OneDrive (not end-to-end encrypted by default)
+❌ **Avoid:** Google Drive, Dropbox, OneDrive (not end-to-end encrypted by default) [verify 2026-10-18]
 
 **Option 4: Physical Transfer (High-Security Investigations)**
 
@@ -995,7 +1010,7 @@ Primary uncertainties: [What we don't know that would change assessment]
 - [Alternative explanation 1]: [Why you assess this as unlikely]
 - [Alternative explanation 2]: [Why you assess this as unlikely]
 
-**Confidence: [HIGH/MEDIUM/LOW]** ([X]% certainty) - [Rationale for confidence level]
+**Confidence: [HIGH/MEDIUM/LOW]** - [Rationale for confidence level]
 ```
 
 ### Exhibit Entry Template
@@ -1019,12 +1034,12 @@ Primary uncertainties: [What we don't know that would change assessment]
 
 | Tool | Category | Purpose | Platform |
 |------|----------|---------|----------|
-| **ExifTool** | Metadata Scrubbing | Remove EXIF/metadata from images, PDFs, Office docs | CLI (all platforms) |
+| **ExifTool** | Metadata Scrubbing | Remove EXIF/metadata from images; PDFs only with a `qpdf` rewrite afterwards; read-only for Office docs (use Office Document Inspector) [verify 2026-10-18] | CLI (all platforms) |
 | **Adobe Acrobat Pro** | Redaction | Professional PDF redaction with permanent removal | Windows, macOS |
-| **Greenshot** | Screenshots | Screenshot tool with built-in annotation/redaction | Windows |
-| **ShareX** | Screenshots | Advanced screenshot tool with auto-upload, OCR | Windows |
-| **Flameshot** | Screenshots | Screenshot tool with annotation for Linux | Linux |
-| **7-Zip** | Encryption | AES-256 encryption for evidence bundles | Windows, Linux, macOS |
+| **Greenshot** | Screenshots | Screenshot tool with built-in annotation/redaction | Windows [verify 2026-10-18] |
+| **ShareX** | Screenshots | Advanced screenshot tool with auto-upload, OCR | Windows [verify 2026-10-18] |
+| **Flameshot** | Screenshots | Screenshot tool with annotation | Linux, Windows, macOS [verify 2026-10-18] |
+| **7-Zip** | Encryption | AES-256 encryption for evidence bundles [verify 2026-10-18] | Windows, Linux, macOS |
 | **GPG/PGP** | Encryption | Asymmetric encryption for secure email/file transfer | CLI (all platforms) |
 | **KeePassXC** | Password Management | Store encryption passwords securely | Windows, Linux, macOS |
 | **Grammarly** | Writing | Grammar and spelling checker | Web, browser extension |
@@ -1038,15 +1053,15 @@ For comprehensive hash generation guidance, see [[../../Security/Analysis/sop-ha
 **Generate SHA-256 Hashes:**
 
 ```bash
-# Linux/macOS:
+# Linux/macOS [verify 2026-10-18]:
 sha256sum file.pdf
 find . -type f -exec sha256sum {} \; > file_hashes.txt
 
-# Windows PowerShell:
+# Windows PowerShell [verify 2026-10-18]:
 Get-FileHash file.pdf -Algorithm SHA256
 Get-ChildItem -Recurse -File | Get-FileHash -Algorithm SHA256 > file_hashes.txt
 
-# Windows Command Prompt (certutil):
+# Windows Command Prompt (certutil) [verify 2026-10-18]:
 certutil -hashfile file.pdf SHA256
 ```
 
@@ -1054,7 +1069,7 @@ certutil -hashfile file.pdf SHA256
 
 **7-Zip (AES-256 encryption):**
 ```bash
-# Compress and encrypt:
+# Compress and encrypt [verify 2026-10-18]:
 7z a -t7z -m0=lzma2 -mx=9 -mhe=on -p output.7z input_folder/
 
 # Decrypt:
@@ -1063,40 +1078,52 @@ certutil -hashfile file.pdf SHA256
 
 **GPG (Asymmetric encryption):**
 ```bash
-# Generate GPG key pair (first time):
+# Generate GPG key pair (first time) [verify 2026-10-18]:
 gpg --full-generate-key
 
-# Encrypt file for recipient:
+# Encrypt file for recipient [verify 2026-10-18]:
 gpg --encrypt --recipient recipient@email.com file.pdf
 
-# Decrypt received file:
+# Decrypt received file [verify 2026-10-18]:
 gpg --decrypt file.pdf.gpg > file.pdf
 ```
 
 ### Resources & References
 
 **Report Writing Guides:**
-- SANS DFIR Report Writing Guide: https://www.sans.org/white-papers/37437/
-- NIST SP 800-86 (Integration of Forensics): https://csrc.nist.gov/publications/detail/sp/800-86/final
-- UK National Archives Digital Continuity: https://www.nationalarchives.gov.uk/
+- SANS white paper "Becoming a Forensic Investigator" (2004; forensic report-writing methodology): https://www.sans.org/white-papers/1453 [verify 2026-10-18]
+- NIST SP 800-86 (Guide to Integrating Forensic Techniques into Incident Response): https://csrc.nist.gov/pubs/sp/800/86/final [verify 2026-10-18]
+- UK National Archives, Managing digital continuity: https://www.nationalarchives.gov.uk/information-management/manage-information/policy-process/digital-continuity/ [verify 2026-10-18]
 
 **Intelligence Standards:**
-- ODNI Confidence Levels (ICD 203): https://www.dni.gov/index.php/ic-legal-reference-book/intelligence-community-directive-203
-- Admiralty Code (Source Reliability): https://en.wikipedia.org/wiki/Admiralty_code
+- ODNI ICD 203 Analytic Standards (likelihood terms, confidence levels): https://www.odni.gov/files/documents/ICD/ICD-203.pdf [verify 2026-10-18]
+- Admiralty Code (Source Reliability): https://en.wikipedia.org/wiki/Admiralty_code [verify 2026-10-18]
 
 **Metadata & Privacy:**
-- ExifTool Documentation: https://exiftool.org/
-- PDF Redaction Guide: https://www.adobe.com/acrobat/hub/how-to-redact-pdf.html
-- Metadata Anonymization Toolkit (MAT): https://0xacab.org/jvoisin/mat2
+- ExifTool Documentation: https://exiftool.org/ [verify 2026-10-18]
+- Adobe Acrobat, Remove Sensitive Information (redact and sanitize): https://experienceleague.adobe.com/en/docs/document-cloud-learn/acrobat-learning/advanced-tasks/protect/redact [verify 2026-10-18]
+- mat2 (metadata removal for Office, OpenDocument, PDF and image files): https://github.com/jvoisin/mat2 [verify 2026-10-18]
 
 **Chain of Custody:**
-- NIST Digital Evidence Guidelines: https://csrc.nist.gov/publications/detail/sp/800-101/rev-1/final
-- FBI Digital Evidence Policy: https://www.fbi.gov/file-repository/digital-evidence-policy-guide.pdf
+- NIST SP 800-101 Rev. 1, Guidelines on Mobile Device Forensics (preservation, acquisition, reporting): https://csrc.nist.gov/pubs/sp/800/101/r1/final [verify 2026-10-18]
+- FBI Digital Evidence Policy Guide (FBI Vault release, redacted): https://vault.fbi.gov/digital-evidence-policy-guide
+
+---
+
+## Legal & Ethical Considerations
+
+> The canonical source for legal posture is [[sop-legal-ethics|Legal & Ethics SOP]]. This section only points to it; it does not restate the law.
+
+- **Authorization before disclosure**: confirm the recipient, purpose and legal basis for every report or evidence bundle against [[sop-legal-ethics|Legal & Ethics]] before release.
+- **Minimise what you disclose**: redact third-party PII and investigator attribution per [Redaction Techniques](#redaction-techniques) and [Metadata Scrubbing](#metadata-scrubbing).
+- **Sensitive-crime material**: never include CSAM or similar content in a report; hash, stop and route per [[sop-sensitive-crime-intake-escalation|Sensitive Crime Intake & Escalation]].
+- **Chain of custody**: keep the collection record that backs every exhibit per [[sop-collection-log|Collection Log]].
+- **OPSEC**: strip identifying metadata and use secure transfer per [[sop-opsec-plan|OPSEC Planning]].
 
 ---
 
 **Version:** 2.0
-**Last Updated:** 2026-09-20
+**Last Updated:** 2026-10-18
 **Review Cycle:** Yearly
 
 ---

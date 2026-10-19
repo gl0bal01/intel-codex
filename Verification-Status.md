@@ -2,7 +2,7 @@
 type: index
 title: Verification Status
 description: "Per-SOP verification record for the Intel Codex vault: source-check counts, oldest check, and review age for all 41 procedures."
-generated: 2026-09-20
+generated: 2026-10-18
 generator: tools/build-vault-state.sh
 tags:
   - index
@@ -23,81 +23,82 @@ claims were last checked against sources, not that a procedure was executed end
 to end in a lab.** No SOP here is labelled field-tested, because none of them has
 the evidence that label would require.
 
-A SOP counts as `current` at 90 days or less, `review due` up to
-180, and `overdue` beyond that. Age is measured from the **oldest**
-marker in the file, so a SOP is only as fresh as its stalest claim.
+Claims are re-checked on a **six-month cadence**. A SOP reads `current` until
+150 days, `due soon` in the month before the cadence expires, and
+`overdue` past 180. Age is measured from the **oldest** marker in the
+file, so a SOP is only as fresh as its stalest claim.
 
 ## Summary
 
 | State | SOPs |
 |-------|------|
-| current (≤ 90 days) | 0 |
-| review due (91–180 days) | 31 |
+| current (≤ 150 days) | 10 |
+| due soon (151–180 days) | 31 |
 | overdue (> 180 days) | 0 |
-| no source checks recorded | 10 |
+| no source checks recorded | 0 |
 | **Total** | **41** |
 
 ## Investigations / Platforms
 
 | SOP | File | Updated | Checks | Oldest check | Age (days) | State |
 |-----|------|---------|-------:|--------------|-----------:|-------|
-| Bluesky SOP | [[sop-platform-bluesky]] | 2025-09-06 | 0 | — | — | no source checks |
-| Discord SOP | [[sop-platform-discord]] | 2026-04-27 | 1 | 2026-04-27 | 146 | review due |
-| Instagram SOP | [[sop-platform-instagram]] | 2025-10-01 | 0 | — | — | no source checks |
-| LinkedIn SOP | [[sop-platform-linkedin]] | 2025-10-06 | 0 | — | — | no source checks |
-| Reddit SOP | [[sop-platform-reddit]] | 2025-10-02 | 0 | — | — | no source checks |
-| Telegram SOP | [[sop-platform-telegram]] | 2026-04-27 | 0 | — | — | no source checks |
-| TikTok SOP | [[sop-platform-tiktok]] | 2025-10-08 | 0 | — | — | no source checks |
-| Twitter/X SOP | [[sop-platform-twitter-x]] | 2025-10-08 | 0 | — | — | no source checks |
+| Bluesky SOP | [[sop-platform-bluesky]] | 2026-10-18 | 56 | 2026-10-18 | 0 | current |
+| Discord SOP | [[sop-platform-discord]] | 2026-10-18 | 2 | 2026-04-27 | 174 | due soon |
+| Instagram SOP | [[sop-platform-instagram]] | 2026-10-18 | 38 | 2026-10-18 | 0 | current |
+| LinkedIn SOP | [[sop-platform-linkedin]] | 2026-10-18 | 61 | 2026-10-18 | 0 | current |
+| Reddit SOP | [[sop-platform-reddit]] | 2026-10-18 | 44 | 2026-10-18 | 0 | current |
+| Telegram SOP | [[sop-platform-telegram]] | 2026-10-18 | 33 | 2026-10-18 | 0 | current |
+| TikTok SOP | [[sop-platform-tiktok]] | 2026-10-18 | 39 | 2026-10-18 | 0 | current |
+| Twitter/X SOP | [[sop-platform-twitter-x]] | 2026-10-18 | 56 | 2026-10-18 | 0 | current |
 
 ## Investigations / Techniques
 
 | SOP | File | Updated | Checks | Oldest check | Age (days) | State |
 |-----|------|---------|-------:|--------------|-----------:|-------|
-| Blockchain Investigation | [[sop-blockchain-investigation]] | 2026-04-26 | 49 | 2026-04-26 | 147 | review due |
-| OSINT Collection Log & Chain of Custody | [[sop-collection-log]] | 2026-09-20 | 16 | 2026-04-26 | 147 | review due |
-| Darkweb Investigation | [[sop-darkweb-investigation]] | 2026-09-20 | 63 | 2026-04-26 | 147 | review due |
-| Entity Dossier Guide | [[sop-entity-dossier]] | 2026-09-20 | 13 | 2026-04-26 | 147 | review due |
-| Financial Crime & AML OSINT | [[sop-financial-aml-osint]] | 2026-04-27 | 2 | 2026-04-25 | 148 | review due |
-| Image & Video OSINT | [[sop-image-video-osint]] | 2026-04-25 | 15 | 2026-04-25 | 148 | review due |
-| Legal, Ethics & Data Governance for OSINT | [[sop-legal-ethics]] | 2026-04-26 | 20 | 2026-04-26 | 147 | review due |
-| Mixer & Privacy-Pool Tracing | [[sop-mixer-tracing]] | 2026-04-26 | 117 | 2026-04-26 | 147 | review due |
-| OPSEC Planning for OSINT Investigations | [[sop-opsec-plan]] | 2026-09-20 | 25 | 2026-04-26 | 147 | review due |
-| Reporting, Packaging & Disclosure | [[sop-reporting-packaging-disclosure]] | 2026-09-20 | 0 | — | — | no source checks |
-| Sensitive Crime Intake & Escalation | [[sop-sensitive-crime-intake-escalation]] | 2026-04-26 | 29 | 2026-04-26 | 147 | review due |
-| Web, DNS & WHOIS OSINT | [[sop-web-dns-whois-osint]] | 2026-04-25 | 6 | 2026-04-25 | 148 | review due |
+| Blockchain Investigation | [[sop-blockchain-investigation]] | 2026-04-26 | 49 | 2026-04-26 | 175 | due soon |
+| OSINT Collection Log & Chain of Custody | [[sop-collection-log]] | 2026-09-20 | 16 | 2026-04-26 | 175 | due soon |
+| Darkweb Investigation | [[sop-darkweb-investigation]] | 2026-09-20 | 63 | 2026-04-26 | 175 | due soon |
+| Entity Dossier Guide | [[sop-entity-dossier]] | 2026-10-18 | 14 | 2026-04-26 | 175 | due soon |
+| Financial Crime & AML OSINT | [[sop-financial-aml-osint]] | 2026-04-27 | 2 | 2026-04-25 | 176 | due soon |
+| Image & Video OSINT | [[sop-image-video-osint]] | 2026-04-25 | 15 | 2026-04-25 | 176 | due soon |
+| Legal, Ethics & Data Governance for OSINT | [[sop-legal-ethics]] | 2026-04-26 | 20 | 2026-04-26 | 175 | due soon |
+| Mixer & Privacy-Pool Tracing | [[sop-mixer-tracing]] | 2026-04-26 | 117 | 2026-04-26 | 175 | due soon |
+| OPSEC Planning for OSINT Investigations | [[sop-opsec-plan]] | 2026-09-20 | 25 | 2026-04-26 | 175 | due soon |
+| Reporting, Packaging & Disclosure | [[sop-reporting-packaging-disclosure]] | 2026-10-18 | 47 | 2026-10-18 | 0 | current |
+| Sensitive Crime Intake & Escalation | [[sop-sensitive-crime-intake-escalation]] | 2026-04-26 | 29 | 2026-04-26 | 175 | due soon |
+| Web, DNS & WHOIS OSINT | [[sop-web-dns-whois-osint]] | 2026-04-25 | 6 | 2026-04-25 | 176 | due soon |
 
 ## Security / Analysis
 
 | SOP | File | Updated | Checks | Oldest check | Age (days) | State |
 |-----|------|---------|-------:|--------------|-----------:|-------|
-| AI/ML Vulnerability & Evasion Testing SOP | [[sop-ai-vulnerability-evasion]] | 2026-04-26 | 25 | 2026-04-26 | 147 | review due |
-| Cloud Forensics SOP | [[sop-cloud-forensics]] | 2026-04-27 | 39 | 2026-04-27 | 146 | review due |
-| Cryptography Analysis SOP | [[sop-cryptography-analysis]] | 2026-04-25 | 7 | 2026-04-25 | 148 | review due |
-| Email & BEC Forensics SOP | [[sop-email-bec-forensics]] | 2026-09-20 | 79 | 2026-04-27 | 146 | review due |
-| Digital Forensics Investigation SOP | [[sop-forensics-investigation]] | 2026-04-25 | 15 | 2026-04-25 | 148 | review due |
-| Hash Generation Methods for Evidence Integrity | [[sop-hash-generation-methods]] | 2026-04-26 | 4 | 2026-04-26 | 147 | review due |
-| Malware Analysis SOP | [[sop-malware-analysis]] | 2026-09-20 | 0 | — | — | no source checks |
-| Reverse Engineering | [[sop-reverse-engineering]] | 2026-09-20 | 1 | 2026-04-25 | 148 | review due |
-| SaaS Log Forensics SOP | [[sop-saas-log-forensics]] | 2026-04-27 | 76 | 2026-04-27 | 146 | review due |
-| Smart Contract Audit SOP | [[sop-smart-contract-audit]] | 2026-04-26 | 30 | 2026-04-26 | 147 | review due |
+| AI/ML Vulnerability & Evasion Testing SOP | [[sop-ai-vulnerability-evasion]] | 2026-04-26 | 25 | 2026-04-26 | 175 | due soon |
+| Cloud Forensics SOP | [[sop-cloud-forensics]] | 2026-04-27 | 39 | 2026-04-27 | 174 | due soon |
+| Cryptography Analysis SOP | [[sop-cryptography-analysis]] | 2026-04-25 | 7 | 2026-04-25 | 176 | due soon |
+| Email & BEC Forensics SOP | [[sop-email-bec-forensics]] | 2026-09-20 | 79 | 2026-04-27 | 174 | due soon |
+| Digital Forensics Investigation SOP | [[sop-forensics-investigation]] | 2026-04-25 | 15 | 2026-04-25 | 176 | due soon |
+| Hash Generation Methods for Evidence Integrity | [[sop-hash-generation-methods]] | 2026-04-26 | 4 | 2026-04-26 | 175 | due soon |
+| Malware Analysis SOP | [[sop-malware-analysis]] | 2026-10-18 | 200 | 2026-10-18 | 0 | current |
+| Reverse Engineering | [[sop-reverse-engineering]] | 2026-09-20 | 1 | 2026-04-25 | 176 | due soon |
+| SaaS Log Forensics SOP | [[sop-saas-log-forensics]] | 2026-04-27 | 76 | 2026-04-27 | 174 | due soon |
+| Smart Contract Audit SOP | [[sop-smart-contract-audit]] | 2026-04-26 | 30 | 2026-04-26 | 175 | due soon |
 
 ## Security / Pentesting
 
 | SOP | File | Updated | Checks | Oldest check | Age (days) | State |
 |-----|------|---------|-------:|--------------|-----------:|-------|
-| Active Directory Pentesting SOP (Authorized) | [[sop-ad-pentest]] | 2026-04-26 | 16 | 2026-04-26 | 147 | review due |
-| Bug Bounty Methodology SOP | [[sop-bug-bounty]] | 2026-04-25 | 3 | 2026-04-25 | 148 | review due |
-| Cloud Pentesting SOP (Authorized) | [[sop-cloud-pentest]] | 2026-04-27 | 33 | 2026-04-26 | 147 | review due |
-| Container & Kubernetes Pentesting SOP (Authorized) | [[sop-container-k8s-pentest]] | 2026-04-27 | 36 | 2026-04-27 | 146 | review due |
-| Detection & Evasion Testing SOP (Purple Team) | [[sop-detection-evasion-testing]] | 2026-04-25 | 0 | — | — | no source checks |
-| Firmware Reverse Engineering | [[sop-firmware-reverse-engineering]] | 2026-04-26 | 39 | 2026-04-26 | 147 | review due |
-| Linux Pentesting SOP (Authorized) | [[sop-linux-pentest]] | 2026-04-25 | 5 | 2026-04-25 | 148 | review due |
-| Mobile Security (iOS & Android) | [[sop-mobile-security]] | 2026-09-20 | 21 | 2026-04-26 | 147 | review due |
-| Vulnerability Research SOP | [[sop-vulnerability-research]] | 2026-04-25 | 10 | 2026-04-25 | 148 | review due |
-| Web Application Security Testing SOP | [[sop-web-application-security]] | 2026-09-20 | 8 | 2026-04-25 | 148 | review due |
-| Wireless & RF Pentesting (Authorized) | [[sop-wireless-rf-pentest]] | 2026-04-26 | 31 | 2026-04-26 | 147 | review due |
+| Active Directory Pentesting SOP (Authorized) | [[sop-ad-pentest]] | 2026-04-26 | 16 | 2026-04-26 | 175 | due soon |
+| Bug Bounty Methodology SOP | [[sop-bug-bounty]] | 2026-04-25 | 3 | 2026-04-25 | 176 | due soon |
+| Cloud Pentesting SOP (Authorized) | [[sop-cloud-pentest]] | 2026-04-27 | 33 | 2026-04-26 | 175 | due soon |
+| Container & Kubernetes Pentesting SOP (Authorized) | [[sop-container-k8s-pentest]] | 2026-10-18 | 37 | 2026-04-27 | 174 | due soon |
+| Detection & Evasion Testing SOP (Purple Team) | [[sop-detection-evasion-testing]] | 2026-10-18 | 67 | 2026-10-18 | 0 | current |
+| Firmware Reverse Engineering | [[sop-firmware-reverse-engineering]] | 2026-04-26 | 39 | 2026-04-26 | 175 | due soon |
+| Linux Pentesting SOP (Authorized) | [[sop-linux-pentest]] | 2026-04-25 | 5 | 2026-04-25 | 176 | due soon |
+| Mobile Security (iOS & Android) | [[sop-mobile-security]] | 2026-09-20 | 21 | 2026-04-26 | 175 | due soon |
+| Vulnerability Research SOP | [[sop-vulnerability-research]] | 2026-04-25 | 10 | 2026-04-25 | 176 | due soon |
+| Web Application Security Testing SOP | [[sop-web-application-security]] | 2026-09-20 | 8 | 2026-04-25 | 176 | due soon |
+| Wireless & RF Pentesting (Authorized) | [[sop-wireless-rf-pentest]] | 2026-04-26 | 31 | 2026-04-26 | 175 | due soon |
 
 ---
 
-**Generated:** 2026-09-20
+**Generated:** 2026-10-18

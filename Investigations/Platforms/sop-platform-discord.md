@@ -9,7 +9,7 @@ tags:
   - messaging
   - osint
 created: 2026-04-27
-updated: 2026-04-27
+updated: 2026-10-18
 template_version: 1.0
 ---
 
@@ -382,7 +382,7 @@ https://discord.com/api/webhooks/<webhook_id>/<webhook_token>
 | **Snowflake decoder**      | Convert snowflake → UTC creation timestamp                         | Web / CLI    | `python3 -c '...'` (see §6) or https://snowsta.mp [verify 2026-04-27 — third-party site availability] |
 | **Sherlock / Maigret**     | Cross-platform username enumeration                                | CLI / Python | `pip install maigret` / Sherlock GitHub                         |
 | **WhatsMyName**            | Username presence across hundreds of sites                         | Web / CLI    | https://whatsmyname.app                                         |
-| **Nuclei (osint tags)**    | Templated username enumeration                                     | CLI          | `nuclei -tags osint -var user=<handle>`                         |
+| **Nuclei (osint tags)**    | Templated username enumeration                                     | CLI          | `nuclei -tags osint -esc -var user=<handle>` (user-enumeration templates are self-contained; `-esc` loads them) [verify 2026-10-18]                         |
 | **Discord API docs**       | Official endpoint and gateway reference                            | Docs         | https://discord.com/developers/docs                             |
 | **IntelX**                 | Discord token / webhook leak search                                | Web          | https://intelx.io                                               |
 | **GrepApp / GitHub search**| Code-search for leaked Discord webhooks / tokens                   | Web          | https://grep.app, https://github.com/search                     |
@@ -593,6 +593,6 @@ python3 -c 'import sys, datetime; s=int(sys.argv[1]); print(datetime.datetime.fr
 
 ---
 
-**Last Updated:** 2026-04-27
+**Last Updated:** 2026-10-18
 **Version:** 1.0 (initial draft — Group H queue)
 **Review Frequency:** Quarterly (Fast tier — platform APIs, ToS, attacker TTPs rotate frequently)

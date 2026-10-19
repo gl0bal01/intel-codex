@@ -9,19 +9,40 @@ tags:
   - social-media
   - osint
 created: 2024-04-11
-updated: 2025-10-01
+updated: 2026-10-18
 ---
 
 # Instagram OSINT SOP
+
+> **Authorized OSINT use only.** Investigation accounts must comply with Instagram's [Terms of Use](https://help.instagram.com/581066165581870) (no impersonating someone or something you aren't; no creating accounts or accessing or collecting information in an automated way without Instagram's express permission, whether or not logged in) [verify 2026-10-18]. Review [[../Techniques/sop-legal-ethics|Legal & Ethics SOP]] and [[../Techniques/sop-opsec-plan|OPSEC Planning SOP]] before any engagement.
+
+## Table of Contents
+
+1. [Access & Client Options](#1-access--client-options)
+2. [Search Methods & Techniques](#2-search-methods--techniques)
+3. [Repeatable Workflow](#3-repeatable-workflow)
+4. [Profile Intelligence](#4-profile-intelligence)
+5. [Investigation Recipes](#5-investigation-recipes)
+6. [Collection & Evidence Integrity](#6-collection--evidence-integrity)
+7. [Advanced Techniques](#7-advanced-techniques)
+8. [Pivoting & Cross-Platform Correlation](#8-pivoting--cross-platform-correlation)
+9. [Tools & Resources](#9-tools--resources)
+10. [Risks & Limitations](#10-risks--limitations)
+11. [Quality Assurance & Verification](#11-quality-assurance--verification)
+12. [Real-World Scenarios](#12-real-world-scenarios)
+13. [Emergency Procedures](#13-emergency-procedures)
+14. [Legal & Ethical Considerations](#14-legal--ethical-considerations)
+15. [Related SOPs](#15-related-sops)
+16. [External Resources](#16-external-resources)
 
 ## 1) Access & Client Options
 
 - **Web**: https://www.instagram.com/ (GUI - limited search functionality)
 - **Mobile app**: iOS/Android (full search capabilities, stronger device fingerprinting)
-- **API access**: Instagram Graph API (business accounts only, limited OSINT capability)
+- **API access**: Instagram API (with Instagram Login or with Facebook Login for Business; both require an Instagram Business or Creator account). Public content is reachable only via hashtag search (30 unique hashtags per 7 days) and Business Discovery (metadata on other professional accounts) [verify 2026-10-18]
 - **Third-party tools**: Browser extensions, scraping tools (use with caution)
 - **Access consideration**: Logged-out vs persona-logged-in (balance visibility vs attribution risk)
-- **View limits**: ~200 stories/day logged out, more when logged in
+- **View limits**: Logged-out viewing is limited; more is visible when logged in
 
 ## 2) Search Methods & Techniques
 
@@ -38,12 +59,11 @@ updated: 2025-10-01
 - **Tagged posts**: Find who tags specific accounts/locations
 - **Story locations**: Location stickers in stories
 - **Reels search**: Video content discovery by topic/sound
-- **Guides feature**: Curated collections by users
 
 ## 3) Repeatable Workflow
 
 1. **Profile reconnaissance**: Bio, highlights, tagged photos, followers/following (if public)
-2. **Content mapping**: Post timeline, story highlights, IGTV/Reels content
+2. **Content mapping**: Post timeline, story highlights, Reels / feed video content
 3. **Temporal analysis**: Posting patterns, activity schedules, timezone indicators
 4. **Network analysis**: Tagged users, frequent commenters, story viewers (if accessible)
 5. **Location intelligence**: Geotagged posts, location stories, background analysis
@@ -60,14 +80,14 @@ updated: 2025-10-01
 - **Display name**: Real name, pseudonym, business name
 - **Bio**: Location claims, occupation, contact info, website links
 - **Profile picture**: Reverse image search, facial recognition potential
-- **Verification status**: Blue check (authentic), grey check (business/organization)
+- **Verification status**: Blue check = Instagram-confirmed authentic presence, granted on application to notable accounts or through a paid Meta Verified subscription (not proof of notability on its own) [verify 2026-10-18]
 - **Account type**: Personal, business, creator
 - **Privacy settings**: Public vs private account
 - **Follower/following count**: Influence indicators, bot detection
 
 ### Content Patterns
 - **Post frequency**: Daily/weekly activity, posting schedule
-- **Content types**: Photos, videos, carousels, Reels, IGTV
+- **Content types**: Photos, videos, carousels, Reels
 - **Aesthetic style**: Filter usage, color palettes, visual themes
 - **Caption style**: Language, tone, hashtag patterns
 - **Story activity**: Story frequency, highlight organization
@@ -128,8 +148,8 @@ updated: 2025-10-01
 
 ### Media Capture Methods
 - **Full resolution images**: Use browser dev tools or specialized downloaders
-- **Video content**: Download Reels, IGTV, story videos at highest quality
-- **Story archival**: Screen recording for ephemeral content (24h window)
+- **Video content**: Download Reels, feed videos, story videos at highest quality
+- **Story archival**: Screen recording for ephemeral content (24h window) [verify 2026-10-18]
 - **Profile snapshots**: Complete bio, highlights, post grid
 - **Metadata extraction**: EXIF data, caption text, post IDs, timestamps
 - **URL preservation**: Save post permalinks, bio links
@@ -179,7 +199,7 @@ updated: 2025-10-01
 - **Browser automation**: Selenium/Playwright for systematic collection
 - **RSS monitoring**: Limited, third-party services may offer feeds
 - **Alert systems**: IFTTT/Zapier for new posts from specific accounts
-- **API integration**: Instagram Graph API for business accounts
+- **API integration**: Instagram API hashtag search (30 unique hashtags per 7 days) and Business Discovery; needs your own Business or Creator account [verify 2026-10-18]
 - **Hashtag tracking**: Monitor trending or campaign-specific tags
 
 ## 8) Pivoting & Cross-Platform Correlation
@@ -210,45 +230,45 @@ updated: 2025-10-01
 | Tool                | Purpose                               | Platform      | Access                                                                                                |
 | ------------------- | ------------------------------------- | ------------- | ----------------------------------------------------------------------------------------------------- |
 | **Instagram Web**   | Native search interface               | Web           | https://www.instagram.com                                                                             |
-| **Nuclei**          | Username enumeration across platforms | CLI           | `nuclei -tags osint -var user=username`                                                               |
-| **Social-Analyzer** | Cross-platform username search        | CLI           | `pip install social-analyzer`                                                                         |
+| **Nuclei**          | Username enumeration across platforms | CLI           | `nuclei -tags osint -esc -var user=username` [verify 2026-10-18]                                           |
+| **Social-Analyzer** | Cross-platform username search        | CLI           | `pip install social-analyzer` (last PyPI release 0.45, May 2022) [verify 2026-10-18]                  |
 | **ExifTool**        | Image metadata extraction             | CLI           | `exiftool image.jpg`                                                                                  |
-| **InstaLoader**     | Download posts, stories, highlights   | CLI           | `pip install instaloader`                                                                             |
-| **4K Stogram**      | Instagram downloader                  | Desktop       | https://www.4kdownload.com/products/stogram                                                           |
-| **Wayback Machine** | Historical profile snapshots          | Web           | https://web.archive.org                                                                               |
+| **InstaLoader**     | Download posts, stories, highlights   | CLI           | `pip install instaloader` [verify 2026-10-18]                                                         |
+| **4K Stogram**      | Instagram downloader (still available; no support or bug fixes, last version May 2024) | Desktop       | https://www.4kdownload.com/products/stogram-8 [verify 2026-10-18]                                     |
+| **Wayback Machine** | Historical profile snapshots          | Web           | https://web.archive.org [verify 2026-10-18]                                                           |
 | **Google Images**   | Reverse image search                  | Web           | https://images.google.com                                                                             |
-| **Yandex Images**   | Reverse image search                  | Web           | https://yandex.com/images                                                                             |
-| **PimEyes**         | Facial recognition search             | Web           | https://pimeyes.com (paid, legal review)                                                              |
-| **TinEye**          | Reverse image search                  | Web           | https://tineye.com                                                                                    |
-| **Search by image** | Reverse image search                  | Extension     | https://chromewebstore.google.com/detail/search-by-image/cnojnbdhbhnkbcieeekonklommdnndci?pli=1       |
-| **Toutatis**        | Instagram account extraction          | CLI           | https://github.com/megadose/toutatis                                                                  |
+| **Yandex Images**   | Reverse image search                  | Web           | https://yandex.com/images [verify 2026-10-18]                                                         |
+| **PimEyes**         | Facial recognition search             | Web           | https://pimeyes.com (paid, legal review) [verify 2026-10-18]                                          |
+| **TinEye**          | Reverse image search                  | Web           | https://tineye.com [verify 2026-10-18]                                                                |
+| **Search by image** | Reverse image search                  | Extension     | https://chromewebstore.google.com/detail/search-by-image/cnojnbdhbhnkbcieeekonklommdnndci?pli=1 [verify 2026-10-18] |
+| **Toutatis**        | Instagram account lookup; needs a logged-in `sessionid` (use a persona account) | CLI           | https://github.com/megadose/toutatis (`toutatis -u <user> -s <sessionid>`) [verify 2026-10-18]       |
 
 ### Download Tools Commands
 ```bash
-# InstaLoader - Download profile content
+# InstaLoader - Download profile content [verify 2026-10-18]
 instaloader profile_username
 
-# Download specific post
-instaloader --post=POST_ID
+# Download specific post (shortcode from the URL; "--" stops it being read as a flag) [verify 2026-10-18]
+instaloader -- -SHORTCODE
 
-# Download stories (requires login)
+# Download stories (requires login) [verify 2026-10-18]
 instaloader --login=YOUR_USERNAME --stories profile_username
 
-# Download highlights
+# Download highlights [verify 2026-10-18]
 instaloader --login=YOUR_USERNAME --highlights profile_username
 ```
 
 ## 10) Risks & Limitations
 
-- **Ephemeral content**: Stories disappear in 24h unless saved to highlights
+- **Ephemeral content**: Stories disappear in 24h unless saved to highlights [verify 2026-10-18]
 - **Algorithm filtering**: Explore page shows curated, not comprehensive results
 - **Shadow banning**: Some content hidden from search results
 - **Account deactivation**: Target may delete/deactivate during investigation
 - **Technical detection**: Platform may flag unusual viewing patterns
 - **Privacy settings**: Private accounts limit investigation capabilities
-- **API restrictions**: Limited OSINT functionality, business-focused
+- **API restrictions**: Instagram API needs a Business or Creator account; public content limited to hashtag search and Business Discovery [verify 2026-10-18]
 - **Rate limiting**: Viewing/download limits may trigger restrictions
-- **Metadata stripping**: Instagram removes most EXIF data from uploads
+- **Metadata stripping**: Uploads are observed to lose most EXIF data (practitioner observation; not stated in Instagram Help)
 
 ## 11) Quality Assurance & Verification
 
@@ -341,7 +361,25 @@ instaloader --login=YOUR_USERNAME --highlights profile_username
 - **Active crimes**: Ongoing illegal activity
 - **Legal requirements**: Court orders, subpoenas, law enforcement requests
 
-## 14) Related SOPs
+### Legal Process & Preservation
+- **Guidelines**: Meta's Law Enforcement Guidelines cover Facebook and Instagram user data: https://www.meta.com/safety/communities/law/guidelines/ [verify 2026-10-18]
+- **Submission**: Law Enforcement Online Request System https://www.facebook.com/records, law enforcement only, government-issued email address required [verify 2026-10-18]
+- **Preservation**: Meta preserves account records in connection with official criminal investigations for 90 days pending formal legal process; submit formal preservation requests through the same system [verify 2026-10-18]
+- **Entity**: Meta Platforms Ireland Limited for users in the European region; Meta Platforms, Inc. for users outside it [verify 2026-10-18]
+- **Emergency**: Imminent harm to a child or risk of death or serious physical injury: law enforcement submits through the same system; anyone else contacts local law enforcement directly [verify 2026-10-18]
+- **Non-government parties**: Civil litigants and criminal defendants go through the Instagram Help Centre, not the law-enforcement system; refer criminal matters via [[../Techniques/sop-sensitive-crime-intake-escalation|Sensitive Crime Intake & Escalation]] [verify 2026-10-18]
+- Review [[../Techniques/sop-legal-ethics|Legal & Ethics]] before any request or referral
+
+## 14) Legal & Ethical Considerations
+
+> Instagram OSINT sits at the intersection of platform ToS, personal-data law, and (at times) sensitive-crime evidence. The canonical source for legal posture is [[../Techniques/sop-legal-ethics|Legal & Ethics SOP]] — never re-derive it here.
+
+- **Platform ToS**: [Instagram's Terms of Use](https://help.instagram.com/581066165581870) bar impersonating someone or something you aren't, and creating accounts or accessing or collecting information in an automated way (including Automated Data Collection as defined in the Automated Data Collection Terms) without express permission, whether or not the collection runs while logged in [verify 2026-10-18]. The automated collectors in §9 (Instaloader, Toutatis) fall under that clause. Investigation accounts that violate ToS risk ban and evidence inadmissibility.
+- **Legal process**: preservation, disclosure and emergency requests run through Meta's law-enforcement channel; see [Legal Process & Preservation](#legal-process--preservation) in §13.
+- **Sensitive-crime routing**: CSAM, threat-to-life, trafficking, terrorism content found during OSINT triggers immediate hard-stop and routing per [[../Techniques/sop-sensitive-crime-intake-escalation|Sensitive Crime Escalation SOP]]. Do not download or further analyze CSAM; preserve URL + timestamp only and report to NCMEC (US) / IWF (UK) / national equivalent.
+- **OPSEC**: persona accounts, phone numbers, payment methods and devices must be isolated from the analyst's personal identity per [[../Techniques/sop-opsec-plan|OPSEC Planning SOP]]. Story owners can see who viewed their story, so view stories only from a persona account [verify 2026-10-18].
+
+## 15) Related SOPs
 
 - [[../Techniques/sop-legal-ethics|Legal & Ethics SOP]] - Review before every investigation
 - [[../Techniques/sop-opsec-plan|OPSEC Planning]] - Protect investigator identity
@@ -352,21 +390,25 @@ instaloader --login=YOUR_USERNAME --highlights profile_username
 - [[../Techniques/sop-reporting-packaging-disclosure|Reporting & Disclosure]] - Final report preparation
 - [[../Techniques/sop-sensitive-crime-intake-escalation|Sensitive Crime Escalation]] - Law enforcement referral
 
-## 15) External Resources
+## 16) External Resources
+
+**Official Documentation:**
+- Meta Law Enforcement Guidelines: https://www.meta.com/safety/communities/law/guidelines/ [verify 2026-10-18]
+- Law Enforcement Online Request System: https://www.facebook.com/records [verify 2026-10-18]
 
 **Third-Party Tools:**
-- InstaLoader: https://github.com/instaloader/instaloader
-- Social-Analyzer: https://github.com/qeeqbox/social-analyzer
-- Nuclei: https://github.com/projectdiscovery/nuclei-templates
-- 4K Stogram: https://www.4kdownload.com/products/stogram
+- InstaLoader: https://github.com/instaloader/instaloader [verify 2026-10-18]
+- Social-Analyzer: https://github.com/qeeqbox/social-analyzer [verify 2026-10-18]
+- Nuclei: https://github.com/projectdiscovery/nuclei-templates [verify 2026-10-18]
+- 4K Stogram (no support or bug fixes; last version May 2024): https://www.4kdownload.com/products/stogram-8 [verify 2026-10-18]
 
 **Training & Guides:**
-- Bellingcat Instagram OSINT: https://www.bellingcat.com/resources/how-tos/
-- OSINT Framework Instagram: https://osintframework.com/
-- IntelTechniques Instagram Tools: https://inteltechniques.com/tools/Instagram.html
+- Bellingcat guides (general OSINT): https://www.bellingcat.com/resources/how-tos/ [verify 2026-10-18]
+- OSINT Framework Instagram: https://osintframework.com/ [verify 2026-10-18]
+- IntelTechniques Instagram Tools: https://inteltechniques.com/tools/Instagram [verify 2026-10-18]
 
 ---
 
-**Last Updated:** 2025-10-01
+**Last Updated:** 2026-10-18
 **Version:** 2.0
 **Review Frequency:** Yearly

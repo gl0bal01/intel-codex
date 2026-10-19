@@ -10,23 +10,45 @@ tags:
   - social-media
   - osint
 created: 2023-02-05
-updated: 2025-10-08
+updated: 2026-10-18
 ---
 
 # Twitter/X OSINT SOP
 
+> **Authorized OSINT use only.** Investigation accounts must comply with X's [Terms of Service](https://x.com/en/tos), which permit access only through X's currently available, published interfaces and expressly prohibit crawling or scraping in any form without X's prior written consent [verify 2026-10-18]. Review [[../Techniques/sop-legal-ethics|Legal & Ethics SOP]] and [[../Techniques/sop-opsec-plan|OPSEC Planning SOP]] before any engagement.
+
+## Table of Contents
+
+1. [Access & Client Options](#1-access--client-options)
+2. [Search Operators & Syntax](#2-search-operators--syntax)
+3. [Repeatable Workflow](#3-repeatable-workflow)
+4. [User Profile Analysis](#4-user-profile-analysis)
+5. [Advanced Search Techniques](#5-advanced-search-techniques)
+6. [Investigation Recipes (Copy/Paste)](#6-investigation-recipes-copypaste)
+7. [API-Based Collection](#7-api-based-collection)
+8. [Collection & Evidence Integrity](#8-collection--evidence-integrity)
+9. [Pivoting & Cross-Platform Correlation](#9-pivoting--cross-platform-correlation)
+10. [Tools & Resources](#10-tools--resources)
+11. [Risks & Limitations](#11-risks--limitations)
+12. [Advanced Techniques](#12-advanced-techniques)
+13. [Quality Assurance & Verification](#13-quality-assurance--verification)
+14. [Real-World Scenarios](#14-real-world-scenarios)
+15. [Emergency Procedures](#15-emergency-procedures)
+16. [Legal & Ethical Considerations](#16-legal--ethical-considerations)
+17. [Related SOPs](#17-related-sops)
+18. [External Resources](#18-external-resources)
+
 ## 1) Access & Client Options
 
-- **Web**: https://x.com/search-advanced (GUI - full search operators)
+- **Web**: https://x.com/search-advanced (GUI; available only when logged in) [verify 2026-10-18]
 - **Direct search**: https://x.com/search?q=<query>
 - **Mobile apps**: iOS/Android (different rate limits, stronger fingerprinting)
-- **API access**: X API v2 https://docs.x.com/x-api/introduction
-- **Third-party tools**: Nitter instances (privacy-focused frontends)
-- **Access consideration**: Logged-out vs persona-logged-in (balance visibility vs attribution risk)
+- **API access**: X API v2 https://docs.x.com/x-api/introduction [verify 2026-10-18]
+- **Access consideration**: Plan for a logged-in persona account per [[../Techniques/sop-opsec-plan|OPSEC Planning]]; advanced search needs a login and X has restricted logged-out viewing since mid-2023 (press reports), so there is no dependable logged-out collection path
 
 ## 2) Search Operators & Syntax
 
-### Basic Operators
+### Basic Operators (web search and API)
 - `"exact phrase"` - Exact match search
 - `keyword1 keyword2` - AND logic (both must appear)
 - `keyword1 OR keyword2` - Either term
@@ -36,27 +58,32 @@ updated: 2025-10-08
 - `from:username` - Tweets from specific user
 - `to:username` - Replies to specific user
 
-### Advanced Operators
-- `since:YYYY-MM-DD until:YYYY-MM-DD` - Date range
-- `lang:en` - Language filter (en, fr, es, de, etc.)
-- `place:"Paris, France"` - Location-tagged tweets
-- `has:geo` - Geo-tagged content only
-- `has:images` / `has:videos` / `has:links` - Media filters
-- `is:retweet` / `-is:retweet` - Include/exclude retweets
-- `is:reply` / `-is:reply` - Include/exclude replies
-- `is:verified` - From verified accounts only
-- `url:domain.com` - Tweets containing specific domain
-- `url:"/specific-path"` - Tweets with specific URL path
-- `min_retweets:10` - Minimum retweet count
-- `min_faves:100` - Minimum likes count
-- `min_replies:5` - Minimum reply count
-- `context:123.456` - Event/trend context (when known)
+### Web Search Operators (x.com only)
+- `since:YYYY-MM-DD until:YYYY-MM-DD` - Date range (API: use the `start_time`/`end_time` parameters) [verify 2026-10-18]
+- `near:city within:10km` - Geotagged posts near a place, e.g. `fire near:san-francisco within:10km` [verify 2026-10-18]
+- `min_retweets:10` / `min_faves:100` - Minimum reposts / likes (web names; the API rejects them with a 400, use `min_reposts:` / `min_likes:`) [verify 2026-10-18]
+
+### API Query Operators (`/2/tweets/search/*`)
+X's help centre does not document `place:`, `has:geo`, `is:verified`, `context:` or `url:` for web search; treat them as API operators.
+- `lang:en` - Language filter (en, fr, es, de, etc.) [verify 2026-10-18]
+- `place:"Paris, France"` - Location-tagged tweets [verify 2026-10-18]
+- `has:geo` - Geo-tagged content only [verify 2026-10-18]
+- `has:images` / `has:video_link` / `has:links` - Media filters (native video is `has:video_link`; there is no `has:videos`) [verify 2026-10-18]
+- `is:retweet` / `-is:retweet` - Include/exclude retweets [verify 2026-10-18]
+- `is:reply` / `-is:reply` - Include/exclude replies [verify 2026-10-18]
+- `is:verified` - From verified accounts only [verify 2026-10-18]
+- `url:domain.com` - Tweets containing specific domain [verify 2026-10-18]
+- `url:"/specific-path"` - URL path fragment (untested: X documents `url:` only as a tokenized match on the `url`/`expanded_url` fields, with full-URL examples such as `url:"https://developer.x.com"`) [verify 2026-10-18]
+- `min_reposts:10` / `min_likes:100` - Minimum reposts / likes (API names) [verify 2026-10-18]
+- `min_replies:5` - Minimum reply count [verify 2026-10-18]
+- `context:123.456` - Event/trend context (when known) [verify 2026-10-18]
 
 ### High-Value Combinations
+Written for x.com search. For the API, replace `since:`/`until:` with `start_time`/`end_time` and `min_retweets:`/`min_faves:` with `min_reposts:`/`min_likes:`.
 - `"(exact phrase)" lang:en -is:retweet -is:reply` - Original content only
 - `from:user since:YYYY-MM-DD until:YYYY-MM-DD` - User timeline slice
 - `(@handle OR "real name") (scam OR fraud) -is:retweet` - Scam mentions
-- `place:"City Name" has:geo has:images` - Geolocated visual content
+- `near:city-name within:10km filter:images` - Geolocated visual content
 - `url:linkstub.tld -is:retweet min_retweets:5` - Popular link shares
 
 ## 3) Repeatable Workflow
@@ -82,7 +109,7 @@ updated: 2025-10-08
 - **Website link**: Personal site, business, link aggregators
 - **Location field**: Self-reported location (often unreliable)
 - **Join date**: Account age, creation patterns
-- **Verification status**: Blue check (legacy), gold (organization), grey (government)
+- **Verification status**: blue = active X Premium subscription, not ID verification (ID verification is a separate "ID verified" label); gold = official organization via Premium Business; grey = government, multilateral organization or official; affiliation badge = linked to an organization. In the API read `verified_type` (blue, government, business or none) [verify 2026-10-18]
 
 ### Behavioral Analysis
 - **Tweet frequency**: Posts per day/week, activity spikes
@@ -110,7 +137,7 @@ updated: 2025-10-08
 - Identify coordinated behavior (same message, multiple accounts)
 
 ### Temporal Intelligence
-- **Crisis monitoring**: `("breaking" OR "urgent") place:"City" since:YYYY-MM-DD`
+- **Crisis monitoring**: `("breaking" OR "urgent") near:city within:10km since:YYYY-MM-DD` (web syntax; X documents `place:` only for the API) [verify 2026-10-18]
 - **Event correlation**: Search during/after known incidents
 - **Anniversary analysis**: Historical date ranges for recurring events
 - **Pattern detection**: Weekly/monthly activity cycles
@@ -123,6 +150,8 @@ updated: 2025-10-08
 - **Media timeline**: Chronological media posting for location verification
 
 ## 6) Investigation Recipes (Copy/Paste)
+
+Written for x.com search; for the API apply the swaps in §2 (`start_time`/`end_time`, `min_reposts:`/`min_likes:`).
 
 ### Crisis Eyewitnessing
 ```
@@ -146,7 +175,7 @@ updated: 2025-10-08
 
 ### Location Verification
 ```
-place:"Specific Location" has:geo has:images since:YYYY-MM-DD until:YYYY-MM-DD
+near:specific-location within:1km filter:images since:YYYY-MM-DD until:YYYY-MM-DD
 ```
 
 ### Influencer Campaign Tracking
@@ -163,14 +192,15 @@ place:"Specific Location" has:geo has:images since:YYYY-MM-DD until:YYYY-MM-DD
 
 ### Twitter/X API v2 Setup
 
-**Authentication Requirements:**
-- **Free Tier**: Basic read access, 1,500 tweets/month
-- **Basic Tier ($100/mo)**: 10,000 tweets/month, enhanced features
-- **Pro/Enterprise**: Historical data, higher rate limits
+**Pricing (pay-per-usage, no subscriptions):**
+- **Credits**: Bought upfront in the Developer Console (https://console.x.com); requests are blocked while the balance is negative [verify 2026-10-18]
+- **Read prices**: Post $0.005/resource, User $0.010/resource, Followers/Following $0.010/resource; resources deduplicated within a 24h UTC day (soft guarantee) [verify 2026-10-18]
+- **Volume cap**: 3M Post reads per monthly billing cycle; Enterprise plan above that [verify 2026-10-18]
+- **Search**: Recent search (7 days) available to all developers; full-archive search to pay-per-use and Enterprise customers [verify 2026-10-18]
 
 **API Key Setup:**
 ```bash
-# Get API keys from: https://developer.x.com/en/portal/dashboard
+# Get API keys from: https://console.x.com (Developer Console → New App; credentials are shown only once) [verify 2026-10-18]
 # Store in environment variables (never hardcode!)
 export TWITTER_BEARER_TOKEN="your_bearer_token_here"
 export TWITTER_API_KEY="your_api_key"
@@ -181,13 +211,13 @@ export TWITTER_API_SECRET="your_api_secret"
 
 **Get User by Username:**
 ```bash
-# Basic profile information
+# Basic profile information [verify 2026-10-18]
 curl -X GET "https://api.x.com/2/users/by/username/crypto_alex" \
      -H "Authorization: Bearer $TWITTER_BEARER_TOKEN" \
      -H "Content-Type: application/json" \
      > twitter_user_profile_$(date +%Y%m%d_%H%M%S).json
 
-# Enhanced profile with all fields
+# Enhanced profile with all fields [verify 2026-10-18]
 curl -X GET "https://api.x.com/2/users/by/username/crypto_alex?user.fields=created_at,description,entities,id,location,name,pinned_tweet_id,profile_image_url,protected,public_metrics,url,username,verified,verified_type,withheld" \
      -H "Authorization: Bearer $TWITTER_BEARER_TOKEN" \
      > twitter_user_full_$(date +%Y%m%d_%H%M%S).json
@@ -204,8 +234,8 @@ curl -X GET "https://api.x.com/2/users/USER_ID?user.fields=created_at,descriptio
 
 **Get User's Tweets (Timeline):**
 ```bash
-# Recent tweets (last 7 days for free tier)
-curl -X GET "https://api.x.com/2/users/USER_ID/tweets?max_results=100&tweet.fields=created_at,author_id,conversation_id,public_metrics,referenced_tweets,entities,geo,in_reply_to_user_id,lang,source&expansions=author_id,referenced_tweets.id,attachments.media_keys&media.fields=url,preview_image_url,type,duration_ms" \
+# Recent tweets (up to the 3,200 most recent) [verify 2026-10-18]
+curl -X GET "https://api.x.com/2/users/USER_ID/tweets?max_results=100&tweet.fields=created_at,author_id,conversation_id,public_metrics,referenced_tweets,entities,geo,in_reply_to_user_id,lang,source&expansions=author_id,referenced_tweets.id,attachments.media_keys&media.fields=url,preview_image_url,type,duration_ms,variants" \
      -H "Authorization: Bearer $TWITTER_BEARER_TOKEN" \
      > twitter_tweets_$(date +%Y%m%d_%H%M%S).json
 
@@ -224,7 +254,7 @@ curl -X GET "https://api.x.com/2/tweets/TWEET_ID?tweet.fields=created_at,text,au
 
 **Search Recent Tweets:**
 ```bash
-# Search tweets from last 7 days (free tier)
+# Search tweets from last 7 days (available to all developers) [verify 2026-10-18]
 curl -X GET "https://api.x.com/2/tweets/search/recent?query=from:username%20-is:retweet&max_results=100&tweet.fields=created_at,public_metrics,entities&expansions=author_id" \
      -H "Authorization: Bearer $TWITTER_BEARER_TOKEN" \
      > twitter_search_$(date +%Y%m%d_%H%M%S).json
@@ -236,10 +266,10 @@ curl -X GET "https://api.x.com/2/tweets/search/recent?query=$QUERY&max_results=1
      > twitter_search_crypto_$(date +%Y%m%d_%H%M%S).json
 ```
 
-**Full Archive Search (Academic/Enterprise only):**
+**Full Archive Search (pay-per-use and Enterprise):**
 ```bash
-# Search all historical tweets (requires Academic Research access)
-curl -X GET "https://api.x.com/2/tweets/search/all?query=from:username%20since:2020-01-01%20until:2025-01-01&max_results=500&tweet.fields=created_at,public_metrics,entities,geo,lang" \
+# Search all historical tweets; bound dates with start_time/end_time (since:/until: are web-only) [verify 2026-10-18]
+curl -X GET "https://api.x.com/2/tweets/search/all?query=from:username&start_time=2020-01-01T00:00:00Z&end_time=2025-01-01T00:00:00Z&max_results=500&tweet.fields=created_at,public_metrics,entities,geo,lang" \
      -H "Authorization: Bearer $TWITTER_BEARER_TOKEN" \
      > twitter_archive_search_$(date +%Y%m%d_%H%M%S).json
 ```
@@ -272,7 +302,7 @@ jq -r '.includes.media[] | select(.type=="photo") | .url' twitter_tweets.json | 
     wget "$URL" -P media/
 done
 
-# Download videos (extract video URLs)
+# Download videos (extract video URLs; needs media.fields=variants) [verify 2026-10-18]
 jq -r '.includes.media[] | select(.type=="video") | .variants[] | select(.content_type=="video/mp4") | .url' twitter_tweets.json | while read URL; do
     wget "$URL" -P media/
 done
@@ -287,7 +317,7 @@ curl -X GET "https://api.x.com/2/users/by/username/twitter" \
      -I | grep -i "x-rate-limit"
 
 # Output:
-# x-rate-limit-limit: 300
+# x-rate-limit-limit: 300 [verify 2026-10-18]
 # x-rate-limit-remaining: 299
 # x-rate-limit-reset: 1672531200
 ```
@@ -324,7 +354,7 @@ curl -X GET "https://api.x.com/2/users/$USER_ID/tweets?max_results=100" \
 
 import tweepy
 import json
-from datetime import datetime
+from datetime import datetime, timezone
 
 # Authentication
 BEARER_TOKEN = "your_bearer_token_here"
@@ -343,7 +373,7 @@ def collect_user_tweets(username, max_results=100):
         media_fields=['url', 'type', 'preview_image_url']
     )
 
-    timestamp = datetime.utcnow().strftime('%Y%m%d_%H%M%S')
+    timestamp = datetime.now(timezone.utc).strftime('%Y%m%d_%H%M%S')
     filename = f'twitter_tweets_{username}_{timestamp}.json'
 
     with open(filename, 'w') as f:
@@ -362,7 +392,7 @@ def search_tweets(query, max_results=100):
         tweet_fields=['created_at', 'author_id', 'public_metrics', 'entities']
     )
 
-    timestamp = datetime.utcnow().strftime('%Y%m%d_%H%M%S')
+    timestamp = datetime.now(timezone.utc).strftime('%Y%m%d_%H%M%S')
     filename = f'twitter_search_{timestamp}.json'
 
     with open(filename, 'w') as f:
@@ -390,8 +420,8 @@ QUERY="place:\"New York City\" has:geo has:images -is:retweet"
 curl -X GET "https://api.x.com/2/tweets/search/recent?query=$(echo $QUERY | jq -sRr @uri)" \
      -H "Authorization: Bearer $TWITTER_BEARER_TOKEN"
 
-# High-engagement tweets about specific topic
-QUERY="Ukraine min_retweets:100 -is:retweet lang:en has:links"
+# High-engagement tweets about specific topic (API: min_reposts:/min_likes:; web-only min_retweets:/min_faves: return 400) [verify 2026-10-18]
+QUERY="Ukraine min_reposts:100 -is:retweet lang:en has:links"
 curl -X GET "https://api.x.com/2/tweets/search/recent?query=$(echo $QUERY | jq -sRr @uri)" \
      -H "Authorization: Bearer $TWITTER_BEARER_TOKEN"
 ```
@@ -442,7 +472,7 @@ export TWITTER_BEARER_TOKEN=$(cat ~/.twitter_api_token)
 ```
 
 **3. Respect rate limits:**
-- Free tier: 1,500 tweets/month
+- Track credit balance; requests are blocked when the balance goes negative [verify 2026-10-18]
 - Track usage to avoid hitting limits mid-investigation
 - Implement backoff/retry logic
 
@@ -493,7 +523,7 @@ curl [...] | tee raw_response.json | jq '.' > processed_response.json
 - Reference in [[../Techniques/sop-collection-log|Collection Log]]
 - Maintain chain of custody documentation
 
-## 8) Pivoting & Cross-Platform Correlation
+## 9) Pivoting & Cross-Platform Correlation
 
 ### Profile Pivots
 - **Bio links** → Personal websites, Linktree, OnlyFans, business pages
@@ -516,21 +546,21 @@ curl [...] | tee raw_response.json | jq '.' > processed_response.json
 - **List analysis** → Who categorizes this account and how
 - **Mutual connections** → Social graph construction
 
-## 9) Tools & Resources
+## 10) Tools & Resources
 
 | Tool                        | Purpose                            | Platform    | Access                                                |
 | --------------------------- | ---------------------------------- | ----------- | ----------------------------------------------------- |
-| **Twitter Advanced Search** | Native search interface            | Web         | https://x.com/search-advanced                         |
-| **Nitter**                  | Privacy-focused Twitter frontend   | Web         | https://nitter.net (various instances)                |
-| **Twint**                   | Twitter scraping (archived tweets) | CLI         | `pip install twint` (discontinued, archives may work) |
-| X API v2**                  | Programmatic access                | API         | https://docs.x.com/x-api/introduction                 |
+| **Twitter Advanced Search** | Native search interface            | Web         | https://x.com/search-advanced (login required) [verify 2026-10-18] |
+| **Nitter**                  | Privacy-focused Twitter frontend   | Web         | Archived Oct 2026; remaining community instances are unsupported and may disappear [verify 2026-10-18] |
+| **Twint**                   | Twitter scraping (archived tweets) | CLI         | `pip install twint` (repo archived Feb 2023, unmaintained; historical reference only) [verify 2026-10-18] |
+| **X API v2**                | Programmatic access                | API         | https://docs.x.com/x-api/introduction [verify 2026-10-18] |
 | **Wayback Machine**         | Historical Twitter snapshots       | Web         | https://web.archive.org                               |
-| **Social-Analyzer**         | Username enumeration               | CLI         | `pip install social-analyzer`                         |
-| **Nuclei**                  | Username search across platforms   | CLI         | nuclei -tags osint -var user=username<br>             |
+| **Social-Analyzer**         | Username enumeration               | CLI         | `pip install social-analyzer` [verify 2026-10-18] |
+| **Nuclei**                  | Username search across platforms   | CLI         | `nuclei -tags osint -esc -var user=username` (user-enumeration templates are self-contained; `-esc` loads them) [verify 2026-10-18] |
 | **ExifTool**                | Image metadata extraction          | CLI         | `exiftool image.jpg`                                  |
-| **Gephi**                   | Network visualization              | Desktop     | https://gephi.org                                     |
+| **Gephi**                   | Network visualization              | Desktop     | https://gephi.org [verify 2026-10-18] |
 
-## 10) Risks & Limitations
+## 11) Risks & Limitations
 
 - **De-indexing**: Tweets may disappear post-capture, archive immediately
 - **Account suspension**: Targets may delete or be suspended during investigation
@@ -542,20 +572,18 @@ curl [...] | tee raw_response.json | jq '.' > processed_response.json
 - **Deleted content**: Historical data gaps from account deletions
 - **Media manipulation**: Deepfakes, edited images, misleading captions
 
-## 11) Advanced Techniques
+## 12) Advanced Techniques
 
 ### Deleted Content Recovery
 - **Archive.org Wayback Machine**: Historical snapshots of profiles/tweets
-- **Cached pages**: Google cache may retain recent deleted content
 - **Third-party archives**: Archive.today, Archive.is manual captures
-- **API historical access**: Enterprise tier includes deleted tweet access
-- **Screenshot databases**: Politwoops, TrumpTwitterArchive (specialized)
+- **API historical access**: Batch compliance endpoints only report a Post ID's status (e.g. deleted); X documents no way to retrieve deleted content through the API [verify 2026-10-18]
+- **Screenshot databases**: Politwoops (ProPublica US archive no longer maintained, last updated Nov 2022), Trump Twitter Archive https://www.thetrumparchive.com [verify 2026-10-18]
 
 ### Automation & Monitoring
-- **RSS feeds**: Create search RSS for real-time monitoring
 - **IFTTT/Zapier**: Automated alerts for specific keywords/accounts
 - **Python scripts**: Custom scrapers using Selenium/BeautifulSoup
-- **API webhooks**: Real-time notifications for account activity
+- **X Activity API** (replaces the deprecated Account Activity API): create subscriptions with `POST /2/activity/subscriptions`, receive events via `GET /2/activity/stream` or webhook; public events (post creation/deletion, profile updates) for any public account by user ID, private events (likes, DMs, mentions, reposts) only for users who authorized your app; protected accounts' posts are not delivered; self-serve cap 1,500 subscriptions [verify 2026-10-18]
 
 ### Network Analysis
 - **Follower/following exports**: Bulk relationship data collection
@@ -564,14 +592,14 @@ curl [...] | tee raw_response.json | jq '.' > processed_response.json
 - **Influence metrics**: Calculate centrality, reach, amplification
 - **Bot detection**: Identify automated/coordinated accounts
 
-## 12) Quality Assurance & Verification
+## 13) Quality Assurance & Verification
 
 ### Content Verification
 - **Cross-reference sources**: Verify with non-Twitter evidence
 - **Reverse image search**: Confirm media originality
 - **Timestamp validation**: Check tweet time vs claimed events
 - **Geolocation verification**: Match location claims with visual evidence
-- **Account authentication**: Verify blue checks, look for impersonators
+- **Account authentication**: Treat a blue check as a paid subscription, not identity verification; check `verified_type` and affiliation badges, look for impersonators [verify 2026-10-18]
 
 ### Bias Mitigation
 - **Sample diversity**: Include both retweets and original content
@@ -587,13 +615,13 @@ curl [...] | tee raw_response.json | jq '.' > processed_response.json
 - **Hash verification**: Ensure file integrity with SHA-256
 - **Attribution clarity**: Document how evidence was discovered and collected
 
-## 13) Real-World Scenarios
+## 14) Real-World Scenarios
 
 ### Scenario 1: Breaking News Verification
 **Situation**: Alleged terrorist attack reported on Twitter, need to verify authenticity.
 
 **Approach**:
-1. Search: `(attack OR explosion OR shooting) place:"City Name" has:geo has:media -is:retweet since:2025-08-20`
+1. Search: `(attack OR explosion OR shooting) near:city-name within:10km filter:media -is:retweet since:2025-08-20`
 2. Identify earliest tweets with geotagged media
 3. Reverse image search all media to check for recycled content
 4. Verify user accounts (local residents vs foreign accounts)
@@ -628,7 +656,7 @@ curl [...] | tee raw_response.json | jq '.' > processed_response.json
 
 **Outcome**: Discovered 200+ bot accounts created within 2-week period, coordinated posting schedule (every 15min), traced to single operator via pattern analysis.
 
-## 14) Emergency Procedures
+## 15) Emergency Procedures
 
 ### Immediate Archival Triggers
 - Target account shows signs of deletion (bio changes, follower purge)
@@ -653,7 +681,22 @@ curl [...] | tee raw_response.json | jq '.' > processed_response.json
 - **National security**: Terrorism planning, state threat actors
 - **Active harm**: Ongoing crimes, imminent danger to persons
 
-## 15) Related SOPs
+### Legal Process & Preservation
+- **Preservation**: X preserves, but does not disclose, a temporary snapshot of account records for 90 days pending valid legal process; request extensions as a separate submission at least 7 days before expiry (not guaranteed) [verify 2026-10-18]
+- **Submission**: Legal Request Submissions site https://legalrequests.x.com (t.co/lr), government agencies and law enforcement only; signed, on letterhead, non-editable, with a valid return email, identifying the account by @username and profile URL and/or user ID [verify 2026-10-18]
+- **Non-government parties**: Serve X Corp's registered agent (CT Corporation); refer criminal matters via [[../Techniques/sop-sensitive-crime-intake-escalation|Sensitive Crime Intake & Escalation]] [verify 2026-10-18]
+- Review [[../Techniques/sop-legal-ethics|Legal & Ethics]] before any request or referral
+
+## 16) Legal & Ethical Considerations
+
+> The canonical source for legal posture is [[../Techniques/sop-legal-ethics|Legal & Ethics SOP]]. Never re-derive it here.
+
+- **Platform ToS**: [X's Terms of Service](https://x.com/en/tos) permit access or search only through X's currently available, published interfaces (and only under the applicable terms), unless a separate agreement allows otherwise, and expressly prohibit crawling or scraping in any form, for any purpose, without X's prior written consent [verify 2026-10-18]. Collect through the web client or the X API (§7), not scrapers.
+- **Legal process**: preservation and disclosure requests follow [Legal Process & Preservation](#legal-process--preservation) under §15; do not duplicate them here.
+- **Sensitive-crime routing**: CSAM, threat-to-life, trafficking, terrorism content found during OSINT triggers immediate hard-stop and routing per [[../Techniques/sop-sensitive-crime-intake-escalation|Sensitive Crime Escalation SOP]]. Do not download or further analyze CSAM; preserve URL + timestamp only and report to NCMEC (US) / IWF (UK) / national equivalent.
+- **OPSEC**: the logged-in persona account (§1), its email/phone, payment method for X Premium or API credits, and devices must be isolated from the analyst's personal identity per [[../Techniques/sop-opsec-plan|OPSEC Planning SOP]].
+
+## 17) Related SOPs
 
 - [[../Techniques/sop-legal-ethics|Legal & Ethics SOP]] - Review before every investigation
 - [[../Techniques/sop-opsec-plan|OPSEC Planning]] - Protect investigator identity
@@ -665,21 +708,21 @@ curl [...] | tee raw_response.json | jq '.' > processed_response.json
 - [[../Techniques/sop-reporting-packaging-disclosure|Reporting & Disclosure]] - Final report preparation
 - [[../Techniques/sop-sensitive-crime-intake-escalation|Sensitive Crime Escalation]] - Law enforcement referral
 
-## 16) External Resources
+## 18) External Resources
 
 **Third-Party Tools:**
-- Social-Analyzer: https://github.com/qeeqbox/social-analyzer
-- Nuclei: https://github.com/projectdiscovery/nuclei-templates
-- Nitter Instances: https://github.com/zedeus/nitter/wiki/Instances
-- Twint Archive: https://github.com/twintproject/twint
+- Social-Analyzer: https://github.com/qeeqbox/social-analyzer [verify 2026-10-18]
+- Nuclei: https://github.com/projectdiscovery/nuclei-templates [verify 2026-10-18]
+- Nitter Instances (project archived Oct 2026, unsupported): https://github.com/zedeus/nitter/wiki/Instances [verify 2026-10-18]
+- Twint Archive: https://github.com/twintproject/twint [verify 2026-10-18]
 
 **Training & Guides:**
-- Bellingcat Twitter OSINT Guide: https://www.bellingcat.com/resources/how-tos/
-- OSINT Framework Twitter Section: https://osintframework.com/
-- IntelTechniques Twitter Tools: https://inteltechniques.com/tools/Twitter.html
+- Bellingcat How-To Guides (general): https://www.bellingcat.com/resources/how-tos/ [verify 2026-10-18]
+- OSINT Framework Twitter Section: https://osintframework.com/ [verify 2026-10-18]
+- IntelTechniques Twitter Tools: https://inteltechniques.com/tools/Twitter.html [verify 2026-10-18]
 
 ---
 
-**Last Updated:** 2025-10-08
-**Version:** 3.0 
-**Review Frequency:** Yearly 
+**Last Updated:** 2026-10-18
+**Version:** 3.0
+**Review Frequency:** Yearly

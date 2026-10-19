@@ -9,17 +9,39 @@ tags:
   - video
   - osint
 created: 2025-10-08
-updated: 2025-10-08
+updated: 2026-10-18
 ---
 
 # TikTok OSINT SOP
+
+> **Authorized OSINT use only.** Investigation accounts must comply with TikTok's region-specific Terms of Service: the [U.S. terms](https://www.tiktok.com/legal/page/us/terms-of-service/en) (scraping, crawling or extracting data with any automated system or software needs written approval) and the [terms for users outside the US, EEA, UK, Switzerland and India](https://www.tiktok.com/legal/page/row/terms-of-service/en) (no automated scripts to collect information or interact with the Services; no impersonation or false identity) [verify 2026-10-18]. Review [[../Techniques/sop-legal-ethics|Legal & Ethics SOP]] and [[../Techniques/sop-opsec-plan|OPSEC Planning SOP]] before any engagement.
+
+## Table of Contents
+
+1. [Access & Client Options](#1-access--client-options)
+2. [Search & Discovery Methods](#2-search--discovery-methods)
+3. [Repeatable Workflow](#3-repeatable-workflow)
+4. [Creator Intelligence](#4-creator-intelligence)
+5. [Video Content Analysis](#5-video-content-analysis)
+6. [Investigation Recipes](#6-investigation-recipes)
+7. [Collection & Evidence Integrity](#7-collection--evidence-integrity)
+8. [Advanced Techniques](#8-advanced-techniques)
+9. [Pivoting & Cross-Platform Correlation](#9-pivoting--cross-platform-correlation)
+10. [Tools & Resources](#10-tools--resources)
+11. [Risks & Limitations](#11-risks--limitations)
+12. [Quality Assurance & Verification](#12-quality-assurance--verification)
+13. [Real-World Scenarios](#13-real-world-scenarios)
+14. [Emergency Procedures](#14-emergency-procedures)
+15. [Legal & Ethical Considerations](#15-legal--ethical-considerations)
+16. [Related SOPs](#16-related-sops)
+17. [External Resources](#17-external-resources)
 
 ## 1) Access & Client Options
 
 - **Web**: https://www.tiktok.com (limited functionality, view-only)
 - **Mobile apps**: iOS/Android (full feature access, strongest tracking)
-- **Desktop apps**: Windows/Mac applications (better for collection)
-- **API access**: TikTok Research API (academic only, limited)
+- **Desktop app**: Windows app via Microsoft Store (publisher TikTok Pte. Ltd.); no official macOS client located, use web on Mac [verify 2026-10-18]
+- **API access**: TikTok Research API (approved academic institutions in the US, EEA, UK, Canada or Switzerland, EU not-for-profit research bodies, and Brazil-based youth-safety researchers; profiles, follower/following lists, content) [verify 2026-10-18]
 - **Third-party tools**: Download tools, monitoring services
 - **Geographic restrictions**: Content/features vary by region (VPN considerations)
 
@@ -71,7 +93,7 @@ updated: 2025-10-08
 - **Audio preferences**: Music choices, original sounds
 - **Effect usage**: Favorite filters, AR effects
 - **Collaboration patterns**: Frequent duet/stitch partners
-- **Monetization**: Brand partnerships, TikTok Shop, sponsored content
+- **Monetization**: Brand partnerships, TikTok Shop, sponsored content [verify 2026-10-18]
 
 ## 5) Video Content Analysis
 
@@ -107,7 +129,7 @@ updated: 2025-10-08
 
 **Method**:
 1. Search event-specific hashtags immediately
-2. Sort by "Latest" for real-time content
+2. Open **Filters** (more-options menu on the results page) to narrow to recent videos where the option is offered
 3. Identify verified eyewitnesses (location consistency)
 4. Download all relevant videos before deletion
 5. Cross-reference with news reports, other platforms
@@ -154,11 +176,11 @@ updated: 2025-10-08
 ## 7) Collection & Evidence Integrity
 
 ### Download Methods
-- **Web downloaders**: snaptik.app, tiktokdownloader.com (watermark considerations)
-- **Browser extensions**: Video DownloadHelper, Save TikTok Videos
-- **Command-line tools**: yt-dlp, TikTok-DL
+- **Web downloaders**: snaptik.app, tiktokdownloader.com (watermark considerations) [verify 2026-10-18]
+- **Browser extensions**: Video DownloadHelper
+- **Command-line tools**: yt-dlp [verify 2026-10-18]
 - **Screen recording**: OBS Studio, built-in screen capture (quality loss)
-- **API extraction**: TikTok Research API (academic access only)
+- **API extraction**: TikTok Research API (approved academic and not-for-profit researchers only; see §1) [verify 2026-10-18]
 
 ### File Organization
 ```
@@ -166,7 +188,6 @@ updated: 2025-10-08
 ├── YYYYMMDD-HHMM/
 │   ├── videos/
 │   │   ├── @username_video_[ID].mp4
-│   │   ├── @username_video_[ID]_nowatermark.mp4
 │   │   └── @username_video_[ID]_metadata.json
 │   ├── frames/
 │   │   └── @username_video_[ID]_frame_001.png
@@ -187,16 +208,16 @@ updated: 2025-10-08
 
 ### Command-Line Download
 ```bash
-# yt-dlp (most reliable)
+# yt-dlp (most reliable) [verify 2026-10-18]
 yt-dlp "https://www.tiktok.com/@username/video/1234567890123456789"
 
-# Download without watermark
-yt-dlp --no-watermark "https://www.tiktok.com/@username/video/1234567890123456789"
+# List available formats, then download one with -f FORMAT_ID (yt-dlp documents no watermark-removal option) [verify 2026-10-18]
+yt-dlp -F "https://www.tiktok.com/@username/video/1234567890123456789"
 
-# Download with metadata
+# Download with metadata [verify 2026-10-18]
 yt-dlp --write-info-json "https://www.tiktok.com/@username/video/1234567890123456789"
 
-# Bulk download from user
+# Bulk download from user [verify 2026-10-18]
 yt-dlp "https://www.tiktok.com/@username"
 ```
 
@@ -255,14 +276,14 @@ audacity audio.aac
 | Tool                  | Purpose                        | Platform | Access                                  |
 | --------------------- | ------------------------------ | -------- | --------------------------------------- |
 | **TikTok Web**        | Basic viewing and search       | Web      | https://www.tiktok.com                  |
-| **yt-dlp**            | Video downloader               | CLI      | `pip install yt-dlp`                    |
-| **TikTok Downloader** | Web-based video download       | Web      | https://snaptik.app                     |
-| **FFmpeg**            | Video/audio processing         | CLI      | https://ffmpeg.org                      |
-| **Nuclei**            | Username enumeration           | CLI      | `nuclei -tags osint -var user=username` |
-| **Social-Analyzer**   | Cross-platform username search | CLI      | `pip install social-analyzer`           |
-| **InVID**             | Video verification toolkit     | Browser  | https://www.invid-project.eu            |
+| **yt-dlp**            | Video downloader               | CLI      | `pip install yt-dlp` [verify 2026-10-18] |
+| **TikTok Downloader** | Web-based video download       | Web      | https://snaptik.app [verify 2026-10-18] |
+| **FFmpeg**            | Video/audio processing         | CLI      | https://ffmpeg.org [verify 2026-10-18]  |
+| **Nuclei**            | Username enumeration           | CLI      | `nuclei -tags osint -esc -var user=username` [verify 2026-10-18] |
+| **Social-Analyzer**   | Cross-platform username search | CLI      | `pip install social-analyzer` (last PyPI release 0.45, May 2022) [verify 2026-10-18] |
+| **InVID-WeVerify**    | Video verification plugin      | Browser  | https://weverify.eu/verification-plugin/ [verify 2026-10-18] |
 | **ExifTool**          | Metadata extraction            | CLI      | `exiftool video.mp4`                    |
-| **Wayback Machine**   | Historical profile snapshots   | Web      | https://web.archive.org                 |
+| **Wayback Machine**   | Historical profile snapshots   | Web      | https://web.archive.org [verify 2026-10-18] |
 
 ## 11) Risks & Limitations
 
@@ -272,8 +293,8 @@ audacity audio.aac
 - **Algorithm bias**: "For You" page personalized, not comprehensive
 - **Watermarks**: TikTok watermark on downloads (complicates verification)
 - **Platform detection**: Unusual download patterns may trigger bans
-- **Age restrictions**: COPPA compliance limits access to minor content
-- **Ephemeral features**: Live streams not archived by platform
+- **Age restrictions**: Accounts of 13-15-year-olds are private by default, their videos can't be downloaded, and Duet/Stitch is locked to no one, so minors' content is largely out of reach [verify 2026-10-18]
+- **Ephemeral features**: LIVE replays are available to the creator for 30 days and can be deleted; don't rely on them, record LIVE streams yourself [verify 2026-10-18]
 - **Edit capabilities**: Users can edit captions, change privacy settings
 - **Deepfakes**: AI-generated content increasingly common
 
@@ -305,7 +326,7 @@ audacity audio.aac
 4. Review comments for interactions mentioning location
 5. Check duets/stitches with local creators
 6. Analyze posting times for timezone indicators
-7. Contact TikTok safety team with case number
+7. Have the investigating police file an emergency request through TikTok's law-enforcement webform (sworn officers only; see Legal Process & Preservation in §14) [verify 2026-10-18]
 
 **Outcome**: Latest video posted 6 hours ago showed recognizable coffee shop sign in background; reverse image search identified shop in neighboring city; video timestamp correlated with shop hours; provided location to police; teen found safe within 2 hours.
 
@@ -328,7 +349,7 @@ audacity audio.aac
 
 **Approach**:
 1. Search location + date hashtags: `#protest #cityname #date`
-2. Sort by "Latest" for real-time documentation
+2. Open **Filters** (more-options menu on the results page) to narrow to recent videos where the option is offered
 3. Download all relevant videos immediately
 4. Verify locations using [[../Techniques/sop-image-video-osint|Image OSINT]]
 5. Document police actions, violence, injuries
@@ -343,12 +364,12 @@ audacity audio.aac
 - Video shows imminent threat (violence, suicide, terrorism)
 - Evidence of crime in progress (assault, trafficking, child abuse)
 - Content about to be deleted (creator announces deletion)
-- Live stream with critical evidence (archive immediately, no replay)
+- Live stream with critical evidence (archive immediately; don't rely on a replay)
 - Breaking news eyewitness content (may be removed)
 
 ### Rapid Response Protocol
 1. **Immediate download**: Use fastest method (yt-dlp preferred)
-2. **Multiple copies**: Download both watermarked and clean versions
+2. **Multiple copies**: Download each available format listed by `yt-dlp -F` (a watermark-free file is not guaranteed)
 3. **Frame extraction**: Key frames for immediate analysis
 4. **Metadata capture**: Video info, comments, engagement stats
 5. **Profile snapshot**: Full creator profile in case of deletion
@@ -357,13 +378,29 @@ audacity audio.aac
 8. **Documentation**: Log all actions with precise timestamps
 
 ### Escalation Triggers (see [[../Techniques/sop-sensitive-crime-intake-escalation|Sensitive Crime Escalation SOP]])
-- **Child safety**: CSAM, exploitation, grooming (NCMEC: 1-800-843-5678)
+- **Child safety**: CSAM, exploitation, grooming (NCMEC: 1-800-843-5678) [verify 2026-10-18]
 - **Imminent violence**: Specific threats, attack planning (FBI, local police)
 - **Suicide/self-harm**: Active crisis content (platform reporting + crisis hotline)
-- **Terrorism**: Recruitment, propaganda, attack planning (FBI: tips.fbi.gov)
+- **Terrorism**: Recruitment, propaganda, attack planning (FBI: tips.fbi.gov) [verify 2026-10-18]
 - **Human trafficking**: Victim indicators, recruitment content
 
-## 15) Related SOPs
+### Legal Process & Preservation
+- **Entity**: Address requests to the TikTok entity for the user's location; U.S. users are served by TikTok USDS Joint Venture LLC under its own U.S. guidelines (https://usdsjv.tiktok.com/law-enforcement-guidelines), all others under the global guidelines [verify 2026-10-18]
+- **Submission**: Law-enforcement webform https://www.tiktok.com/legal/report/lawenforcementrequest, attachments in PDF (Word not accepted) [verify 2026-10-18]
+- **Preservation**: 90 days on a formal request on law-enforcement letterhead, signed, naming the username, data type and date range; one further 90-day extension on formal request; preserved data may be deleted at expiry if no legal process arrives [verify 2026-10-18]
+- **Emergency**: Same webform; sworn law-enforcement officials only, for imminent harm or risk of death or serious physical injury; anyone else contacts local law enforcement directly [verify 2026-10-18]
+- Review [[../Techniques/sop-legal-ethics|Legal & Ethics]] before any request or referral
+
+## 15) Legal & Ethical Considerations
+
+> TikTok OSINT sits at the intersection of platform ToS, minors' data, and (frequently) sensitive-crime evidence. The canonical source for legal posture is [[../Techniques/sop-legal-ethics|Legal & Ethics SOP]] — never re-derive it here.
+
+- **Platform ToS**: TikTok's [U.S. Terms of Service](https://www.tiktok.com/legal/page/us/terms-of-service/en) (TikTok USDS Joint Venture LLC) prohibit scraping, crawling, exporting or otherwise extracting data from the Platform using any automated system or software, including bots, except as approved in writing, and operating spam or impersonation accounts; the [terms for users outside the US, EEA, UK, Switzerland and India](https://www.tiktok.com/legal/page/row/terms-of-service/en) (TikTok Pte. Ltd.) prohibit using automated scripts to collect information from or otherwise interact with the Services, impersonating any person or entity, and creating a false identity [verify 2026-10-18]. Bulk yt-dlp collection (§7) is automated collection under these clauses. Investigation accounts that violate ToS risk ban and evidence inadmissibility.
+- **Legal process**: preservation, disclosure and emergency requests go through TikTok's law-enforcement webform; see [Legal Process & Preservation](#legal-process--preservation) in §14.
+- **Sensitive-crime routing**: CSAM, threat-to-life, trafficking, terrorism content found during OSINT triggers immediate hard-stop and routing per [[../Techniques/sop-sensitive-crime-intake-escalation|Sensitive Crime Escalation SOP]]. Do not download or further analyze CSAM; preserve URL + timestamp only and report to NCMEC (US) / IWF (UK) / national equivalent.
+- **OPSEC**: persona accounts, phone numbers, payment methods and devices must be isolated from the analyst's personal identity per [[../Techniques/sop-opsec-plan|OPSEC Planning SOP]]. Keep **Profile view history** off on personas: when it is on, accounts you visit that also have it on can see your visit [verify 2026-10-18].
+
+## 16) Related SOPs
 
 - [[../Techniques/sop-legal-ethics|Legal & Ethics SOP]] - Review before every investigation
 - [[../Techniques/sop-opsec-plan|OPSEC Planning]] - Device isolation, account separation
@@ -374,25 +411,28 @@ audacity audio.aac
 - [[../Techniques/sop-reporting-packaging-disclosure|Reporting & Disclosure]] - Final report preparation
 - [[../Techniques/sop-sensitive-crime-intake-escalation|Sensitive Crime Escalation]] - Law enforcement referral
 
-## 16) External Resources
+## 17) External Resources
 
 **Official Documentation:**
-- TikTok Safety Center: https://www.tiktok.com/safety
-- Community Guidelines: https://www.tiktok.com/community-guidelines
+- TikTok Safety Center: https://www.tiktok.com/safety/en [verify 2026-10-18]
+- Community Guidelines: https://www.tiktok.com/safety/en/policies-and-engagement/overview [verify 2026-10-18]
+- TikTok Law Enforcement Guidelines (global): https://www.tiktok.com/safety/en/tools-and-guides/tiktok-law-enforcement-guidelines [verify 2026-10-18]
+- TikTok U.S. (USDS JV) Law Enforcement Guidelines: https://usdsjv.tiktok.com/law-enforcement-guidelines [verify 2026-10-18]
+- Law-enforcement request webform: https://www.tiktok.com/legal/report/lawenforcementrequest [verify 2026-10-18]
 
 **Third-Party Tools:**
-- yt-dlp GitHub: https://github.com/yt-dlp/yt-dlp
+- yt-dlp GitHub: https://github.com/yt-dlp/yt-dlp [verify 2026-10-18]
 - Nuclei Templates: https://github.com/projectdiscovery/nuclei-templates
 - Social-Analyzer: https://github.com/qeeqbox/social-analyzer
-- InVID Verification: https://www.invid-project.eu/tools-and-services/invid-verification-plugin/
+- InVID-WeVerify Verification Plugin: https://weverify.eu/verification-plugin/ [verify 2026-10-18]
 
 **Training & Guides:**
-- Bellingcat TikTok OSINT: https://www.bellingcat.com/resources/how-tos/
-- OSINT Framework TikTok: https://osintframework.com/
-- First Draft TikTok Verification: https://firstdraftnews.org/
+- Bellingcat guides (general OSINT): https://www.bellingcat.com/resources/how-tos/ [verify 2026-10-18]
+- OSINT Framework TikTok: https://osintframework.com/ [verify 2026-10-18]
+- First Draft (archived 2022; static reference only): https://firstdraftnews.org/ [verify 2026-10-18]
 
 ---
 
-**Last Updated:** 2025-10-08
+**Last Updated:** 2026-10-18
 **Version:** 1.0
 **Review Frequency:** Yearly

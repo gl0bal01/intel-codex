@@ -14,7 +14,7 @@ tags:
   - entity
   - osint
 created: 2025-10-05
-updated: 2026-09-20
+updated: 2026-10-18
 analyst:
 case_id:
 ---
@@ -251,7 +251,7 @@ sherlock entity_name
 
 # Nuclei OSINT templates (template tag `osint` exists, but is not a username-enumeration
 # replacement for the above — use for surface-level recon only) [verify 2026-04-26]
-nuclei -t http/osint/ -var user=entity_name
+nuclei -t http/osint/ -esc -var user=entity_name
 
 # Manual spot-check
 # X (Twitter): https://x.com/entity_name
@@ -454,8 +454,8 @@ sha256sum -c SHA256SUMS
 ```markdown
 **Tool Execution Records:**
 ```bash
-# Nuclei output
-nuclei -tags osint -var user=entity_name > evidence/nuclei_output.txt
+# Nuclei output (-esc loads the self-contained OSINT templates) [verify 2026-10-18]
+nuclei -tags osint -esc -var user=entity_name > evidence/nuclei_output.txt
 # Found: 12 platforms
 
 # theHarvester output
@@ -628,7 +628,7 @@ Replace fictional version pins with `--version` invocations at audit time. Versi
 | WhatsMyName       | CLI/Web | Username enumeration (canonical)       | [whatsmyname.app](https://whatsmyname.app) / [WebBreacher/WhatsMyName](https://github.com/WebBreacher/WhatsMyName) |
 | Maigret           | CLI     | Username enumeration + profile parse   | [soxoj/maigret](https://github.com/soxoj/maigret)                              |
 | Sherlock          | CLI     | Username enumeration (legacy, active)  | [sherlock-project/sherlock](https://github.com/sherlock-project/sherlock)      |
-| Nuclei (v3.x)     | CLI     | Surface-level OSINT templates          | `nuclei -t http/osint/`                                                        |
+| Nuclei (v3.x)     | CLI     | Surface-level OSINT templates          | `nuclei -t http/osint/ -esc`                                                      |
 | theHarvester      | CLI     | Email/domain OSINT                     | `theHarvester -d domain.com -b all` (current 4.x)                              |
 | WHOIS / RDAP      | CLI     | Domain registration lookup             | `whois domain.com` / `openrdap` / `rdap.org`                                   |
 | Shodan / Censys / FOFA / ZoomEye | Web/CLI | Internet-wide attribution         | `shodan search ...` (verify tier + active credits)                             |
@@ -728,5 +728,5 @@ Canonical text lives in [[sop-legal-ethics|Legal & Ethics]]. Dossier-specific re
 
 **Analyst:** gl0bal01
 **Date Created:** 2025-10-05
-**Last Updated:** 2026-09-20
+**Last Updated:** 2026-10-18
 **Review Cycle:** Yearly (slow-rot anchor SOP per CLAUDE.md watchlist)

@@ -257,7 +257,7 @@ A
 
 **New Person Investigation:**
 1. Create entity file from [[Techniques/sop-entity-dossier|template]]
-2. Run username enumeration: `nuclei -tags osint -var user=username`
+2. Run username enumeration: `nuclei -tags osint -esc -var user=username`
 3. Check data breaches: Have I Been Pwned
 4. Social media audit: [[Platforms/sop-platform-twitter-x|Twitter]], [[Platforms/sop-platform-linkedin|LinkedIn]], etc.
 5. Image search: Google, TinEye, PimEyes
@@ -312,7 +312,7 @@ SORT updated DESC
 
 ## 🔔 Updates & Maintenance
 
-**Last Updated:** 2025-10-05
+**Last Updated:** 2026-10-18
 **Index Version:** 2.0 (post-reorganization)
 **Next Review:** 2025-11-05
 

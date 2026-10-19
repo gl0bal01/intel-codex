@@ -9,12 +9,12 @@ tags:
   - messaging
   - osint
 created: 2024-03-24
-updated: 2026-04-27
+updated: 2026-10-18
 ---
 
 # Telegram OSINT SOP
 
-> **Authorized OSINT use only.** Investigation accounts must comply with Telegram's [Terms of Service](https://telegram.org/tos) and the platform's prohibitions on bulk scraping, automated account creation, and coordinated inauthentic behavior. Review [[../Techniques/sop-legal-ethics|Legal & Ethics SOP]] and [[../Techniques/sop-opsec-plan|OPSEC Planning]] before any engagement.
+> **Authorized OSINT use only.** Investigation accounts must comply with Telegram's [Terms of Service](https://telegram.org/tos) (spam/scams), its [Content Licensing terms](https://telegram.org/tos/content-licensing) (access to user content beyond ordinary use as a user is prohibited; AI scraping expressly), and the [API rules](https://core.telegram.org/api/obtaining_api_id) (flooding/spamming → permanent ban; unofficial-client logins are put under observation) [verify 2026-10-18]. Review [[../Techniques/sop-legal-ethics|Legal & Ethics SOP]] and [[../Techniques/sop-opsec-plan|OPSEC Planning]] before any engagement.
 
 ## Table of Contents
 
@@ -42,19 +42,19 @@ updated: 2026-04-27
 - **Web**: https://web.telegram.org (limited functionality, requires phone verification)
 - **Desktop apps**: Windows/Mac/Linux clients with full feature access
 - **Mobile apps**: iOS/Android with complete functionality
-- **API access**: Telegram API for developers (requires API key from https://my.telegram.org)
+- **API access**: Telegram API for developers (requires API key from https://my.telegram.org) [verify 2026-10-18]
 - **Bot integration**: Custom bots for monitoring and data collection
-- **Third-party tools**: Telethon (Python), telegram-cli (command-line interface)
+- **Third-party tools**: Telethon (Python)
 
 ## 2) Discovery & Search Methods
 
 ### Channel/Group Discovery
-- **Direct links**: telegram.me/username or t.me/username
-- **Invite links**: t.me/joinchat/[hash] or t.me/+[hash] format
+- **Direct links**: telegram.me/username or t.me/username [verify 2026-10-18]
+- **Invite links**: t.me/joinchat/[hash] or t.me/+[hash] format [verify 2026-10-18]
 - **Global search**: `@username`, `#hashtag`, or keyword searches within app
-- **Directory sites**: combot.org, tgstat.com, lyzem.com (use with caution - data quality varies)
+- **Directory sites**: combot.org, tgstat.com, lyzem.com (use with caution - data quality varies) [verify 2026-10-18]
 - **Cross-platform mentions**: Twitter, Reddit, Discord, forums linking to Telegram
-- **Bot directories**: @BotFather listings, third-party bot catalogs
+- **Bot directories**: Third-party bot catalogs; @BotFather only creates and manages bots, and Telegram's Mini App Store (Search → *Apps* tab) highlights selected Mini Apps only [verify 2026-10-18]
 
 ### Search Techniques
 - **Username enumeration**: Try common variations (underscores, numbers, abbreviations)
@@ -65,13 +65,13 @@ updated: 2026-04-27
 
 ## 3) Search Operators & Methods
 
-- **Exact phrases**: Use quotation marks `"exact phrase"` for precise matching
+- **Exact phrases**: Telegram documents no phrase or operator syntax; test quotation-mark behaviour per client before relying on it
 - **Username search**: `@username` to find specific accounts/channels
-- **Hashtag search**: `#keyword` aggregates tagged messages in public channels
-- **Message date filtering**: Platform-specific date range (in-app: from: @username)
+- **Hashtag search**: `#keyword` aggregates tagged posts across public channels, including ones you have not joined (hashtag mode of `channels.searchPosts`) [verify 2026-10-18]
+- **Sender/date filtering**: no documented typed `from:` or date operator; use the filters your client exposes and record which client was used
 - **Media type filtering**: Photos, videos, documents, voice messages, GIFs
 - **Within-chat search**: Use search bar in specific channel/group for local results
-- **Global search**: App-wide search across all accessible chats
+- **Global search**: App-wide search across all accessible chats, plus the *Posts* tab (since 2025-07-31), which searches public channels including ones you have not joined; initially Premium-only, with a limited number of free full-text searches, after which each search costs Stars [verify 2026-10-18]
 
 ## 4) Repeatable Workflow
 
@@ -114,10 +114,10 @@ updated: 2026-04-27
 - **Profile photo**: Reverse image search potential, facial recognition
 - **Phone number**: Visible to contacts only (privacy setting dependent)
 - **Last seen status**: Online indicators (if not hidden by user)
-- **Account creation**: Age estimation via join date of old groups
+- **Account creation**: if the subject messages the persona account first, Telegram's first-contact info page (since 2025-03) shows when they joined Telegram, phone-number country, shared groups, last username/profile-photo change and verification status; screenshot it immediately [verify 2026-10-18]. Otherwise estimate age from ID ordering (below) or join dates of old groups
 
 ### Telegram User ID structure
-- Telegram user IDs are **monotonically increasing integers**, not timestamp-encoded snowflakes (contrast with Discord, which uses snowflake IDs whose top bits encode a millisecond-precision creation timestamp). Cross-link to a dedicated Discord SOP will be added when it lands.
+- Telegram user IDs are **monotonically increasing integers**, not timestamp-encoded snowflakes (contrast with Discord, which uses snowflake IDs whose top bits encode a millisecond-precision creation timestamp). See [[sop-platform-discord|Discord SOP]].
 - A **lower** numeric ID generally indicates an **older account**; this is approximate, not exact, and cannot be converted to a creation date directly.
 - Public crowd-sourced lookup services (e.g., `@username_to_id_bot`, third-party "Telegram ID age" sites) provide rough age buckets — verify any time-based claim against multiple sources and flag with `[verify <date>]` in the dossier.
 - ID ordering is most useful as a **relative** signal: a brand-new ID alongside an old one in a coordinated channel indicates account-creation asymmetry worth investigating.
@@ -179,7 +179,7 @@ updated: 2026-04-27
 ## 8) Collection & Evidence Integrity
 
 ### Export Methods
-- **Built-in export**: Settings → Advanced → Export Chat Data (JSON/HTML)
+- **Built-in export** (Telegram Desktop only): per chat via the chat's ⋯ menu → *Export chat history*, or account-wide via *Settings → Advanced → Export Telegram data* (JSON/HTML). Telegram's export schema notes that public group and channel exports contain only messages sent by the exporting user, so check the output covers the posts you need before relying on it for channel archival [verify 2026-10-18]
 - **Screenshot capture**: Full message threads with context visible
 - **Media download**: Original file formats with metadata intact
 - **Message forwarding**: To personal "Saved Messages" for archival
@@ -223,7 +223,7 @@ updated: 2026-04-27
 
 ### Bot Development for Monitoring
 ```python
-# Example: Telethon keyword monitoring bot
+# Example: Telethon keyword monitoring bot [verify 2026-10-18]
 from telethon import TelegramClient, events
 
 api_id = YOUR_API_ID
@@ -274,19 +274,18 @@ client.run_until_disconnected()
 
 | Tool                 | Purpose                         | Platform   | Access                                  |
 | -------------------- | ------------------------------- | ---------- | --------------------------------------- |
-| **Telegram Desktop** | Full-featured client            | Desktop    | https://desktop.telegram.org            |
-| **Telethon**         | Python library for automation   | CLI/Python | `pip install telethon`                  |
-| **telegram-cli**     | Command-line Telegram client    | CLI        | https://github.com/vysheng/tg           |
-| **Nuclei**           | Username enumeration            | CLI        | `nuclei -tags osint -var user=username` |
-| **Social-Analyzer**  | Cross-platform username search  | CLI        | `pip install social-analyzer`           |
-| **TGStat**           | Channel analytics and discovery | Web        | https://tgstat.com                      |
-| **Combot**           | Channel directory and analytics | Web        | https://combot.org                      |
-| **Telegram API**     | Official API access             | API        | https://core.telegram.org/api           |
-| **IntelX**           | Telegram data leaks search      | Web        | https://intelx.io                       |
+| **Telegram Desktop** | Full-featured client            | Desktop    | https://desktop.telegram.org [verify 2026-10-18] |
+| **Telethon**         | Python library for automation   | CLI/Python | `pip install telethon` [verify 2026-10-18] |
+| **Nuclei**           | Username enumeration            | CLI        | `nuclei -tags osint -esc -var user=username` |
+| **Social-Analyzer**  | Cross-platform username search  | CLI        | `pip install social-analyzer` (PyPI release 0.45 dates from 2022-05; the GitHub repo is newer) [verify 2026-10-18] |
+| **TGStat**           | Channel analytics and discovery | Web        | https://tgstat.com [verify 2026-10-18]  |
+| **Combot**           | Channel directory and analytics | Web        | https://combot.org [verify 2026-10-18]  |
+| **Telegram API**     | Official API access             | API        | https://core.telegram.org/api [verify 2026-10-18] |
+| **IntelX Telegram tools** | Telegram search via Google CSE and Telegago | Web | https://intelx.io/tools?tab=telegram [verify 2026-10-18] |
 
 ### API Usage Example
 ```python
-# Telethon - Download channel history
+# Telethon - Download channel history [verify 2026-10-18]
 from telethon.sync import TelegramClient
 
 api_id = YOUR_API_ID
@@ -302,7 +301,7 @@ with TelegramClient('session', api_id, api_hash) as client:
 ## 12) Risks & Limitations
 
 - **Content deletion**: Messages/channels can disappear without warning
-- **Encryption barriers**: Private messages use end-to-end encryption (not accessible)
+- **Encryption barriers**: Only Secret Chats are end-to-end encrypted; cloud chats (private and group) use server-client encryption and are stored in the Telegram Cloud. Message content is not accessible via OSINT; see §16 for what Telegram discloses to authorities [verify 2026-10-18]
 - **Account blocking**: Investigation accounts may be banned for unusual activity
 - **Platform detection**: Telegram may flag automated/scraping behavior
 - **Legal risks**: Jurisdiction-specific laws regarding encrypted communications monitoring
@@ -341,7 +340,7 @@ with TelegramClient('session', api_id, api_hash) as client:
 6. Immediately escalate to law enforcement (FBI, Interpol)
 7. Continue monitoring for new victims, operational changes
 
-**Outcome**: Evidence provided to FBI led to 8 arrests across 3 countries; 23 victims identified and rescued; channel network of 12 related groups dismantled.
+**Illustrative outcome (fictional)**: Evidence provided to FBI led to 8 arrests across 3 countries; 23 victims identified and rescued; channel network of 12 related groups dismantled.
 
 ### Scenario 2: Cybercrime Marketplace Investigation
 **Situation**: Channel selling stolen credit cards and hacking tools.
@@ -355,7 +354,7 @@ with TelegramClient('session', api_id, api_hash) as client:
 6. Map network of related channels via forward tracking
 7. Compile evidence package for law enforcement
 
-**Outcome**: Identified vendor network operating across 5 channels; traced $2.3M in cryptocurrency transactions; provided evidence to Secret Service resulting in international takedown operation.
+**Illustrative outcome (fictional)**: Identified vendor network operating across 5 channels; traced $2.3M in cryptocurrency transactions; provided evidence to Secret Service resulting in international takedown operation.
 
 ### Scenario 3: Disinformation Campaign Attribution
 **Situation**: Coordinated disinformation spread via Telegram channels before election.
@@ -369,7 +368,7 @@ with TelegramClient('session', api_id, api_hash) as client:
 6. Analyze language patterns for automation/bot indicators
 7. Cross-reference with social media activity (Twitter, Facebook)
 
-**Outcome**: Discovered 47 coordinated channels created within 2-week period; traced to single operator network via shared admin accounts; documented 500+ instances of identical false claims; evidence submitted to election security taskforce.
+**Illustrative outcome (fictional)**: Discovered 47 coordinated channels created within 2-week period; traced to single operator network via shared admin accounts; documented 500+ instances of identical false claims; evidence submitted to election security taskforce.
 
 ## 15) Emergency Procedures
 
@@ -381,7 +380,7 @@ with TelegramClient('session', api_id, api_hash) as client:
 - Evidence of imminent crime (attack planning, victim targeting)
 
 ### Rapid Response Protocol
-1. **Immediate export**: Use built-in export function (JSON + HTML)
+1. **Immediate export**: per-chat *Export chat history* in Telegram Desktop (JSON + HTML); check coverage per §8 [verify 2026-10-18]
 2. **Screenshot everything**: Full channel history, member lists, admin info
 3. **Media download**: All photos, videos, documents at original quality
 4. **Message forwarding**: Critical content to "Saved Messages" for backup
@@ -401,10 +400,11 @@ with TelegramClient('session', api_id, api_hash) as client:
 
 > Telegram OSINT sits at the intersection of platform ToS, encrypted-communications law, and (frequently) sensitive-crime evidence. The canonical source for legal posture is [[../Techniques/sop-legal-ethics|Legal & Ethics SOP]] — never re-derive it here.
 
-- **Platform ToS**: bulk scraping, automated account creation, mass DM, and coordinated inauthentic behavior are prohibited by [Telegram's ToS](https://telegram.org/tos). Investigation accounts that violate ToS risk ban and evidence inadmissibility.
+- **Platform ToS**: [Telegram's ToS](https://telegram.org/tos) bans spam and scams; its [Terms of Service for Content Licensing](https://telegram.org/tos/content-licensing) prohibit access to user-generated content for any purpose other than ordinary, legitimate use of Telegram as a user (scraping for AI/ML is expressly prohibited); and the [API rules](https://core.telegram.org/api/obtaining_api_id) permanently ban accounts used for flooding, spamming or faking subscriber/view counters [verify 2026-10-18]. Investigation accounts that violate ToS risk ban and evidence inadmissibility.
 - **Encrypted-comms law**: jurisdiction-specific. Some countries (UK Investigatory Powers Act, AU Assistance and Access Act, RU Yarovaya laws) impose obligations or restrictions on monitoring encrypted platforms even for OSINT. Confirm authorization scope before engagement.
+- **Legal process**: per [Privacy Policy](https://telegram.org/privacy) §8.3 (updated 2024-09-23), on a valid judicial order confirming a user is a suspect in criminal activity that violates the ToS, Telegram may disclose that user's IP address and phone number to the relevant authorities; disclosures are reported quarterly at https://t.me/transparency. The clause covers IP address and phone number only, not message content. Route LE referrals via [[../Techniques/sop-sensitive-crime-intake-escalation|Sensitive Crime Escalation SOP]] [verify 2026-10-18].
 - **Joining a private channel**: lurking in a public channel is OSINT; joining a closed/invite-only channel via a sock-puppet may cross into pretexting under some legal frameworks (esp. EU GDPR Recital 47 / lawful basis). Document the legal basis in the collection log.
-- **Bot API discipline**: the official Bot API can read messages only after the bot is added to the chat. Using user-API libraries (Telethon, telegram-cli) under a personal account against third-party channels is a ToS gray area — flag and route to [[../Techniques/sop-legal-ethics|Legal & Ethics SOP]].
+- **Bot API discipline**: the official Bot API can read messages only after the bot is added to the chat. Using user-API libraries (Telethon and similar MTProto clients) under a personal account against third-party channels conflicts with the Content Licensing terms, which allow data access beyond ordinary use only to the extent strictly required to operate a legitimate client, bot or Mini App, and accounts logging in via unofficial API clients are put under observation [verify 2026-10-18]. Treat it as a ban and evidence-admissibility risk, not a gray area — flag and route to [[../Techniques/sop-legal-ethics|Legal & Ethics SOP]].
 - **Sensitive-crime routing**: CSAM, threat-to-life, trafficking, terrorism content found during OSINT triggers immediate hard-stop and routing per [[../Techniques/sop-sensitive-crime-intake-escalation|Sensitive Crime Escalation SOP]]. Do not download or further analyze CSAM; preserve URL + timestamp only and report to NCMEC (US) / IWF (UK) / national equivalent.
 - **OPSEC**: investigation phone numbers, payment methods, and devices must be isolated from the analyst's personal identity per [[../Techniques/sop-opsec-plan|OPSEC Planning SOP]]. Telegram's contact-discovery feature can leak phone numbers across mutually-saved contacts.
 
@@ -423,24 +423,23 @@ with TelegramClient('session', api_id, api_hash) as client:
 ## 18) External Resources
 
 **Official Documentation:**
-- Telegram API Documentation: https://core.telegram.org/api
-- Bot API Guide: https://core.telegram.org/bots/api
-- Telegram Privacy Policy: https://telegram.org/privacy
-- Telegram Terms of Service: https://telegram.org/tos
+- Telegram API Documentation: https://core.telegram.org/api [verify 2026-10-18]
+- Bot API Guide: https://core.telegram.org/bots/api [verify 2026-10-18]
+- Telegram Privacy Policy: https://telegram.org/privacy [verify 2026-10-18]
+- Telegram Terms of Service: https://telegram.org/tos [verify 2026-10-18]
 
 **Third-Party Tools:**
-- Telethon Documentation: https://docs.telethon.dev
-- telegram-cli GitHub: https://github.com/vysheng/tg [verify 2026-04-27 — project archival status]
-- Nuclei Templates: https://github.com/projectdiscovery/nuclei-templates
+- Telethon Documentation: https://docs.telethon.dev [verify 2026-10-18]
+- Nuclei Templates: https://github.com/projectdiscovery/nuclei-templates [verify 2026-10-18]
 - Social-Analyzer: https://github.com/qeeqbox/social-analyzer
 
 **Training & Guides:**
-- Bellingcat Telegram OSINT Guide: https://www.bellingcat.com/resources/how-tos/
-- OSINT Framework Telegram Section: https://osintframework.com/
-- DFRLab Telegram Investigation Guide: https://www.atlanticcouncil.org/programs/digital-forensic-research-lab/
+- Bellingcat How-To Guides (general): https://www.bellingcat.com/resources/how-tos/ [verify 2026-10-18]
+- OSINT Framework Telegram Section: https://osintframework.com/ [verify 2026-10-18]
+- DFRLab Telegram Investigation Guide: https://www.atlanticcouncil.org/programs/digital-forensic-research-lab/ [verify 2026-10-18]
 
 ---
 
-**Last Updated:** 2026-04-27
+**Last Updated:** 2026-10-18
 **Version:** 2.1 (TOC + Legal block + Telegram-ID structure note)
 **Review Frequency:** Yearly
