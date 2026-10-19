@@ -115,18 +115,25 @@ if [[ -f "$GAPS" ]]; then
   cat "$GAPS" >> "$OUT"
 fi
 
-# Keep the README badge line honest: rewrite the marked block in place so the
-# published count can never drift from the filesystem. No markers, no rewrite.
-README="README.md"
-if [[ -f "$README" ]] && grep -q '<!-- vault-state:begin' "$README"; then
-  COUNT_LINE="**$TOTAL SOPs** · $INVESTIGATIONS_COUNT investigation · $SECURITY_COUNT security"
-  awk -v line="$COUNT_LINE" '
+# Keep the published counts honest: rewrite the marked block in place so they
+# can never drift from the filesystem. No markers, no rewrite.
+rewrite_count_block() {
+  local file="$1" line="$2"
+  [[ -f "$file" ]] || return 0
+  grep -q '<!-- vault-state:begin' "$file" || return 0
+  awk -v line="$line" '
     /<!-- vault-state:begin/ { print; print line; skip = 1; next }
     /<!-- vault-state:end/   { skip = 0 }
     !skip                    { print }
-  ' "$README" > "$README.tmp" && mv "$README.tmp" "$README"
-  echo "Updated $README count block ($TOTAL SOPs)"
-fi
+  ' "$file" > "$file.tmp" && mv "$file.tmp" "$file"
+  echo "Updated $file count block"
+}
+
+# Guides and sample writeups, not the index pages that only point at them.
+CTF_COUNT=$(find CTF -name '*.md' -type f ! -name '*-Index.md' 2>/dev/null | wc -l)
+
+rewrite_count_block "README.md" "**$TOTAL SOPs** · $INVESTIGATIONS_COUNT investigation · $SECURITY_COUNT security"
+rewrite_count_block "index.md" "**$TOTAL SOPs** · $INVESTIGATIONS_COUNT investigation · $SECURITY_COUNT security · $CTF_COUNT CTF resources"
 
 # --- published verification status ------------------------------------------
 # Every SOP carries inline `[verify YYYY-MM-DD]` markers: one claim checked
@@ -135,8 +142,8 @@ fi
 # age of a procedure is visible without having to trust the page.
 
 STATUS="Verification-Status.md"
-CURRENT_DAYS=90
-OVERDUE_DAYS=180
+# shellcheck source=tools/verification-cadence.sh
+source tools/verification-cadence.sh
 
 n_current=0
 n_due=0
@@ -162,9 +169,9 @@ status_rows() {
         oldest="—"; age="—"; state="no source checks"
       else
         age=$(( ( $(date +%s) - $(date -d "$oldest" +%s) ) / 86400 ))
-        if   (( age <= CURRENT_DAYS )); then state="current"
-        elif (( age <= OVERDUE_DAYS )); then state="review due"
-        else                                state="overdue"
+        if   (( age <= VERIFY_WARN_DAYS ));    then state="current"
+        elif (( age <= VERIFY_CADENCE_DAYS )); then state="due soon"
+        else                                        state="overdue"
         fi
       fi
       # Alias-free wikilink: an alias pipe would split the table cell, and the
@@ -182,9 +189,9 @@ for dir in "$PLATFORMS_DIR" "$TECHNIQUES_DIR" "$ANALYSIS_DIR" "$PENTEST_DIR"; do
       n_none=$((n_none + 1)); continue
     fi
     age=$(( ( $(date +%s) - $(date -d "$oldest" +%s) ) / 86400 ))
-    if   (( age <= CURRENT_DAYS )); then n_current=$((n_current + 1))
-    elif (( age <= OVERDUE_DAYS )); then n_due=$((n_due + 1))
-    else                                n_overdue=$((n_overdue + 1))
+    if   (( age <= VERIFY_WARN_DAYS ));    then n_current=$((n_current + 1))
+    elif (( age <= VERIFY_CADENCE_DAYS )); then n_due=$((n_due + 1))
+    else                                        n_overdue=$((n_overdue + 1))
     fi
   done < <(find "$dir" -maxdepth 1 -name 'sop-*.md' -type f)
 done
@@ -215,17 +222,18 @@ claims were last checked against sources, not that a procedure was executed end
 to end in a lab.** No SOP here is labelled field-tested, because none of them has
 the evidence that label would require.
 
-A SOP counts as \`current\` at $CURRENT_DAYS days or less, \`review due\` up to
-$OVERDUE_DAYS, and \`overdue\` beyond that. Age is measured from the **oldest**
-marker in the file, so a SOP is only as fresh as its stalest claim.
+Claims are re-checked on a **six-month cadence**. A SOP reads \`current\` until
+$VERIFY_WARN_DAYS days, \`due soon\` in the month before the cadence expires, and
+\`overdue\` past $VERIFY_CADENCE_DAYS. Age is measured from the **oldest** marker in the
+file, so a SOP is only as fresh as its stalest claim.
 
 ## Summary
 
 | State | SOPs |
 |-------|------|
-| current (≤ $CURRENT_DAYS days) | $n_current |
-| review due ($((CURRENT_DAYS + 1))–$OVERDUE_DAYS days) | $n_due |
-| overdue (> $OVERDUE_DAYS days) | $n_overdue |
+| current (≤ $VERIFY_WARN_DAYS days) | $n_current |
+| due soon ($((VERIFY_WARN_DAYS + 1))–$VERIFY_CADENCE_DAYS days) | $n_due |
+| overdue (> $VERIFY_CADENCE_DAYS days) | $n_overdue |
 | no source checks recorded | $n_none |
 | **Total** | **$TOTAL** |
 

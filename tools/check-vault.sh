@@ -7,7 +7,7 @@
 # Checks:
 #   1. Every sop-*.md has 'updated:' in YAML front matter
 #   2. Every sop-*.md cross-references Legal & Ethics
-#   3. [verify YYYY-MM-DD] markers older than 180 days
+#   3. [verify YYYY-MM-DD] markers older than the cadence in tools/verification-cadence.sh
 #   4. Wikilink targets resolve to real basenames in the vault
 #   5. .omc/vault-state.md total count matches the filesystem
 
@@ -41,11 +41,13 @@ while IFS= read -r f; do
   fi
 done < <(find Investigations Security -name 'sop-*.md' -type f)
 
-# 3. [verify YYYY-MM-DD] older than 180 days
+# 3. [verify YYYY-MM-DD] older than the review cadence
 echo "[3/5] Checking [verify] marker freshness ..."
-cutoff=$(date -d "180 days ago" +%Y%m%d 2>/dev/null || gdate -d "180 days ago" +%Y%m%d 2>/dev/null || echo "")
+# shellcheck source=tools/verification-cadence.sh
+source tools/verification-cadence.sh
+cutoff=$(date -d "$VERIFY_CADENCE_DAYS days ago" +%Y%m%d 2>/dev/null || gdate -d "$VERIFY_CADENCE_DAYS days ago" +%Y%m%d 2>/dev/null || echo "")
 if [[ -z "$cutoff" ]]; then
-  echo "  (skipped: no GNU date available for 180-day arithmetic)"
+  echo "  (skipped: no GNU date available for $VERIFY_CADENCE_DAYS-day arithmetic)"
 else
   while IFS= read -r line; do
     file="${line%%:*}"
@@ -53,7 +55,7 @@ else
     if [[ -n "$date_str" ]]; then
       date_compact="${date_str//-/}"
       if [[ "$date_compact" -lt "$cutoff" ]]; then
-        warn "$file has stale [verify $date_str] (>180 days old)"
+        warn "$file has stale [verify $date_str] (>$VERIFY_CADENCE_DAYS days old)"
       fi
     fi
   done < <(grep -rn "\[verify [0-9]" Investigations Security 2>/dev/null || true)
