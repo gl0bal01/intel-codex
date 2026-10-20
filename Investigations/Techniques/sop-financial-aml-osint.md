@@ -346,6 +346,7 @@ OPSEC for the investigator (separation of attribution, network egress, wallet/ac
 |----------|------|-----|
 | OpenCorporates | Global company search | [opencorporates.com](https://opencorporates.com) |
 | Companies House (UK) | UK registry | [find-and-update.company-information.service.gov.uk](https://find-and-update.company-information.service.gov.uk/) |
+| China company registration guide | Independent guide to obtaining a Chinese legal name or USCI and searching official registers; registration does not establish supplier reliability | [currawongweb.com/verify/china-company-registration-check/](https://currawongweb.com/verify/china-company-registration-check/) |
 | OpenOwnership | Beneficial ownership register | [register.openownership.org](https://register.openownership.org/) |
 | OCCRP Aleph | Investigative document graph | [aleph.occrp.org](https://aleph.occrp.org/) |
 | C4ADS Horizons | Investigative document search (free, but access on request: vetted partners, needs-based) | [Horizons](https://horizons.c4ads.org/about) |
