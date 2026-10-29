@@ -3,7 +3,7 @@ type: sop
 title: Web, DNS & WHOIS OSINT
 description: "Domain intelligence techniques: WHOIS/RDAP lookups, DNS records, certificate transparency, subdomain enumeration, passive DNS & infrastructure mapping for web investigations."
 tags: [sop, webint, whois, rdap, dns, dnssec, ct-logs, subdomain-enumeration]
-updated: 2026-04-25
+updated: 2026-10-29
 ---
 
 # Web / DNS / WHOIS OSINT
@@ -19,7 +19,7 @@ updated: 2026-04-25
 
 ### Active DNS Resolution
 ```bash
-# Basic resolution
+# Basic resolution [verify 2026-10-29]
 dig example.com A +short
 dig example.com AAAA +short
 dig example.com MX +short
@@ -37,13 +37,13 @@ dig example.com +trace
 dig @8.8.8.8 example.com A
 dig @1.1.1.1 example.com A +noall +answer
 
-# ANY is widely refused since RFC 8482 — prefer per-type queries
+# ANY is widely refused since RFC 8482 — prefer per-type queries [verify 2026-10-29]
 dig example.com ANY    # may return HINFO "RFC8482" only
 ```
 
 ### DNSSEC Inspection
 ```bash
-# Validate chain & display RRSIG / DNSKEY / DS records
+# Validate chain & display RRSIG / DNSKEY / DS records [verify 2026-10-29]
 dig example.com +dnssec +multi
 dig example.com DNSKEY +short
 dig example.com DS +short
@@ -51,57 +51,57 @@ dig example.com DS +short
 # AD flag (Authenticated Data) confirms validating resolver succeeded
 dig @1.1.1.1 example.com +dnssec | grep -E "flags:|RRSIG"
 
-# delv = libbind validating lookup (drop-in `dig` replacement for DNSSEC)
+# delv = BIND's DNSSEC-validating lookup tool (same resolver/validator logic as named; dig-like syntax) [verify 2026-10-29]
 delv example.com A
 ```
 Notes:
 - Absence of DS at the parent → zone is unsigned (no DNSSEC).
-- `delv` returns `; fully validated` only when the chain anchors back to the root KSK.
+- `delv` returns `; fully validated` only when the chain anchors back to the root KSK. [verify 2026-10-29]
 - Lame DS / expired RRSIG / missing NSEC3 are common operator misconfigurations worth flagging in dossiers.
 
 ### Subdomain Discovery
 ```bash
-# Certificate transparency logs (URL-encode the wildcard: %25 == %)
-curl -s "https://crt.sh/?q=%25.example.com&output=json" | jq -r '.[].name_value' | tr '\n' '\n' | sort -u
+# Certificate transparency logs (URL-encode the wildcard: %25 == %) [verify 2026-10-29]
+curl -s "https://crt.sh/?q=%25.example.com&output=json" | jq -r '.[].name_value' | sort -u
 
-# Modern passive enumeration (ProjectDiscovery toolchain)
+# Modern passive enumeration (ProjectDiscovery toolchain) [verify 2026-10-29]
 subfinder -d example.com -silent -all                 # passive sources
 assetfinder --subs-only example.com                   # tomnomnom, passive
-amass enum -passive -d example.com -timeout 5         # OWASP Amass v5+
+amass enum -d example.com -timeout 5                  # OWASP Amass v5: passive by default (-passive is deprecated; add -active for zone transfers/cert grabs); -timeout = minutes without progress
 
-# Resolve & filter live hosts (dnsx)
+# Resolve & filter live hosts (dnsx) [verify 2026-10-29]
 subfinder -d example.com -silent | dnsx -silent -a -resp
 
-# Brute-force / permutation
+# Brute-force / permutation [verify 2026-10-29]
 dnsrecon -d example.com -t brt -D /usr/share/wordlists/subdomains.txt
 puredns bruteforce wordlist.txt example.com -r resolvers.txt
 gotator -sub subs.txt -perm permutations.txt -depth 1 -numbers 10 | dnsx -silent
 ```
 Install hints (verify against upstream README before pinning):
-- `subfinder`: `go install -v github.com/projectdiscovery/subfinder/v2/cmd/subfinder@latest`
-- `amass`: `go install -v github.com/owasp-amass/amass/v5/...@master` [verify 2026-04-25] (v5 module path)
-- `dnsx`: `go install -v github.com/projectdiscovery/dnsx/cmd/dnsx@latest`
-- `assetfinder`: `go install github.com/tomnomnom/assetfinder@latest`
+- `subfinder`: `go install -v github.com/projectdiscovery/subfinder/v2/cmd/subfinder@latest` [verify 2026-10-29]
+- `amass`: `CGO_ENABLED=0 go install -v github.com/owasp-amass/amass/v5/cmd/amass@main` (v5 module path; repo default branch is `main`) [verify 2026-10-29]
+- `dnsx`: `go install -v github.com/projectdiscovery/dnsx/cmd/dnsx@latest` [verify 2026-10-29]
+- `assetfinder`: `go install github.com/tomnomnom/assetfinder@latest` (README still shows the pre-modules `go get -u`) [verify 2026-10-29]
 
 ### Passive DNS (Historical Records)
-- [SecurityTrails](https://securitytrails.com) — Historical DNS / WHOIS; free tier metered, paid tiers gated [verify 2026-04-25]
-- [DomainTools Iris / Farsight DNSDB](https://www.domaintools.com/products/farsight-dnsdb/) — Farsight was acquired by DomainTools (2022); legacy `dnsdb.info` queries now route via DomainTools auth
-- [Microsoft Defender Threat Intelligence](https://ti.defender.microsoft.com/) — replaces RiskIQ PassiveTotal (community.riskiq.com retired post-acquisition); integrated with Defender XDR
-- [Mnemonic PassiveDNS](https://passivedns.mnemonic.no/) — free academic/researcher tier
+- [SecurityTrails](https://securitytrails.com) — Historical DNS / WHOIS; paid tiers gated — free-tier quota unconfirmed (pricing page not publicly reachable), check before relying on it
+- [DomainTools Iris / Farsight DNSDB](https://www.domaintools.com/products/farsight-dnsdb/) — Farsight was acquired by DomainTools (Nov 2021); the DNSDB product URL now redirects to the DomainTools platform page [verify 2026-10-29]
+- [Microsoft Defender Threat Intelligence](https://security.microsoft.com) — RiskIQ PassiveTotal lineage (community.riskiq.com retired post-acquisition); the standalone `ti.defender.microsoft.com` portal is gone — use **Threat intelligence → Intel explorer** and entity-page enrichment in the Defender portal [verify 2026-10-29]
+- [Mnemonic PassiveDNS](https://passivedns.mnemonic.no/) — public API without authentication (TLP:WHITE data only; 10 req/min, 1000 req/day; `https://api.mnemonic.no/pdns/v3/<query>`); API key on request for higher limits [verify 2026-10-29]
 - [VirusTotal](https://virustotal.com) — Relations / Resolutions tab, requires VT account; VT Intelligence (paid) for retro-search
-- [DNSdumpster](https://dnsdumpster.com) — free, rate-limited, captcha
+- [DNSdumpster](https://dnsdumpster.com) — free web tool; API and paid Membership available (see `/developer/`) [verify 2026-10-29]
 - [URLScan.io](https://urlscan.io/) — DOM / page / IP history; public-by-default unless team plan
 
 **Query pattern:**
 ```bash
-# SecurityTrails API (historical A records)
+# SecurityTrails API (historical A records) [verify 2026-10-29]
 curl -s "https://api.securitytrails.com/v1/history/example.com/dns/a" \
   -H "APIKEY: $SECURITYTRAILS_KEY" | jq .
 
-# DomainTools Iris Investigate (historical pivots; OAuth2 / API key)
-# See https://app.swaggerhub.com/apis-docs/DomainTools/Iris-Investigate_API/
+# DomainTools Iris Investigate (historical pivots; API key or HMAC-signed auth)
+# See https://docs.domaintools.com/api/iris/investigate/ (auth: https://docs.domaintools.com/api/iris/authentication/) [verify 2026-10-29]
 
-# Wayback Machine CDX — historical snapshots of a host
+# Wayback Machine CDX — historical snapshots of a host [verify 2026-10-29]
 curl -s "https://web.archive.org/cdx/search/cdx?url=example.com&output=json&limit=100&fl=timestamp,original,statuscode,mimetype" | jq .
 ```
 
@@ -109,14 +109,14 @@ curl -s "https://web.archive.org/cdx/search/cdx?url=example.com&output=json&limi
 
 ## 2. WHOIS / RDAP Attribution
 
-> **Protocol note:** RDAP (Registration Data Access Protocol, RFC 9082/9083) is ICANN's structured-JSON successor to legacy WHOIS port-43 text. ICANN's contracted-party policy adopted in 2023 sets a 180-day RDAP ramp-up + 360-day WHOIS sunset window for gTLD registries/registrars [verify 2026-04-25] — confirm current sunset status at https://www.icann.org/rdap before assuming WHOIS is still served. ccTLDs follow their own timelines; many still expose only WHOIS.
+> **Protocol note:** RDAP (Registration Data Access Protocol, RFC 9082/9083) is ICANN's structured-JSON successor to legacy WHOIS port-43 text. ICANN's 2023 Global Amendments (effective 7 Aug 2023) ran a 180-day RDAP ramp-up (to 3 Feb 2024) and sunset the contractual WHOIS obligation on **28 January 2025**: gTLD registries/registrars are no longer required to serve WHOIS (exceptions: .com, .name, .post). The Registration Data Policy (redaction rules, `REDACTED` placeholder) took effect 21 Aug 2025. Treat RDAP as primary for gTLDs; WHOIS may be absent or stale (status: https://www.icann.org/rdap). ccTLDs follow their own timelines; many still expose only WHOIS. [verify 2026-10-29]
 
 ### Domain WHOIS (legacy port-43)
 ```bash
 # Basic WHOIS lookup
 whois example.com
 
-# Force a specific server (registrar thin-WHOIS, regional WHOIS)
+# Force a specific server (registrar thin-WHOIS, regional WHOIS) [verify 2026-10-29]
 whois -h whois.verisign-grs.com example.com
 whois -h whois.iana.org example.com    # IANA root → authoritative referral
 
@@ -126,41 +126,41 @@ whois example.com | grep -iE "(Registrant|Admin|Tech|Registrar|Creation|Updated|
 
 ### Domain RDAP (modern, structured JSON)
 ```bash
-# Direct registry RDAP (Verisign for .com/.net)
+# Direct registry RDAP (Verisign for .com/.net) [verify 2026-10-29]
 curl -s "https://rdap.verisign.com/com/v1/domain/example.com" | jq .
 
-# Bootstrap router — auto-routes to the responsible registry
+# Bootstrap router — auto-routes to the responsible registry [verify 2026-10-29]
 curl -s "https://rdap.org/domain/example.com" | jq .
 
 # CLI client (Go reference implementation)
-# install: go install github.com/openrdap/rdap/cmd/rdap@latest
+# install: go install github.com/openrdap/rdap/cmd/rdap@latest [verify 2026-10-29]
 rdap example.com
 rdap --json example.com | jq '.entities[] | select(.roles[]=="registrant")'
 ```
 Pivot fields exposed by RDAP that legacy WHOIS often loses to free-form text:
-- `events[].eventAction` (registration, last changed, expiration) with ISO-8601 timestamps
-- `entities[].roles` (registrant / admin / tech / abuse) keyed by vCard arrays
-- `nameservers[].ldhName` and `ipAddresses`
-- `secureDNS` (delegationSigned, dsData) → DNSSEC posture
-- `links[].rel` (`self`, `related`, `tos`) for traversal
+- `events[].eventAction` (registration, last changed, expiration) with ISO-8601 timestamps [verify 2026-10-29]
+- `entities[].roles` (registrant / admin / tech / abuse) keyed by vCard arrays [verify 2026-10-29]
+- `nameservers[].ldhName` and `ipAddresses` [verify 2026-10-29]
+- `secureDNS` (delegationSigned, dsData) → DNSSEC posture [verify 2026-10-29]
+- `links[].rel` (`self`, `related`, `up`, `alternate`) for traversal; registry notices carry their own links (e.g. `terms-of-service`) [verify 2026-10-29]
 
 ### IP WHOIS / RDAP (ASN/Org Attribution)
 ```bash
 # IP ownership (RIR-aware, follows referrals)
 whois 1.2.3.4
 
-# Team Cymru bulk ASN
+# Team Cymru bulk ASN [verify 2026-10-29]
 whois -h whois.cymru.com " -v 1.2.3.4"
 
-# RIR RDAP endpoints
+# RIR RDAP endpoints [verify 2026-10-29]
 curl -s "https://rdap.arin.net/registry/ip/1.2.3.4"   | jq .
 curl -s "https://rdap.db.ripe.net/ip/1.2.3.4"         | jq .
 curl -s "https://rdap.apnic.net/ip/1.2.3.4"           | jq .
 curl -s "https://rdap.lacnic.net/rdap/ip/1.2.3.4"     | jq .
 curl -s "https://rdap.afrinic.net/rdap/ip/1.2.3.4"    | jq .
 
-# ASN → prefix expansion (BGP table view)
-curl -s "https://api.bgpview.io/asn/AS13335/prefixes" | jq .
+# ASN → announced prefixes (RIPEstat, from RIPE RIS BGP collectors) [verify 2026-10-29]
+curl -s "https://stat.ripe.net/data/announced-prefixes/data.json?resource=AS13335" | jq -r '.data.prefixes[].prefix'
 ```
 
 ### Privacy / Redaction Detection
@@ -170,7 +170,7 @@ GDPR (May 2018) drove blanket redaction of registrant personal data for EU and m
 |-----------|---------|
 | `REDACTED FOR PRIVACY` / `Data Protected` | GDPR-style registrar-side redaction (post-2018 default) |
 | `Domains By Proxy, LLC` | GoDaddy proxy service |
-| `WhoisGuard, Inc.` / `Withheld for Privacy ehf` | Namecheap proxy (rebranded ~2021 → "Privacy service provided by Withheld for Privacy ehf") |
+| `WhoisGuard, Inc.` / `Withheld for Privacy ehf` | Namecheap proxy (rebranded ~2021 → "Privacy service provided by Withheld for Privacy ehf") [verify 2026-10-29] |
 | `Contact Privacy Inc.` | Tucows/OpenSRS proxy |
 | `PrivacyProtect.org` / `Perfect Privacy LLC` | other registrar resellers |
 | `Identity Digital Services` / `MarkMonitor` privacy | enterprise proxy/brand-protection |
@@ -202,30 +202,30 @@ curl -s https://example.com/favicon.ico | md5sum
 
 ### Specialized Tools
 ```bash
-# WhatWeb (Ruby; built-in plugin set)
+# WhatWeb (Ruby; built-in plugin set) [verify 2026-10-29]
 whatweb -a 3 https://example.com
 
-# webanalyze (Go port of Wappalyzer fingerprints; offline DB)
+# webanalyze (Go port of Wappalyzer fingerprints; offline DB) [verify 2026-10-29]
 webanalyze -host https://example.com -crawl 2
 
-# wappalyzergo (library + CLI; ProjectDiscovery fork of the open Wappalyzer DB)
-# install: go install github.com/projectdiscovery/wappalyzergo/cmd/update-fingerprints@latest
+# wappalyzergo (ProjectDiscovery Go library; fingerprints from enthec/webappanalyzer + HTTPArchive/wappalyzer) — the practical CLI is httpx [verify 2026-10-29]
+# helper install (per README): go install -v github.com/projectdiscovery/wappalyzergo/cmd/update-fingerprints@latest
 echo "https://example.com" | httpx -tech-detect -silent
 ```
-Wappalyzer's official browser extension shifted to a paid/account-gated model; open-source forks (`webanalyze`, `wappalyzergo`) carry the historical fingerprint DB and are the practical CLI choices [verify 2026-04-25].
+Wappalyzer removed public access to its app definitions; open-source ports (`webanalyze`, `wappalyzergo`) load community-maintained fingerprints (enthec/webappanalyzer) and are the practical CLI choices [verify 2026-10-29].
 
 ### Tracker & Analytics IDs
 
 **Google Analytics:**
 ```bash
-# GA4 (current; "G-" prefix, 10 alphanumerics)
-curl -s https://example.com | grep -oE "G-[A-Z0-9]{10}"
+# GA4 (current; "G-" prefix + letters/digits — Google states no fixed length; 10 is typical) [verify 2026-10-29]
+curl -s https://example.com | grep -oE "G-[A-Z0-9]{6,}"
 
-# Universal Analytics (UA-XXXXXXX-X) — property collection ended 2024-07-01;
+# Universal Analytics (UA-XXXXXXX-X) — standard properties stopped processing 2023-07-01 (360 extension to 2024-07-01; data deleted from 2024-07-01); [verify 2026-10-29]
 # IDs are sunset operationally but still useful as historical correlation pivots.
 curl -s https://example.com | grep -oE "UA-[0-9]{4,10}-[0-9]{1,4}"
 
-# AdSense / AdManager
+# AdSense / AdManager [verify 2026-10-29]
 curl -s https://example.com | grep -oE "ca-pub-[0-9]{16}"
 
 # Google Tag Manager container
@@ -245,8 +245,8 @@ curl -s https://example.com | grep -oE "GTM-[A-Z0-9]{6,8}"
 - [PublicWWW](https://publicwww.com) — source-code search; metered free, paid for bulk export
 - [BuiltWith](https://builtwith.com) — technology profiler; paid for "Relationships" report (the actual GA-ID pivot)
 - [NerdyData](https://nerdydata.com) — source-code search engine
-- [URLScan.io](https://urlscan.io/search/) — search by tech, hash, GA ID, favicon hash via the `task.tags` / `page.url` query DSL
-- [Spyse](https://spyse.com) / [Netlas.io](https://netlas.io/) — SaaS internet-asset search (limited free tiers)
+- [URLScan.io](https://urlscan.io/search/) — search by tech, hash, GA ID, favicon hash via the `task.tags` / `page.url` query DSL [verify 2026-10-29]
+- [Netlas.io](https://netlas.io/) — SaaS internet-asset search (free Community plan: 50 requests/day) [verify 2026-10-29]
 
 ---
 
@@ -254,11 +254,11 @@ curl -s https://example.com | grep -oE "GTM-[A-Z0-9]{6,8}"
 
 ### Certificate Transparency Logs
 ```bash
-# crt.sh JSON query (Sectigo's public CT-aggregator; rate-limited, no auth)
+# crt.sh JSON query (Sectigo's public CT-aggregator; rate-limited, no auth) [verify 2026-10-29]
 curl -s "https://crt.sh/?q=example.com&output=json" | jq -r '.[].common_name' | sort -u
 
 # Subject Alternative Names — usually the highest-value field
-curl -s "https://crt.sh/?q=example.com&output=json" | jq -r '.[].name_value' | tr '\n' '\n' | sort -u
+curl -s "https://crt.sh/?q=example.com&output=json" | jq -r '.[].name_value' | sort -u
 
 # Wildcard subdomain hunt (URL-encoded %)
 curl -s "https://crt.sh/?q=%25.example.com&output=json" | jq -r '.[].name_value' | sort -u
@@ -267,14 +267,14 @@ curl -s "https://crt.sh/?q=%25.example.com&output=json" | jq -r '.[].name_value'
 curl -s "https://crt.sh/?O=Example+Inc&output=json" | jq .
 
 # Direct CT-log query alternatives (when crt.sh is down / 502s)
-# - Censys: https://search.censys.io/certificates?q=names%3A%22example.com%22  (free tier limited)
-# - Google CT API: https://transparencyreport.google.com/https/certificates
+# - Censys Platform: https://platform.censys.io (Legacy Search at search.censys.io deprecated Sept 2026) [verify 2026-10-29]
+# - Google Transparency Report certificate search (web UI): https://transparencyreport.google.com/https/certificates
 ```
-Active CT logs operated by major CAs include Google Argon/Xenon, Cloudflare Nimbus, Sectigo Sabre/Mammoth, DigiCert Yeti/Nessie, Let's Encrypt Oak [verify 2026-04-25] (browser-trusted log list rotates yearly — see https://googlechrome.github.io/CertificateTransparency/log_list.html).
+Usable CT logs on Chrome's list (Oct 2026) include Google Argon/Xenon (+ tiled ParcelYard/PlumbersArms), Cloudflare Nimbus, DigiCert Wyvern/Sphinx, Sectigo Elephant/Tiger (Sabre/Mammoth now read-only), Let's Encrypt Sycamore/Willow (Oak retired), TrustAsia, Geomys Tuscolo and IPng Halloumi/Gouda — logs are temporally sharded and rotate, so pull the live list from https://www.gstatic.com/ct/log_list/v3/log_list.json [verify 2026-10-29].
 
 ### Live Certificate Inspection
 ```bash
-# Full certificate text
+# Full certificate text [verify 2026-10-29]
 openssl s_client -connect example.com:443 -servername example.com </dev/null 2>/dev/null \
   | openssl x509 -noout -text
 
@@ -295,11 +295,11 @@ Always pass `-servername` (SNI) — modern multi-tenant edges return a default c
 Server-side TLS handshake fingerprints (JARM) and client-side ClientHello fingerprints (JA3/JA4) cluster infrastructure even when the cert and IP differ:
 
 ```bash
-# JARM — Salesforce-published server TLS fingerprint
-# install: pip install jarm
-python -m jarm.scanner.scanner -i example.com -p 443
+# JARM — Salesforce-published server TLS fingerprint (reference script; Python 3 needs no extra deps) [verify 2026-10-29]
+git clone https://github.com/salesforce/jarm
+python3 jarm/jarm.py -p 443 example.com
 
-# JA4+ suite (FoxIO; supersedes JA3): ja4 / ja4s / ja4h / ja4t etc.
+# JA4+ suite (FoxIO; supersedes JA3): ja4 / ja4s / ja4h / ja4t etc. [verify 2026-10-29]
 # https://github.com/FoxIO-LLC/ja4
 ```
 
@@ -308,7 +308,7 @@ python -m jarm.scanner.scanner -i example.com -p 443
 - Certificate serial number + Issuer DN → cluster of certs from the same issuance batch
 - JARM hash → infrastructure family (default Cobalt Strike / nginx / cloudfront have known JARMs)
 - JA3/JA4 hash → C2 / scanner / proxy attribution
-- Issuer patterns (Let's Encrypt R10/R11, ZeroSSL, Cloudflare Inc ECC) reveal automation choices
+- Issuer patterns (Let's Encrypt YR1/YR2 RSA and YE1/YE2 ECDSA — R10–R14/E5–E9 are retired but still seen on older certs; ZeroSSL; Cloudflare Universal SSL via Let's Encrypt / Google Trust Services / SSL.com) reveal automation choices [verify 2026-10-29]
 - Self-signed or internal-CA certificates → likely lab / test / staging
 
 ---
@@ -331,34 +331,35 @@ host 1.2.3.4
 ```
 
 ### Internet-Wide Scanning (Shodan / Censys / FOFA / ZoomEye)
-Tier limits, query syntax, and result quotas change quarterly across all four — verify current limits at the vendor's pricing page before promising coverage to a stakeholder [verify 2026-04-25].
+Tier limits, query syntax, and result quotas change quarterly across all four — verify current limits at the vendor's pricing page before promising coverage to a stakeholder [verify 2026-10-29].
 
 ```bash
-# Shodan (https://www.shodan.io)
+# Shodan (https://www.shodan.io) [verify 2026-10-29]
 shodan search hostname:example.com
 shodan host 1.2.3.4
 shodan search 'ssl.cert.fingerprint:"HASH"'
 shodan search 'org:"Example Inc"'
 shodan search 'http.favicon.hash:-123456789'
 
-# Censys (https://search.censys.io) — separate Hosts and Certificates indexes
-# CLI: pip install censys ; censys config
-censys search 'services.tls.certificates.leaf_data.subject.common_name: "example.com"'
-censys view 1.2.3.4
+# Censys Platform (https://platform.censys.io) — Legacy Search (search.censys.io) and its API deprecated Sept 2026 [verify 2026-10-29]
+# CLI: cencli (brew install censys/tap/cencli ; censys config auth add  → Platform personal access token);
+#   uninstall the legacy `censys` pip CLI first — both use the `censys` command name
+# Platform queries use CenQL — convert legacy `services.*` queries with the built-in query converter before reuse
 
-# FOFA (https://en.fofa.info/) — Beijing Huashun Xinan; popular in red-team recon
-# (web UI / API; bash example uses base64-encoded query)
+# FOFA (https://en.fofa.info/) — popular in red-team recon
+# (web UI / API; key-only auth per the official fofa-py SDK; query is base64-encoded) [verify 2026-10-29]
 QUERY=$(echo -n 'domain="example.com"' | base64 -w0)
-curl -s "https://fofa.info/api/v1/search/all?email=$EMAIL&key=$FOFA_KEY&qbase64=$QUERY"
+curl -s "https://fofa.info/api/v1/search/all?key=$FOFA_KEY&qbase64=$QUERY"
 
-# ZoomEye (https://www.zoomeye.org/) — Knownsec
-zoomeye search 'hostname:"example.com"'
+# ZoomEye (https://www.zoomeye.ai/ international; https://www.zoomeye.org/ CN) — Knownsec
+# CLI: pip3 install zoomeyeai ; zoomeyeai init -apikey "$ZOOMEYE_KEY" ; dork syntax at https://www.zoomeye.ai/help [verify 2026-10-29]
+zoomeyeai search 'domain="example.com"'
 
-# Quake (360 NetLab; Chinese-language UI) — alternative when others are dry
+# Quake (360 Cyberspace Mapping, https://quake.360.net/; Chinese-language UI) — alternative when others are dry [verify 2026-10-29]
 ```
 
 ### Favicon hash → infrastructure pivot
-Shodan's `http.favicon.hash` is **mmh3** (MurmurHash3) of the **base64-encoded** favicon, signed 32-bit. FOFA uses the same convention.
+Shodan's `http.favicon.hash` is **mmh3** (MurmurHash3) of the **base64-encoded** favicon, signed 32-bit [verify 2026-10-29]. FOFA uses the same convention.
 
 ```bash
 # Compute Shodan/FOFA-style favicon hash
@@ -379,18 +380,18 @@ Always check vendor-published prefix lists (they rotate); reverse DNS is a hint,
 
 | Provider | Reverse-DNS / SNI hints | Authoritative prefix list |
 |----------|-------------------------|---------------------------|
-| AWS | `*.compute.amazonaws.com`, `*.elb.amazonaws.com`, `*.cloudfront.net` | https://ip-ranges.amazonaws.com/ip-ranges.json |
-| Azure | `*.azurewebsites.net`, `*.cloudapp.azure.com` | https://www.microsoft.com/en-us/download/details.aspx?id=56519 (weekly JSON) |
-| GCP | `*.googleusercontent.com`, `*.bc.googleusercontent.com` | https://www.gstatic.com/ipranges/cloud.json |
-| Cloudflare | NS `*.ns.cloudflare.com`; SNI cert issuer `Cloudflare Inc ECC CA-3` | https://www.cloudflare.com/ips-v4/ and `/ips-v6/` |
-| Fastly | `*.fastly.net`, `Fastly` Server header | https://api.fastly.com/public-ip-list |
-| Akamai | `*.akamaiedge.net`, `*.edgesuite.net`, `*.akamaized.net` | published per customer; use ASN AS20940/AS16625 |
-| Vercel / Netlify | `*.vercel.app` / `*.netlify.app` | ASN AS16509 (AWS-hosted) — origin obscured |
+| AWS | `*.compute.amazonaws.com`, `*.elb.amazonaws.com`, `*.cloudfront.net` | https://ip-ranges.amazonaws.com/ip-ranges.json [verify 2026-10-29] |
+| Azure | `*.azurewebsites.net`, `*.cloudapp.azure.com` | https://www.microsoft.com/en-us/download/details.aspx?id=56519 (weekly JSON) [verify 2026-10-29] |
+| GCP | `*.googleusercontent.com`, `*.bc.googleusercontent.com` | https://www.gstatic.com/ipranges/cloud.json [verify 2026-10-29] |
+| Cloudflare | NS `*.ns.cloudflare.com`; Universal SSL edge certs issued by Let's Encrypt, Google Trust Services or SSL.com | https://www.cloudflare.com/ips-v4/ and `/ips-v6/` [verify 2026-10-29] |
+| Fastly | `*.fastly.net`, `Fastly` Server header | https://api.fastly.com/public-ip-list [verify 2026-10-29] |
+| Akamai | `*.akamaiedge.net`, `*.edgesuite.net`, `*.akamaized.net` | published per customer; use ASN AS20940/AS16625 [verify 2026-10-29] |
+| Vercel / Netlify | `*.vercel.app` / `*.netlify.app` | no vendor prefix list; Vercel documents dynamic egress IPs (static IPs only on Pro/Enterprise) — origin obscured [verify 2026-10-29] |
 
-`1.1.1.1` / `1.0.0.1` are Cloudflare's public DNS resolvers, not their proxy-edge ranges. Real Cloudflare proxy CIDRs include `104.16.0.0/13`, `172.64.0.0/13`, `162.158.0.0/15`, `131.0.72.0/22` and others — always pull the live list from `https://www.cloudflare.com/ips-v4/` rather than hardcoding.
+`1.1.1.1` / `1.0.0.1` are Cloudflare's public DNS resolvers, not their proxy-edge ranges. Real Cloudflare proxy CIDRs include `104.16.0.0/13`, `172.64.0.0/13`, `162.158.0.0/15`, `131.0.72.0/22` and others — always pull the live list from `https://www.cloudflare.com/ips-v4/` rather than hardcoding [verify 2026-10-29].
 
 ```bash
-# Quick "is this IP on a known cloud?" check
+# Quick "is this IP on a known cloud?" check [verify 2026-10-29]
 curl -s https://www.cloudflare.com/ips-v4/ | grep -E "^[0-9]+\." > /tmp/cf.txt
 mapcidr -cidr /tmp/cf.txt -match-ip 1.2.3.4    # ProjectDiscovery mapcidr
 ```
@@ -409,10 +410,10 @@ shodan search "http.favicon.hash:$MMH3_HASH"
 ```
 
 ### Google Analytics / Tag Pivoting
-1. Extract analytics ID(s) from target site (GA4 `G-`, legacy UA, GTM, AdSense `ca-pub-`).
+1. Extract analytics ID(s) from target site (GA4 `G-`, legacy UA, GTM, AdSense `ca-pub-`). [verify 2026-10-29]
 2. Search PublicWWW / NerdyData / URLScan:
    - `"G-XXXXXXXXXX"` (GA4 measurement ID)
-   - `"UA-XXXXXX-X"` (legacy UA — historical pivot only post-2024 sunset)
+   - `"UA-XXXXXX-X"` (legacy UA — historical pivot only; standard properties stopped collecting 2023-07-01, 360 on 2024-07-01) [verify 2026-10-29]
    - `"GTM-XXXXXXX"` (Tag Manager container — often shared across operator's properties)
 3. Correlate domains using the same tracking / container ID.
 4. Build ownership / operator map; cross-check against WHOIS / RDAP registrant pivots.
@@ -459,12 +460,12 @@ curl -s "https://crt.sh/?q=%25.$TARGET&output=json" \
 subfinder -d "$TARGET" -silent -all \
   | dnsx -silent -a -resp | tee "${TS}_live_hosts.txt"
 
-# 5. Technology fingerprint
+# 5. Technology fingerprint [verify 2026-10-29]
 whatweb -a 3 "$TARGET" --log-json="${TS}_whatweb.json"
 
 # 6. Tracking / analytics IDs
 curl -s "https://$TARGET" | tee "${TS}_index.html" \
-  | grep -oE "G-[A-Z0-9]{10}|UA-[0-9]{4,10}-[0-9]{1,4}|GTM-[A-Z0-9]{6,8}|ca-pub-[0-9]{16}" \
+  | grep -oE "G-[A-Z0-9]{6,}|UA-[0-9]{4,10}-[0-9]{1,4}|GTM-[A-Z0-9]{6,8}|ca-pub-[0-9]{16}" \
   | sort -u | tee "${TS}_tracker_ids.txt"
 
 # 7. Favicon hashes (both forms)
@@ -476,14 +477,14 @@ python3 -c "import mmh3,base64,sys;print(mmh3.hash(base64.encodebytes(open('${TS
 echo | openssl s_client -connect "$TARGET:443" -servername "$TARGET" 2>/dev/null \
   | openssl x509 -noout -text > "${TS}_cert.txt"
 
-# 9. Internet-wide views
+# 9. Internet-wide views [verify 2026-10-29]
 shodan search "hostname:$TARGET"
-# censys search 'services.tls.certificates.leaf_data.subject.common_name: "'$TARGET'"'
+# Censys: run the equivalent CenQL query at https://platform.censys.io (legacy `censys search` CLI retired)
 
 # 10. Passive DNS / history
 # Query SecurityTrails / DomainTools / Defender TI / VT for historical A, NS, MX
 
-# 11. Wayback content history
+# 11. Wayback content history [verify 2026-10-29]
 curl -s "https://web.archive.org/cdx/search/cdx?url=$TARGET&output=json&limit=200" \
   | jq . | tee "${TS}_wayback.json"
 
@@ -547,18 +548,18 @@ This SOP assumes investigation of public-internet metadata. For authorized engag
 ### DNS / RDAP / WHOIS
 | Tool | Purpose | Install / Link |
 |------|---------|----------------|
-| `dig` | DNS queries (BIND tools) | built-in (`bind9-dnsutils` on Debian/Ubuntu) |
-| `delv` | DNSSEC-validating resolver lookup | ships with bind9 |
+| `dig` | DNS queries (BIND tools) | built-in (`bind9-dnsutils` on Debian/Ubuntu) [verify 2026-10-29] |
+| `delv` | DNSSEC-validating resolver lookup | ships with bind9 (`bind9-dnsutils`) [verify 2026-10-29] |
 | `whois` | Legacy port-43 registration data | built-in |
-| `rdap` (openrdap) | RDAP JSON client | `go install github.com/openrdap/rdap/cmd/rdap@latest` |
-| rdap.org | RDAP bootstrap router | https://rdap.org |
-| BGPView | ASN / prefix lookup | https://bgpview.io |
+| `rdap` (openrdap) | RDAP JSON client | `go install github.com/openrdap/rdap/cmd/rdap@latest` [verify 2026-10-29] |
+| rdap.org | RDAP bootstrap router | https://rdap.org [verify 2026-10-29] |
+| RIPEstat | ASN / announced-prefix lookup | https://stat.ripe.net [verify 2026-10-29] |
 
 ### Subdomain & host enumeration
 | Tool | Purpose | Install / Link |
 |------|---------|----------------|
 | `subfinder` | Passive subdomain enum (ProjectDiscovery) | https://github.com/projectdiscovery/subfinder |
-| `amass` | OWASP Flagship — passive + active recon | https://github.com/owasp-amass/amass |
+| `amass` | OWASP Flagship — passive + active recon | https://github.com/owasp-amass/amass [verify 2026-10-29] |
 | `assetfinder` | Quick passive subdomain enum | https://github.com/tomnomnom/assetfinder |
 | `dnsx` | Multi-purpose DNS probe / brute-force | https://github.com/projectdiscovery/dnsx |
 | `puredns` | Wildcard-aware DNS brute-forcer | https://github.com/d3mondev/puredns |
@@ -568,17 +569,17 @@ This SOP assumes investigation of public-internet metadata. For authorized engag
 ### Certificate transparency / TLS fingerprinting
 | Tool | Purpose | Install / Link |
 |------|---------|----------------|
-| crt.sh | CT log aggregator (Sectigo) | https://crt.sh |
-| Censys Certificates | CT search w/ rich filters | https://search.censys.io |
-| Google CT Transparency Report | Browser-trusted CT log inventory | https://googlechrome.github.io/CertificateTransparency/log_list.html |
+| crt.sh | CT log aggregator (Sectigo) | https://crt.sh [verify 2026-10-29] |
+| Censys Platform | CT / host search w/ rich filters (CenQL) | https://platform.censys.io [verify 2026-10-29] |
+| Chrome CT log list | Browser-trusted CT log inventory (JSON) | https://www.gstatic.com/ct/log_list/v3/log_list.json [verify 2026-10-29] |
 | `openssl s_client` | Live cert/SAN/chain extraction | built-in |
 | JARM (Salesforce) | Server-side TLS handshake fingerprint | https://github.com/salesforce/jarm |
-| JA4+ (FoxIO) | JA3 successor — client/server/HTTP/TCP variants | https://github.com/FoxIO-LLC/ja4 |
+| JA4+ (FoxIO) | JA3 successor — client/server/HTTP/TCP variants | https://github.com/FoxIO-LLC/ja4 [verify 2026-10-29] |
 
 ### Web technology / tracker detection
 | Tool | Purpose | Install / Link |
 |------|---------|----------------|
-| `whatweb` | Plugin-based web fingerprinting | `apt install whatweb` |
+| `whatweb` | Plugin-based web fingerprinting | `apt install whatweb` [verify 2026-10-29] |
 | `webanalyze` | Go port of Wappalyzer fingerprints | https://github.com/rverton/webanalyze |
 | `wappalyzergo` / `httpx -tech-detect` | ProjectDiscovery Wappalyzer-DB CLI | https://github.com/projectdiscovery/httpx |
 | BuiltWith | Tech profiler + Relationships pivot (paid) | https://builtwith.com |
@@ -590,16 +591,16 @@ This SOP assumes investigation of public-internet metadata. For authorized engag
 | Tool | Purpose | Install / Link |
 |------|---------|----------------|
 | Shodan | Internet-wide host search | https://shodan.io |
-| Censys | Hosts + Certificates indexes | https://search.censys.io |
-| FOFA | Internet asset search (Beijing Huashun Xinan) | https://en.fofa.info |
-| ZoomEye | Internet asset search (Knownsec) | https://www.zoomeye.org |
+| Censys | Hosts + Certificates (Censys Platform) | https://platform.censys.io [verify 2026-10-29] |
+| FOFA | Internet asset search | https://en.fofa.info |
+| ZoomEye | Internet asset search (Knownsec) | https://www.zoomeye.ai (CN: https://www.zoomeye.org) [verify 2026-10-29] |
 | Netlas.io | SaaS internet observatory | https://netlas.io |
 | SecurityTrails | DNS / WHOIS history | https://securitytrails.com |
-| DomainTools (incl. Farsight DNSDB) | Premium passive DNS / Iris | https://www.domaintools.com |
-| Microsoft Defender TI | Replaces RiskIQ PassiveTotal | https://ti.defender.microsoft.com |
+| DomainTools (incl. Farsight DNSDB) | Premium passive DNS / Iris | https://www.domaintools.com [verify 2026-10-29] |
+| Microsoft Defender TI | Threat intelligence → Intel explorer in the Defender portal (RiskIQ PassiveTotal lineage) | https://security.microsoft.com [verify 2026-10-29] |
 | VirusTotal | DNS resolutions, relations, intelligence | https://virustotal.com |
-| Mnemonic PassiveDNS | Free academic passive DNS | https://passivedns.mnemonic.no |
-| Wayback CDX API | Historical content snapshots | https://archive.org/help/wayback_api.php |
+| Mnemonic PassiveDNS | Public passive DNS API (no key: TLP:WHITE, 1000 req/day) | https://passivedns.mnemonic.no [verify 2026-10-29] |
+| Wayback CDX API | Historical content snapshots | https://archive.org/help/wayback_api.php [verify 2026-10-29] |
 
 ---
 
@@ -617,7 +618,7 @@ This SOP assumes investigation of public-internet metadata. For authorized engag
 - ❌ Using MD5 of raw favicon bytes when querying Shodan/FOFA — they index `mmh3(base64(bytes))`
 - ❌ Trusting `dig ANY` (RFC 8482; many resolvers refuse and return HINFO only — use per-type queries)
 - ❌ Missing DNSSEC mismatches (expired RRSIG, lame DS) — useful operator-maturity signal
-- ❌ Pivoting on a UA-XXXXX-X tracking ID without flagging it as historical (UA properties stopped collecting on 2024-07-01)
+- ❌ Pivoting on a UA-XXXXX-X tracking ID without flagging it as historical (standard UA properties stopped collecting on 2023-07-01; 360 on 2024-07-01) [verify 2026-10-29]
 - ❌ Burning through a SaaS tier (Shodan/Censys/SecurityTrails) on un-cached repeated queries
 
 ---
@@ -642,25 +643,25 @@ This SOP assumes investigation of public-internet metadata. For authorized engag
 - RFC 9082 / 9083 (RDAP query format & JSON responses)
 - RFC 8482 (refusing meta-queries — `dig ANY`)
 - IANA root-zone database — https://www.iana.org/domains/root/db
-- IANA RDAP bootstrap registry — https://data.iana.org/rdap/dns.json
+- IANA RDAP bootstrap registry — https://data.iana.org/rdap/dns.json [verify 2026-10-29]
 - Public Suffix List — https://publicsuffix.org/
 
 **Browser-trusted CT logs**
-- Apple CT log program — https://github.com/apple/ct-policy
-- Chrome CT log policy — https://googlechrome.github.io/CertificateTransparency/log_list.html
+- Apple CT log program — https://support.apple.com/en-us/103703 (policy: https://support.apple.com/en-us/103214) [verify 2026-10-29]
+- Chrome CT log list (JSON) — https://www.gstatic.com/ct/log_list/v3/log_list.json; human view at https://certificate.transparency.dev/logs/ [verify 2026-10-29]
 
 **Cloud / network reference**
-- AWS IP ranges — https://ip-ranges.amazonaws.com/ip-ranges.json
-- Azure IP ranges — https://www.microsoft.com/en-us/download/details.aspx?id=56519
-- GCP IP ranges — https://www.gstatic.com/ipranges/cloud.json
-- Cloudflare IPs — https://www.cloudflare.com/ips/
+- AWS IP ranges — https://ip-ranges.amazonaws.com/ip-ranges.json [verify 2026-10-29]
+- Azure IP ranges — https://www.microsoft.com/en-us/download/details.aspx?id=56519 [verify 2026-10-29]
+- GCP IP ranges — https://www.gstatic.com/ipranges/cloud.json [verify 2026-10-29]
+- Cloudflare IPs — https://www.cloudflare.com/ips/ [verify 2026-10-29]
 
 **Curated tool indexes**
 - start.me OSINT (gl0bal01) — https://start.me/u/gl0bal01
-- IntelTechniques tools — https://inteltechniques.com/tools/
+- IntelTechniques tools — https://inteltechniques.com/tools/ [verify 2026-10-29]
 
 ---
 
 **Version:** 1.1
-**Last Updated:** 2026-04-25
+**Last Updated:** 2026-10-29
 **Review Frequency:** Quarterly (medium-rot — passive DNS providers, SaaS tier limits, and RDAP rollout state shift several times a year)

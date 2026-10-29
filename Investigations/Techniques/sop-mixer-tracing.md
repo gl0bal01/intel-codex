@@ -17,7 +17,7 @@ tags:
   - osint
   - investigation
 created: 2026-04-26
-updated: 2026-04-26
+updated: 2026-10-29
 template_version: 2026-04-26
 ---
 
@@ -728,7 +728,7 @@ See [[sop-blockchain-investigation|Blockchain Investigation]] §6.5 — wormhole
 
 ### 13.4 Sanctions feeds
 
-See [[sop-blockchain-investigation|Blockchain Investigation]] §15.3 — OFAC SDN, EU Sanctions Map, UK OFSI, UN, OpenSanctions.
+See [[sop-blockchain-investigation|Blockchain Investigation]] §15.3 — OFAC SDN, EU Sanctions Map, UK Sanctions List, UN, OpenSanctions. [verify 2026-10-29]
 
 ### 13.5 Academic literature (canonical citations)
 
@@ -916,7 +916,7 @@ Mixer-tracing investigations rarely involve immediate threat-to-life, but severa
 
 - **US ransomware / sanctions exposure:** OFAC compliance hotline; FBI IC3 (`ic3.gov`); CISA `report@cisa.gov`.
 - **EU:** Europol European Cybercrime Centre (EC3); national CERT; national FIU.
-- **UK:** Action Fraud (`actionfraud.police.uk`); NCA; FCA for regulated entities.
+- **UK:** Report Fraud (`reportfraud.police.uk`, 0300 123 2040; replaced Action Fraud 2025-12-04; Scotland: Police Scotland 101); NCA; FCA for regulated entities. [verify 2026-10-29]
 - **Trafficking / CSAM funding:** route per [[sop-sensitive-crime-intake-escalation|Sensitive Crime Intake & Escalation]].
 - **Exchange freeze requests:** maintain a contact list of active exchange LE-channels for the engagement; many require pre-existing relationships.
 
@@ -952,7 +952,7 @@ Mixer-tracing-specific guardrails:
 - **Authorization in writing.** Names mixer / privacy-pool analytics as in-scope; lists target deposit / withdrawal addresses and (where known) the specific mixer protocol(s). Sanctions-research carve-out should be explicit if currently SDN-designated mixers are in scope (research is permitted in most jurisdictions; transactional engagement is not).
 - **Observation-only.** No deposits to or withdrawals from any mixer or privacy pool; no test transactions; no "verification" of vendor candidate-pairings by interacting. The line between observation and participation is the legal line.
 - **Probabilistic-discipline.** Report linkage candidates with the heuristic basis and a confidence label per [[sop-entity-dossier|Entity Dossier]]. Do not assert identity from heuristic linkage alone.
-- **Sanctions discipline.** Screen mixer addresses against OFAC, EU, UK OFSI, UN at minimum. Time-stamp every finding — mixer sanctions designations have changed substantially (Tornado Cash 2022 → 2024 → 2025 trajectory is the canonical reference).
+- **Sanctions discipline.** Screen mixer addresses against OFAC, EU, UK Sanctions List, UN at minimum. Time-stamp every finding — mixer sanctions designations have changed substantially (Tornado Cash 2022 → 2024 → 2025 trajectory is the canonical reference). [verify 2026-10-29]
 - **Cross-jurisdiction discipline.** OFAC delisting does not bind other regimes. Check EU, UK, UN, and other applicable regimes separately.
 - **PII minimization.** Apply GDPR Art. 6 / 9 (or equivalent) minimization. Lawful basis (legitimate interest, legal claim, public task, regulator-mandated) per query class. Subpoena pathway for KYC data is the proper channel; vendor-aggregated identity data must be assessed for provenance.
 - **Mandatory reporting.** If operating inside a regulated entity, route findings via MLRO. Outside, route serious findings (sanctions evasion, terrorism financing, child exploitation, trafficking) via the appropriate FIU / national authority — see [[sop-sensitive-crime-intake-escalation|Sensitive Crime Intake & Escalation]].
@@ -1017,5 +1017,5 @@ See §13.5 for the canonical-citation list. Additional references:
 ---
 
 **Version:** 1.0 (Initial)
-**Last Updated:** 2026-04-26
+**Last Updated:** 2026-10-29
 **Review Frequency:** Quarterly (high-rot — mixer enforcement timeline, prosecution outcomes, vendor heuristic implementations, new privacy-pool deployments, sanctions trajectory)

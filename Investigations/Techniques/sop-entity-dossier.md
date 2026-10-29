@@ -14,7 +14,7 @@ tags:
   - entity
   - osint
 created: 2025-10-05
-updated: 2026-10-18
+updated: 2026-10-29
 analyst:
 case_id:
 ---
@@ -171,14 +171,13 @@ case_id:
   - example.net
   - malicious-site.tk (⚠️ flagged by VirusTotal)
 
-**Commands Used:**
+**Commands Used:** [verify 2026-10-29]
 ```bash
-# WHOIS reverse lookup
+# WHOIS lookup (forward, not reverse; registrant fields are often redacted)
 whois -H example.com | grep "Registrant Email"
 
-# DNS enumeration
-dig example.com ANY
-host -t NS example.com
+# DNS enumeration — ANY is often minimised or refused (RFC 8482); query A/AAAA/MX/TXT/NS explicitly
+for t in A AAAA MX TXT NS; do dig example.com "$t" +noall +answer; done
 
 # Reverse IP lookup
 curl -s "https://api.hackertarget.com/reverseiplookup/?q=192.168.1.100"
@@ -208,16 +207,18 @@ curl -s "https://crt.sh/?q=%25.example.com&output=json" | jq -r '.[].name_value'
 
 **Commands Used:**
 ```bash
-# Extract Google Analytics ID
+# Extract Google Analytics ID — GA4 measurement ID / Tag Manager container (UA stopped processing hits 1 Jul 2023) [verify 2026-10-29]
+curl -s https://example.com | grep -oE "G-[A-Z0-9]{6,}|GTM-[A-Z0-9]{4,}" | sort -u
+# Legacy Universal Analytics IDs — historical pivot only; still found in stale live snippets and in Wayback snapshots [verify 2026-10-29]
 curl -s https://example.com | grep -oP "UA-\d{4,10}-\d{1,4}"
 
 # Extract AdSense ID
 curl -s https://example.com | grep -oP "pub-\d{16}"
 
-# Calculate favicon hash
-curl -s https://example.com/favicon.ico | python3 -c 'import mmh3, sys; print(mmh3.hash(sys.stdin.buffer.read()))'
+# Calculate favicon hash — Shodan hashes the base64-encoded favicon, not raw bytes (pip install mmh3) [verify 2026-10-29]
+curl -s https://example.com/favicon.ico | python3 -c 'import base64, mmh3, sys; print(mmh3.hash(base64.encodebytes(sys.stdin.buffer.read())))'
 
-# Shodan search
+# Shodan search [verify 2026-10-29]
 shodan search "http.favicon.hash:-1234567890"
 ```
 
@@ -235,13 +236,13 @@ shodan search "http.favicon.hash:-1234567890"
 | Telegram | @entityname | t.me/entityname | ✗ | Active (online 2 hours ago) |
 | Reddit | u/entityname | https://reddit.com/user/entityname | ✗ | Active (last comment: 2024-10-03) |
 
-**Username Enumeration:**
+**Username Enumeration:** [verify 2026-10-29]
 ```bash
-# WhatsMyName (canonical username-enumeration ruleset; >600 sites)
+# WhatsMyName (canonical username-enumeration dataset, ~700 sites; data-only since May 2023 — no bundled checker)
 # https://github.com/WebBreacher/WhatsMyName  (web UI: whatsmyname.app)
-python3 web_accounts_list_checker.py -u entity_name
+# Run via whatsmyname.app or a wmn-data.json consumer (Naminter / Blackbird / WhatsMyName-Python — see repo README)
 
-# Maigret (WhatsMyName fork + parsing of returned profiles)
+# Maigret (username dossier across a large site list; parses returned profiles; HTML/PDF/XMind reports)
 # https://github.com/soxoj/maigret
 maigret entity_name --html
 
@@ -250,7 +251,7 @@ maigret entity_name --html
 sherlock entity_name
 
 # Nuclei OSINT templates (template tag `osint` exists, but is not a username-enumeration
-# replacement for the above — use for surface-level recon only) [verify 2026-04-26]
+# replacement for the above — use for surface-level recon only)
 nuclei -t http/osint/ -esc -var user=entity_name
 
 # Manual spot-check
@@ -273,33 +274,33 @@ Run every named entity (person, company, wallet, vessel) against the canonical l
 
 | Source | URL | Notes |
 |--------|-----|-------|
-| OFAC SDN + Consolidated (US) | `sanctionssearch.ofac.treas.gov` | Authoritative US Treasury list; CSV/XML downloads at `home.treasury.gov/policy-issues/financial-sanctions/` |
-| EU Consolidated Financial Sanctions | `data.europa.eu/en/datasets/consolidated-list-of-persons-groups-and-entities-subject-to-eu-financial-sanctions` | XML / CSV; mirrored by FSF |
-| UK OFSI Consolidated List | `gov.uk/government/publications/financial-sanctions-consolidated-list-of-targets` | HM Treasury OFSI |
-| UN Security Council Consolidated | `un.org/securitycouncil/sanctions/un-sc-consolidated-list` | UN-1267, UN-1718, etc. |
-| OpenSanctions | `opensanctions.org` | Aggregated multi-jurisdiction sanctions + PEPs (FollowTheMoney schema) |
-| AU DFAT / CA SEMA / CH SECO | per-government portals | Verify URL at use time `[verify 2026-04-26]` |
+| OFAC SDN + Consolidated (US) | `sanctionssearch.ofac.treas.gov` | Authoritative US Treasury list; bulk downloads via the Sanctions List Service at `ofac.treasury.gov/sanctions-list-service` [verify 2026-10-29] |
+| EU Consolidated Financial Sanctions | `data.europa.eu/data/datasets/consolidated-list-of-persons-groups-and-entities-subject-to-eu-financial-sanctions` | XML / CSV; mirrored by FSF [verify 2026-10-29] |
+| UK Sanctions List (FCDO) | `gov.uk/government/publications/the-uk-sanctions-list` | Only source for all UK designations since the OFSI Consolidated List closed on 28 Jan 2026 [verify 2026-10-29] |
+| UN Security Council Consolidated | `main.un.org/securitycouncil/sanctions/un-sc-consolidated-list` | UN-1267, UN-1718, etc. [verify 2026-10-29] |
+| OpenSanctions | `opensanctions.org` | Aggregated multi-jurisdiction sanctions + PEPs (FollowTheMoney schema) [verify 2026-10-29] |
+| AU DFAT / CA SEMA / CH SECO | per-government portals | Verify URL at use time `[verify 2026-10-29]` |
 
 **Beneficial-ownership / corporate registries:**
 
 | Source | URL | Notes |
 |--------|-----|-------|
-| OpenCorporates | `opencorporates.com` | Largest open-data corporate registry index |
-| UK Companies House — People with Significant Control (PSC) | `find-and-update.company-information.service.gov.uk` | Public; ID-verification phase-in under ECCT Act 2023 `[verify 2026-04-26]` |
-| US FinCEN Beneficial Ownership Information (BOI) | `fincen.gov/boi` | Scope materially narrowed by **Treasury's March 2025 interim final rule** to foreign reporting companies only — verify current state before relying on it `[verify 2026-04-26]` |
-| EU UBO registers (5AMLD/6AMLD) | per-member-state portal | **CJEU C-37/20 + C-601/20 (Nov 2022)** invalidated unrestricted public access; most member states now require "legitimate interest" — document the access pathway used `[verify 2026-04-26]` |
-| ICIJ OffshoreLeaks | `offshoreleaks.icij.org` | Panama / Paradise / Pandora / Pandora-2 / Cyprus / Bahamas leaks |
-| OCCRP Aleph | `aleph.occrp.org` | Investigative document + leak corpus search |
-| Sayari Graph / Moody's Orbis (BvD) / LSEG World-Check | commercial | Document use without endorsement |
+| OpenCorporates | `opencorporates.com` | Largest open-data corporate registry index [verify 2026-10-29] |
+| UK Companies House — People with Significant Control (PSC) | `find-and-update.company-information.service.gov.uk` | Public; director/PSC identity verification a legal requirement since 18 Nov 2025 (ECCT Act 2023) — existing directors verify at next confirmation statement, PSCs within a 14-day window `[verify 2026-10-29]` |
+| US FinCEN Beneficial Ownership Information (BOI) | `fincen.gov/boi` | Scope narrowed by the March 2025 interim final rule, then fixed by **FinCEN's final rule (issued 11 Aug 2026, effective 14 Aug 2026)**: U.S. companies and U.S.-person beneficial owners exempt; only foreign reporting companies report `[verify 2026-10-29]` |
+| EU UBO registers (5AMLD/6AMLD) | per-member-state portal | **CJEU C-37/20 + C-601/20 (Nov 2022)** invalidated unrestricted public access; most member states now require "legitimate interest" — document the access pathway used `[verify 2026-10-29]` |
+| ICIJ OffshoreLeaks | `offshoreleaks.icij.org` | Offshore Leaks / Panama / Bahamas / Paradise / Pandora Papers [verify 2026-10-29] |
+| OCCRP Aleph | `aleph.occrp.org` | Investigative document + leak corpus search [verify 2026-10-29] |
+| Sayari Graph / Moody's Orbis (BvD) / LSEG World-Check | commercial | Document use without endorsement [verify 2026-10-29] |
 
 **Threat-actor / cyber-TI dossier sources** (when entity is an adversary group):
 
 | Source | URL | Notes |
 |--------|-----|-------|
-| MITRE ATT&CK Groups | `attack.mitre.org/groups/` | Curated TTP-attribution dossiers |
-| MISP | `misp-project.org` | Threat-sharing platform; community feeds |
-| OpenCTI (Filigran / ANSSI) | `opencti.io` | TI knowledge graph (STIX 2.1) |
-| Mandiant Advantage / Recorded Future / CrowdStrike Falcon Intelligence | commercial | Document without endorsement |
+| MITRE ATT&CK Groups | `attack.mitre.org/groups/` | Curated TTP-attribution dossiers [verify 2026-10-29] |
+| MISP | `misp-project.org` | Threat-sharing platform; community feeds [verify 2026-10-29] |
+| OpenCTI (Filigran / ANSSI) | `github.com/OpenCTI-Platform/opencti` | TI knowledge graph (STIX 2.1) [verify 2026-10-29] |
+| Google Threat Intelligence (ex-Mandiant Advantage) / Recorded Future / CrowdStrike Falcon Adversary Intelligence | commercial | Document without endorsement [verify 2026-10-29] |
 | DFIR Report / Talos Intelligence (Cisco) / Unit 42 (Palo Alto) | OSS write-ups | Useful for incident-derived attribution |
 
 > **Sanctions hits are not a verdict** — name collisions (esp. PEP-class lists) require corroborating identifiers (DOB, country of citizenship, primary identifier) before downgrading confidence to "match." Annotate every hit with the source list, list version/date, and confirming identifier(s).
@@ -313,7 +314,7 @@ Run every named entity (person, company, wallet, vessel) against the canonical l
 ```markdown
 **Confirmed Breaches (Have I Been Pwned):**
 ```bash
-# Check email in breaches
+# Check email in breaches (v3 API; key required) [verify 2026-10-29]
 curl -H "hibp-api-key: YOUR_API_KEY" \
   "https://haveibeenpwned.com/api/v3/breachedaccount/entity@example.com"
 
@@ -332,11 +333,11 @@ curl -H "hibp-api-key: YOUR_API_KEY" \
 ### Cryptocurrency Activity
 
 ```markdown
-**Bitcoin Analysis:**
+**Bitcoin Analysis:** [verify 2026-10-29]
 ```bash
 # Balance + tx history — blockchain.info endpoints still respond but are legacy;
 # prefer mempool.space or Blockstream Esplora for modern, rate-limit-friendly access.
-# (blockchain.com rebrand kept the blockchain.info JSON paths live — [verify 2026-04-26])
+# (blockchain.com rebrand kept the blockchain.info JSON paths live)
 curl -s "https://blockchain.info/balance?active=bc1qxy2kgdygjrsqtzq2n0yrf2493p83kkfjhx0wlh"
 curl -s "https://blockchain.info/rawaddr/bc1qxy2kgdygjrsqtzq2n0yrf2493p83kkfjhx0wlh" | jq '.txs'
 
@@ -344,10 +345,10 @@ curl -s "https://blockchain.info/rawaddr/bc1qxy2kgdygjrsqtzq2n0yrf2493p83kkfjhx0
 curl -s "https://mempool.space/api/address/bc1qxy2kgdygjrsqtzq2n0yrf2493p83kkfjhx0wlh"
 curl -s "https://blockstream.info/api/address/bc1qxy2kgdygjrsqtzq2n0yrf2493p83kkfjhx0wlh/txs"
 
-# Cluster analysis — note: walletexplorer.com (Sam Rushing / formerly btc.com) is the
+# Cluster analysis — note: walletexplorer.com (independent; its author now works at Chainalysis) is the
 # legacy free clusterer; verify currency before citing in evidence. Modern alternatives:
 #   - mempool.space (open, on-chain only, no clustering)
-#   - oxt.me (closed/limited post-Samourai enforcement [verify 2026-04-26])
+#   - oxt.me (offline — no response to connections as of 2026-10-29)
 #   - Chainalysis Reactor / TRM Labs / Elliptic / Crystal / GraphSense (commercial / OSS)
 # Linked wallets: 5 addresses in same cluster
 # Total balance across cluster: 15.3 BTC (illustrative — convert at audit time, not template time)
@@ -358,13 +359,13 @@ curl -s "https://blockstream.info/api/address/bc1qxy2kgdygjrsqtzq2n0yrf2493p83kk
 - 2024-08-15: Received 5 BTC from Binance hot wallet
 - 2024-07-20: 2 BTC sent to unknown wallet (possible OTC trade)
 
-**Ethereum Analysis:**
+**Ethereum Analysis:** [verify 2026-10-29]
 ```bash
-# Etherscan API
-curl "https://api.etherscan.io/api?module=account&action=balance&address=0x742d35Cc6634C0532925a3b844Bc9e7595f0bEb&tag=latest&apikey=YourApiKeyToken"
+# Etherscan API V2 (V1 /api fully deprecated 2025-08-15; chainid=1 = Ethereum mainnet)
+curl "https://api.etherscan.io/v2/api?chainid=1&module=account&action=balance&address=0x742d35Cc6634C0532925a3b844Bc9e7595f0bEb&tag=latest&apikey=$ETHERSCAN_API_KEY"
 
-# Token holdings
-curl "https://api.etherscan.io/api?module=account&action=tokentx&address=0x742d35Cc6634C0532925a3b844Bc9e7595f0bEb&apikey=YourApiKeyToken"
+# ERC-20 token transfers (derive holdings from these)
+curl "https://api.etherscan.io/v2/api?chainid=1&module=account&action=tokentx&address=0x742d35Cc6634C0532925a3b844Bc9e7595f0bEb&apikey=$ETHERSCAN_API_KEY"
 ```
 
 **Holdings:**
@@ -458,7 +459,7 @@ sha256sum -c SHA256SUMS
 nuclei -tags osint -esc -var user=entity_name > evidence/nuclei_output.txt
 # Found: 12 platforms
 
-# theHarvester output
+# theHarvester output [verify 2026-10-29]
 theHarvester -d example.com -b all > evidence/theharvester_output.txt
 # Found: 15 emails, 10 hosts, 5 IPs
 
@@ -473,7 +474,7 @@ theHarvester -d example.com -b all > evidence/theharvester_output.txt
 
 ### Confidence Rating
 
-> **Anchor frameworks:** rate every claim against (a) the **Berkeley Protocol on Digital Open Source Investigations §V — Information Verification** (corroboration, source assessment, three-source rule) and (b) the **NATO Admiralty Code (STANAG 2511 / AJP-2)** 6×6 source-credibility × information-credibility matrix (A–F × 1–6). Use the [[sop-collection-log|Collection Log]] for evidentiary traceability and the **Cone of Plausibility** to bound analytic uncertainty on forward-looking claims.
+> **Anchor frameworks:** rate every claim against (a) the **Berkeley Protocol on Digital Open Source Investigations ch. VI.E — Verification** (source analysis, technical analysis, content analysis) [verify 2026-10-29] and (b) the **NATO Admiralty Code (STANAG 2511 / AJP-2)** 6×6 source-credibility × information-credibility matrix (A–F × 1–6). Use the [[sop-collection-log|Collection Log]] for evidentiary traceability and the **Cone of Plausibility** to bound analytic uncertainty on forward-looking claims.
 
 ```markdown
 **Overall Confidence: MEDIUM-HIGH**
@@ -552,7 +553,7 @@ theHarvester -d example.com -b all > evidence/theharvester_output.txt
 - ✅ All queries performed via VPN (exit node: Switzerland)
 - ✅ Burner email used for service registrations (e.g. ProtonMail / SimpleLogin alias — pick per [[sop-opsec-plan|OPSEC]] §Identities)
 - ✅ Browser fingerprinting protection enabled (Mullvad Browser, or Tor Browser for higher-risk pivots)
-- ⚠️ Avoid direct contact with entity's social media (may alert target — LinkedIn especially: anonymous viewing requires Premium and is not perfectly opaque [verify 2026-04-26])
+- ⚠️ Avoid direct contact with entity's social media (may alert target — LinkedIn especially: set Profile viewing options to **Private mode** (free setting; target sees only "LinkedIn Member"); "Private profile characteristics" still leaks job title/company/school/industry) [verify 2026-10-29]
 - ⚠️ Use passive OSINT only; no active probing of infrastructure
 
 **Sensitive Actions Log:**
@@ -580,8 +581,8 @@ theHarvester -d example.com -b all > evidence/theharvester_output.txt
 
 **Long-Term Monitoring:**
 - [ ] Set up Google Alerts for entity name + aliases
-- [ ] Configure social media monitoring (Hootsuite, X Pro [formerly TweetDeck — renamed Aug 2023, gated behind X Premium], Bluesky deck.blue, Mastodon Elk/Phanpy)
-- [ ] Subscribe to blockchain transaction alerts (Whale Alert)
+- [ ] Configure social media monitoring (Hootsuite, X Pro [formerly TweetDeck — renamed Aug 2023; requires X Premium+ per the X Help Center, verify tier at use time], Bluesky deck.blue, Mastodon Elk/Phanpy) [verify 2026-10-29]
+- [ ] Subscribe to blockchain transaction alerts (Whale Alert) [verify 2026-10-29]
 - [ ] Periodic review every 30 days
 ```
 
@@ -603,7 +604,7 @@ theHarvester -d example.com -b all > evidence/theharvester_output.txt
 - Storage: Encrypted vault (AES-256-GCM or stronger; document KMS / passphrase custody)
 - Access: Analyst + supervisor only (RBAC enforced)
 - Retention: 7 years per policy (verify against jurisdictional limit)
-- Disposal: Secure deletion after retention period (NIST SP 800-88 Rev. 1 sanitization)
+- Disposal: Secure deletion after retention period (NIST SP 800-88 Rev. 2 sanitization) [verify 2026-10-29]
 
 **Operational boundaries (canonical list in [[sop-legal-ethics|Legal & Ethics]]):**
 - ✅ Public records search (WHOIS / RDAP, social media, blockchain, court PACER, etc.)
@@ -621,41 +622,41 @@ theHarvester -d example.com -b all > evidence/theharvester_output.txt
 
 ### Tools Used
 
-Replace fictional version pins with `--version` invocations at audit time. Versions below are illustrative anchors `[verify 2026-04-26]`.
+Replace fictional version pins with `--version` invocations at audit time. Versions below are illustrative anchors `[verify 2026-10-29]`.
 
 | Tool              | Type    | Purpose                                | Command / Link                                                                 |
 | ----------------- | ------- | -------------------------------------- | ------------------------------------------------------------------------------ |
-| WhatsMyName       | CLI/Web | Username enumeration (canonical)       | [whatsmyname.app](https://whatsmyname.app) / [WebBreacher/WhatsMyName](https://github.com/WebBreacher/WhatsMyName) |
+| WhatsMyName       | Data/Web | Username enumeration (canonical; dataset, no bundled CLI) [verify 2026-10-29] | [whatsmyname.app](https://whatsmyname.app) / [WebBreacher/WhatsMyName](https://github.com/WebBreacher/WhatsMyName) |
 | Maigret           | CLI     | Username enumeration + profile parse   | [soxoj/maigret](https://github.com/soxoj/maigret)                              |
 | Sherlock          | CLI     | Username enumeration (legacy, active)  | [sherlock-project/sherlock](https://github.com/sherlock-project/sherlock)      |
-| Nuclei (v3.x)     | CLI     | Surface-level OSINT templates          | `nuclei -t http/osint/ -esc`                                                      |
-| theHarvester      | CLI     | Email/domain OSINT                     | `theHarvester -d domain.com -b all` (current 4.x)                              |
-| WHOIS / RDAP      | CLI     | Domain registration lookup             | `whois domain.com` / `openrdap` / `rdap.org`                                   |
-| Shodan / Censys / FOFA / ZoomEye | Web/CLI | Internet-wide attribution         | `shodan search ...` (verify tier + active credits)                             |
+| Nuclei (v3.x)     | CLI     | Surface-level OSINT templates [verify 2026-10-29] | `nuclei -t http/osint/ -esc`                                                      |
+| theHarvester      | CLI     | Email/domain OSINT [verify 2026-10-29] | `theHarvester -d domain.com -b all` (current 4.x)                              |
+| WHOIS / RDAP      | CLI     | Domain registration lookup [verify 2026-10-29] | `whois domain.com` / `openrdap` / `rdap.org`                                   |
+| Shodan / Censys / FOFA / ZoomEye | Web/CLI | Internet-wide attribution         | `shodan search ...` (verify tier + active credits) [verify 2026-10-29]                             |
 | Have I Been Pwned | API     | Data breach check (v3 API key required) | [haveibeenpwned.com](https://haveibeenpwned.com)                               |
 | Dehashed / IntelX | Web/API | Breach + leak corpus search            | per licensing                                                                  |
 | mempool.space / Blockstream Esplora | API | Bitcoin chain analysis (open)     | `https://mempool.space/api/...`                                                |
 | Etherscan         | API     | Ethereum chain analysis                | [etherscan.io](https://etherscan.io)                                           |
-| Chainalysis Reactor / TRM Labs / Elliptic / Crystal / GraphSense | Commercial / OSS | Wallet clustering & risk scoring | per licensing                          |
+| Chainalysis Reactor / TRM Labs / Elliptic / Crystal / GraphSense | Commercial / OSS | Wallet clustering & risk scoring (GraphSense: OSS, MIT) [verify 2026-10-29] | per licensing                          |
 | OpenSanctions     | Web/API | Sanctions + PEP aggregation            | [opensanctions.org](https://www.opensanctions.org)                             |
 | OpenCorporates    | Web/API | Corporate registry index               | [opencorporates.com](https://opencorporates.com)                               |
 | ICIJ OffshoreLeaks / OCCRP Aleph | Web | Investigative leak corpus            | [offshoreleaks.icij.org](https://offshoreleaks.icij.org) / [aleph.occrp.org](https://aleph.occrp.org) |
 | ExifTool          | CLI     | Metadata extraction                    | `exiftool image.jpg`                                                           |
-| Maltego CE        | GUI     | Link analysis                          | [maltego.com](https://www.maltego.com) (Maltego Technology GmbH)               |
-| i2 Analyst's Notebook | GUI | Link analysis (commercial)             | N. Harris Computer Corp acquired from IBM 2022 `[verify 2026-04-26]`           |
+| Maltego Graph (Basic plan, free; formerly CE) | GUI | Link analysis | [maltego.com](https://www.maltego.com) (Maltego Technologies GmbH) [verify 2026-10-29] |
+| i2 Analyst's Notebook | GUI | Link analysis (commercial)             | N. Harris Computer Corp acquired from IBM 2022 `[verify 2026-10-29]`           |
 | Neo4j Bloom / Linkurious / Gephi | GUI/OSS | Graph relationship viz             | per vendor                                                                     |
-| Spiderfoot / Recon-ng | CLI | Automated OSINT enumeration            | [spiderfoot.net](https://www.spiderfoot.net) / [lanmaster53/recon-ng](https://github.com/lanmaster53/recon-ng) |
+| Spiderfoot / Recon-ng | CLI | Automated OSINT enumeration            | [smicallef/spiderfoot](https://github.com/smicallef/spiderfoot) (OSS; no commits since Nov 2023; spiderfoot.net now redirects to Intel 471) / [lanmaster53/recon-ng](https://github.com/lanmaster53/recon-ng) [verify 2026-10-29] |
 
 ### Common Pitfalls
 
 - **Name-collision sanctions hits** — common names produce false positives on PEP / SDN lists; require ≥1 corroborating identifier (DOB, country, primary identifier) before "match."
 - **Stale alias confidence** — "confirmed via Twitter 2024-05-10" doesn't survive a platform sale or account migration; re-verify before publishing.
-- **Cluster claims without provenance** — wallet-clustering output (Chainalysis, TRM, OXT) is an opinion of the analytics provider, not a chain-of-custody fact. Cite the provider + dataset version + run date.
-- **Geolocation overconfidence** — IP geo-lookups, EXIF, and check-ins are independently weak; Berkeley Protocol §V three-source rule applies.
+- **Cluster claims without provenance** — wallet-clustering output (e.g. Chainalysis, TRM) is an opinion of the analytics provider, not a chain-of-custody fact. Cite the provider + dataset version + run date.
+- **Geolocation overconfidence** — IP geo-lookups, EXIF, and check-ins are independently weak; corroborate per Berkeley Protocol ch. VI.E verification (source, technical, content analysis) [verify 2026-10-29].
 - **VPN / Tor false negatives** — counter-intel use of residential proxies and CGNAT collapses simple geo signals; flag rather than discard a contradicting datum.
 - **Schema drift** — if you rename a front-matter field (`primary_id`, `risk`, `confidence`), every downstream Case dossier inherits the break. Add new fields rather than rename.
 - **C2PA / Content Credentials absence ≠ authenticity** — see [[sop-image-video-osint|Image / Video OSINT]] §6 for synthetic-media verification limits before crediting profile photos.
-- **LinkedIn anonymous-view leak** — Premium "anonymous viewer" still surfaces region/industry on the target's "Who's Viewed Your Profile" panel `[verify 2026-04-26]`. Use a clean sock-puppet account per [[sop-opsec-plan|OPSEC]].
+- **LinkedIn semi-private leak** — the "Private profile characteristics" viewing option still surfaces job title / company / school / industry on the target's "Who's Viewed Your Profile" panel; use full **Private mode** (shows "LinkedIn Member" only) `[verify 2026-10-29]`. Use a clean sock-puppet account per [[sop-opsec-plan|OPSEC]].
 
 ### Related SOPs
 
@@ -679,39 +680,39 @@ Replace fictional version pins with `--version` invocations at audit time. Versi
 ### External / Reference Resources
 
 **Methodology:**
-- **Berkeley Protocol on Digital Open Source Investigations** (UN OHCHR + UC Berkeley HRC, 2022) — canonical methodology, esp. §V Information Verification.
+- **Berkeley Protocol on Digital Open Source Investigations** (UN OHCHR + UC Berkeley HRC, 2022, HR/PUB/20/2) — canonical methodology, esp. ch. VI.E Verification [verify 2026-10-29].
 - **NATO STANAG 2511 / AJP-2 — Admiralty Code** — A–F source-credibility × 1–6 information-credibility matrix.
-- **Cone of Plausibility** (Charles W. Taylor / UK MoD) — bounding analytic uncertainty on forward-looking claims.
-- **NIST SP 800-88 Rev. 1** — media sanitization (used at retention-period disposal).
-- **SWGDE / SWGIT Best Practices** — digital-evidence forensic baseline.
+- **Cone of Plausibility** (Charles W. Taylor, *Creating Strategic Visions*, US Army War College SSI, 1990) — bounding analytic uncertainty on forward-looking claims [verify 2026-10-29].
+- **NIST SP 800-88 Rev. 2** (Sept 2025; supersedes Rev. 1) — media sanitization (used at retention-period disposal) [verify 2026-10-29].
+- **SWGDE Best Practices** — digital-evidence forensic baseline (SWGIT terminated May 2015; its archive is hosted by SWGDE) [verify 2026-10-29].
 
 **Sanctions & beneficial ownership:**
-- OFAC SDN / Consolidated — `sanctionssearch.ofac.treas.gov`
-- EU Consolidated Financial Sanctions — `data.europa.eu` (search "consolidated list ... financial sanctions")
-- UK OFSI Consolidated List — `gov.uk/government/publications/financial-sanctions-consolidated-list-of-targets`
-- UN Security Council Consolidated — `un.org/securitycouncil/sanctions/un-sc-consolidated-list`
+- OFAC SDN / Consolidated — `sanctionssearch.ofac.treas.gov` [verify 2026-10-29]
+- EU Consolidated Financial Sanctions — `data.europa.eu/data/datasets/consolidated-list-of-persons-groups-and-entities-subject-to-eu-financial-sanctions` [verify 2026-10-29]
+- UK Sanctions List (FCDO; OFSI Consolidated List closed 28 Jan 2026) — `gov.uk/government/publications/the-uk-sanctions-list` [verify 2026-10-29]
+- UN Security Council Consolidated — `main.un.org/securitycouncil/sanctions/un-sc-consolidated-list` [verify 2026-10-29]
 - OpenSanctions — `opensanctions.org`
 - OpenCorporates — `opencorporates.com`
 - ICIJ OffshoreLeaks — `offshoreleaks.icij.org`
 - OCCRP Aleph — `aleph.occrp.org`
 - UK PSC (Companies House) — `find-and-update.company-information.service.gov.uk`
-- US FinCEN BOI — `fincen.gov/boi` (scope narrowed by 2025 Treasury interim final rule `[verify 2026-04-26]`)
+- US FinCEN BOI — `fincen.gov/boi` (U.S. companies exempt under FinCEN final rule effective 14 Aug 2026 `[verify 2026-10-29]`)
 
 **Threat-actor / cyber-TI:**
 - MITRE ATT&CK Groups — `attack.mitre.org/groups/`
 - MISP — `misp-project.org`
-- OpenCTI — `opencti.io`
+- OpenCTI — `github.com/OpenCTI-Platform/opencti` [verify 2026-10-29]
 
 **Identity verification (jurisdictional, with consent):**
-- eIDAS (EU), GOV.UK One Login (UK), India Aadhaar (jurisdictional), US REAL ID (full enforcement May 7 2025 `[verify 2026-04-26]`)
+- eIDAS (EU), GOV.UK One Login (UK), India Aadhaar (jurisdictional), US REAL ID (full enforcement May 7 2025 `[verify 2026-10-29]`)
 - KYC vendors: Onfido, Jumio, Trulioo, Persona (document without endorsement)
 
 ### Case References
 
 - Case file: `Cases/<YYYY-NNN-Brief-Description>/` (per CLAUDE.md naming)
 - Evidence repository: `Cases/<YYYY-NNN-Brief-Description>/Evidence/<entity_name>/`
-- Worked example: [Example Investigation](https://github.com/gl0bal01/intel-codex/blob/main/Cases/2025-001-Example-Investigation/README.md)
-- Template: [Case Template](https://github.com/gl0bal01/intel-codex/blob/main/Cases/Case-Template/README.md)
+- Worked example: [Example Investigation](https://github.com/gl0bal01/intel-codex/blob/main/Cases/2025-001-Example-Investigation/README.md) [verify 2026-10-29]
+- Template: [Case Template](https://github.com/gl0bal01/intel-codex/blob/main/Cases/Case-Template/README.md) [verify 2026-10-29]
 
 ## Legal & Ethical Considerations
 
@@ -728,5 +729,5 @@ Canonical text lives in [[sop-legal-ethics|Legal & Ethics]]. Dossier-specific re
 
 **Analyst:** gl0bal01
 **Date Created:** 2025-10-05
-**Last Updated:** 2026-10-18
+**Last Updated:** 2026-10-29
 **Review Cycle:** Yearly (slow-rot anchor SOP per CLAUDE.md watchlist)

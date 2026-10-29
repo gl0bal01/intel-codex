@@ -3,7 +3,7 @@ type: sop
 title: Financial Crime & AML OSINT
 description: "Financial intelligence techniques: cryptocurrency tracing, sanctions screening, AML investigation & blockchain analysis for financial crime detection."
 tags: [sop, finance, aml, sanctions]
-updated: 2026-04-27
+updated: 2026-10-29
 ---
 
 # Financial Crime & AML OSINT
@@ -31,35 +31,35 @@ updated: 2026-04-27
 ### Company Registries (Public)
 
 **United Kingdom:**
-- [Companies House](https://find-and-update.company-information.service.gov.uk/) - Free UK company search
+- [Companies House](https://find-and-update.company-information.service.gov.uk/) - Free UK company search [verify 2026-10-29]
 - Lookup: company name, number, directors, filing history, PSC (Persons with Significant Control)
 
 **United States:**
-- [EDGAR (SEC)](https://www.sec.gov/edgar/searchedgar/companysearch.html) - Public companies
+- [EDGAR (SEC)](https://www.sec.gov/search-filings) - Public companies [verify 2026-10-29]
 - State-level registries (e.g., Delaware Division of Corporations, California SOS)
-- [OpenCorporates](https://opencorporates.com) - Global company search aggregator
+- [OpenCorporates](https://opencorporates.com) - Global company search aggregator [verify 2026-10-29]
 
 **European Union:**
-- [European Business Register](https://e-justice.europa.eu/topics/registers-business-insolvency-land/business-registers-search-company-eu_en/) - Cross-border company information
+- [European Business Register](https://e-justice.europa.eu/topics/registers-business-insolvency-land/business-registers-search-company-eu_en/) - Cross-border company information [verify 2026-10-29]
 - Country-specific registries (e.g., Netherlands KVK, Germany Handelsregister)
 
 **Offshore/High-Risk:**
 - Limited public access (BVI, Cayman, Panama, etc.)
-- Use: ICIJ leaks databases (Panama Papers, Paradise Papers, Pandora Papers)
+- Use: ICIJ leaks databases (Panama Papers, Paradise Papers, Pandora Papers) [verify 2026-10-29]
 
 ### UBO (Ultimate Beneficial Owner) Identification
 
 **Steps:**
 1. Identify registered directors and shareholders
 2. Trace ownership chains upward (holding companies, trusts)
-3. Look for PSC/UBO disclosures (required in UK, EU)
+3. Look for PSC/UBO disclosures — the UK PSC register is public (Companies House); EU UBO registers lost general public access after CJEU Joined Cases C-37/20 & C-601/20 (2022-11-22), and access now requires a legitimate interest (Directive (EU) 2024/1640 Art. 12, transposition due 2026-07-10; media and AML-focused civil society/academia are deemed to have one) — apply to the national register [verify 2026-10-29]
 4. Cross-reference names with PEP/sanctions databases
 5. Map corporate structure visually
 
 **Tools:**
-- [OpenCorporates](https://opencorporates.com) - Free corporate database
-- [OpenOwnership](https://register.openownership.org/) - Beneficial ownership data
-- [ICIJ Offshore Leaks Database](https://offshoreleaks.icij.org/) - Leaked offshore entities
+- [OpenCorporates](https://opencorporates.com) - Free corporate database [verify 2026-10-29]
+- [Open Ownership BODS data](https://bods-data.openownership.org/) - Bulk beneficial-ownership datasets (UK PSC + Register of Overseas Entities; GLEIF ownership mapping); the public Open Ownership Register closed 2024-11-29 [verify 2026-10-29]
+- [ICIJ Offshore Leaks Database](https://offshoreleaks.icij.org/) - Leaked offshore entities [verify 2026-10-29]
 
 ---
 
@@ -68,34 +68,34 @@ updated: 2026-04-27
 ### Sanctions Lists (Public)
 
 **OFAC (US Treasury):**
-- [OFAC SDN List](https://sanctionssearch.ofac.treas.gov/) - Specially Designated Nationals; web search interface
-- Download consolidated list (XML/CSV, updated daily): [OFAC File Finder](https://ofac.treasury.gov/file-finder) (or the newer bulk endpoint at [sanctionslist.ofac.treas.gov](https://sanctionslist.ofac.treas.gov))
-- Crypto coverage: SDN list includes **Digital Currency Address** (DCA) entries tagged by currency code (`XBT`, `ETH`, `USDT`, `XMR`, etc.). Treat each DCA hit as a high-priority pivot.
+- [OFAC SDN List](https://sanctionssearch.ofac.treas.gov/) - Specially Designated Nationals; web search interface [verify 2026-10-29]
+- Download consolidated list (XML/CSV, updated daily): [OFAC File Finder](https://ofac.treasury.gov/file-finder) (or the newer bulk endpoint at [sanctionslist.ofac.treas.gov](https://sanctionslist.ofac.treas.gov)) [verify 2026-10-29]
+- Crypto coverage: SDN list includes **Digital Currency Address** (DCA) entries tagged by currency code (`XBT`, `ETH`, `USDT`, `XMR`, etc.). Treat each DCA hit as a high-priority pivot. [verify 2026-10-29]
 
 **European Union:**
-- [EU Sanctions Map](https://www.sanctionsmap.eu/) - EU consolidated list
-- [EU Financial Sanctions Database](https://webgate.ec.europa.eu/fsd/fsf)
+- [EU Sanctions Map](https://www.sanctionsmap.eu/) - EU consolidated list [verify 2026-10-29]
+- [EU Financial Sanctions Database](https://webgate.ec.europa.eu/fsd/fsf) [verify 2026-10-29]
 
 **United Nations:**
-- [UN Security Council Sanctions](https://www.un.org/securitycouncil/sanctions/information) - UN consolidated list
+- [UN Security Council Consolidated List](https://main.un.org/securitycouncil/en/content/un-sc-consolidated-list) - UN consolidated list (XML/HTML) [verify 2026-10-29]
 
 **United Kingdom:**
-- [UK Sanctions List](https://www.gov.uk/government/publications/financial-sanctions-consolidated-list-of-targets)
+- [UK Sanctions List](https://www.gov.uk/government/publications/the-uk-sanctions-list) - FCDO; the only source for all UK designations since 2026-01-28, when the OFSI Consolidated List of Asset Freeze Targets closed [verify 2026-10-29]
 
 **Other:**
-- [World Bank Debarred Firms](https://www.worldbank.org/en/projects-operations/procurement/debarred-firms)
-- Interpol Red Notices (for individuals)
+- [World Bank Debarred Firms](https://www.worldbank.org/en/projects-operations/procurement/debarred-firms) [verify 2026-10-29]
+- Interpol Red Notices (for individuals) [verify 2026-10-29]
 
 ### PEP (Politically Exposed Persons)
 
 **Free/Open Resources:**
 - [WikiData](https://www.wikidata.org/) - Search for political positions, government roles
-- [EveryPolitician](http://everypolitician.org/) - Global politician database
-- [OpenSanctions](https://www.opensanctions.org/pep/) - Aggregated PEP & sanctions data (open source)
+- [EveryPolitician](https://everypolitician.org/) - Global politician/position database; relaunched in 2026 as an OpenSanctions project (mySociety froze the original data in June 2019) [verify 2026-10-29]
+- [OpenSanctions](https://www.opensanctions.org/pep/) - Aggregated PEP & sanctions data (bulk data CC BY-NC 4.0: free for non-commercial use, business use — including compliance screening — needs a data licence) [verify 2026-10-29]
 
 **Commercial (subscription):**
-- LSEG World-Check (formerly Refinitiv World-Check; LSEG retired the Refinitiv brand starting Aug 2023)
-- Dow Jones Risk & Compliance, LexisNexis Risk Solutions, Moody's Orbis (Bureau van Dijk), Sayari Graph — enterprise screening / corporate-network analytics
+- LSEG World-Check (formerly Refinitiv World-Check; LSEG retired the Refinitiv brand starting Aug 2023) [verify 2026-10-29]
+- Dow Jones Risk & Compliance, LexisNexis Risk Solutions, Moody's Orbis (Bureau van Dijk), Sayari Graph — enterprise screening / corporate-network analytics [verify 2026-10-29]
 
 **Manual checks:**
 - Government websites (parliament, cabinet lists)
@@ -115,9 +115,9 @@ site:news.com "Company Name" AND ("investigation" OR "charged" OR "lawsuit")
 - Bing News (with date filters)
 
 **Legal case databases:**
-- [PACER](https://pacer.uscourts.gov/) (US federal courts)
-- [CourtListener](https://www.courtlistener.com/) (free US legal opinions)
-- [BAILII](https://www.bailii.org/) (UK/Irish case law)
+- [PACER](https://pacer.uscourts.gov/) (US federal courts) [verify 2026-10-29]
+- [CourtListener](https://www.courtlistener.com/) (free US legal opinions) [verify 2026-10-29]
+- [BAILII](https://www.bailii.org/) (UK/Irish case law) [verify 2026-10-29]
 
 ---
 
@@ -145,9 +145,9 @@ site:news.com "Company Name" AND ("investigation" OR "charged" OR "lawsuit")
 - Multiple domain names for same processor
 
 **Resources:**
-- [Payment Service Provider Search](https://www.fca.org.uk/firms/financial-services-register) (UK FCA)
+- [Payment Service Provider Search](https://www.fca.org.uk/firms/financial-services-register) (UK FCA) [verify 2026-10-29]
 - VISA/Mastercard partner lists
-- Scam reporting databases (Action Fraud, FBI IC3, FTC)
+- Scam reporting services ([Report Fraud](https://www.reportfraud.police.uk/) — replaced Action Fraud on 2025-12-04 for England, Wales and NI; FBI IC3; FTC ReportFraud) [verify 2026-10-29]
 
 ---
 
@@ -157,25 +157,25 @@ site:news.com "Company Name" AND ("investigation" OR "charged" OR "lawsuit")
 
 ### Surface-level wallet check
 
-1. Look up the address in a public explorer: [Blockchain.com](https://www.blockchain.com/explorer) or [Mempool.space](https://mempool.space/) (BTC), [Etherscan](https://etherscan.io/) (ETH / EVM), [Blockchair](https://blockchair.com/) (multi-chain).
-2. Note inflows / outflows, exchange-deposit patterns, and any vendor-tagged labels ([Arkham Intelligence](https://www.arkhamintelligence.com/) for entity labels, [Chainabuse](https://www.chainabuse.com/) for known-bad reports).
-3. Flag any of: privacy-coin hops (Monero, Zcash shielded), CoinJoin / mixer activity, cross-chain bridge use, peel chains, round-number layering, no-KYC swap services (FixedFloat, ChangeNOW, SimpleSwap), OFAC SDN Digital Currency Address (DCA) hits.
+1. Look up the address in a public explorer: [Blockchain.com](https://www.blockchain.com/explorer) or [Mempool.space](https://mempool.space/) (BTC), [Etherscan](https://etherscan.io/) (ETH / EVM), [Blockchair](https://blockchair.com/) (multi-chain). [verify 2026-10-29]
+2. Note inflows / outflows, exchange-deposit patterns, and any vendor-tagged labels ([Arkham Intelligence](https://info.arkm.com/) for entity labels, [Chainabuse](https://www.chainabuse.com/) for known-bad reports). [verify 2026-10-29]
+3. Flag any of: privacy-coin hops (Monero, Zcash shielded), CoinJoin / mixer activity, cross-chain bridge use, peel chains, round-number layering, no-KYC swap services (FixedFloat/ff.io, ChangeNOW, SimpleSwap), OFAC SDN Digital Currency Address (DCA) hits.
 4. **Stop here.** Do not transact with the address. Do not pivot deeper without engaging blockchain-investigation methodology — vendor labels are heuristics, not court evidence, and pasting addresses into free analytics surfaces can leak the investigation.
 
 ### Sanctions screening (crypto-side)
 
-The OFAC SDN list includes **Digital Currency Address (DCA)** entries tagged by currency code (`XBT`, `ETH`, `USDT`, `XMR`, etc.). Each DCA hit is a high-priority sanctions exposure. Sanctions designations are time-stamped facts — record both the activity timestamp **and** the list state at that time (Tornado Cash addresses were SDN-listed 2022-08-08, vacated 2024-11-26, delisted 2025-03-21). EU, UK OFSI, and UN consolidated lists may not mirror US DCA entries; screen all four at minimum.
+The OFAC SDN list includes **Digital Currency Address (DCA)** entries tagged by currency code (`XBT`, `ETH`, `USDT`, `XMR`, etc.). Each DCA hit is a high-priority sanctions exposure. Sanctions designations are time-stamped facts — record both the activity timestamp **and** the list state at that time (Tornado Cash addresses were SDN-listed 2022-08-08 and re-designated 2022-11-08; on 2024-11-26 the Fifth Circuit held its immutable smart contracts could not be blocked under IEEPA (*Van Loon v. Treasury*, No. 23-50669, reversed and remanded); OFAC delisted them 2025-03-21). EU, UK (FCDO UK Sanctions List), and UN consolidated lists may not mirror US DCA entries; screen all four at minimum. [verify 2026-10-29]
 
 ### Travel Rule (FATF Recommendation 16)
 
 VASPs (exchanges, custodial wallets, OTC desks) must transmit originator / beneficiary information for crypto transfers above a jurisdictional threshold. Implementations differ:
 
-- **US (FinCEN):** USD 3,000 threshold [verify 2026-04-27]
-- **EU (Transfer of Funds Regulation / MiCA):** **No de minimis** for VASP-to-VASP transfers from 2024-12-30
-- **UK (FCA):** GBP 1,000 originator-side trigger
+- **US (FinCEN):** USD 3,000 threshold (31 CFR 1010.410(f)) [verify 2026-10-29]
+- **EU (Transfer of Funds Regulation / MiCA):** **No de minimis** for VASP-to-VASP transfers from 2024-12-30 [verify 2026-10-29]
+- **UK (FCA; MLRs 2017 reg. 64C):** no de minimis for the basic payload — originator/beneficiary names and account numbers (or a unique transaction identifier) accompany every inter-cryptoasset-business transfer. Where any business in the chain is outside the UK, one further originator identifier (customer ID number, address, ID-document number, or date and place of birth) must also accompany transfers ≥ £800 (linked transfers aggregated); all-UK chains supply it on request within three working days. £800 replaced EUR 1,000 from 2026-06-30 (SI 2026/621 reg. 32) [verify 2026-10-29]
 - **Singapore / Switzerland / Japan:** thresholds vary; check the local FIU
 
-Non-compliant VASPs and self-hosted-wallet routes are common AML red flags. Open-source Travel Rule protocols include TRP, IVMS101, and Sygna Bridge / Notabene / Veriscope deployments [inferred — vendor list shifts annually].
+Non-compliant VASPs and self-hosted-wallet routes are common AML red flags. Travel Rule plumbing: IVMS101 is the common data-model standard; open protocols include TRP; commercial networks include Sygna Bridge, Notabene and Shyft Veriscope [vendor list shifts annually]. [verify 2026-10-29]
 
 ### Hand-off
 
@@ -267,7 +267,7 @@ Non-compliant VASPs and self-hosted-wallet routes are common AML red flags. Open
 **Step 6: Adverse Media**
 ```
 1. Google News: "SuspiciousCorp" + (fraud OR scam OR investigation)
-2. Search Action Fraud / FBI IC3 / FTC complaints
+2. Search Report Fraud (ex-Action Fraud) / FBI IC3 / FTC complaints
 3. Check Trustpilot, BBB, Reddit for complaints
 4. Document findings with URLs and timestamps
 ```
@@ -332,8 +332,8 @@ OPSEC for the investigator (separation of attribution, network egress, wallet/ac
 
 - **Never transact** with crypto wallets or bank accounts under investigation. Even a 1-satoshi "test" can taint the cluster, alert the subject, and create legal exposure.
 - **Do not access** darknet markets or illicit platforms to "verify" a finding — open-source pivot only.
-- **Bank account / IBAN lookups:** retrieving account holder data without lawful authority is a criminal offence in most jurisdictions (e.g. UK Computer Misuse Act, US 18 U.S.C. §1030, EU GDPR Art. 6/9). Use only published / leaked / sanctions-listed identifiers; pivot to a regulated channel (MLRO, FIU SAR, mutual legal assistance) for non-public account intel.
-- **Sanctions hits are time-stamped facts.** Record both the activity timestamp **and** the sanctions-list state at that time (e.g. Tornado Cash addresses were SDN-listed 2022-08-08 → vacated 2024-11-26 → delisted 2025-03-21). Liability assessments hinge on the temporal alignment.
+- **Bank account / IBAN lookups:** retrieving account holder data without lawful authority is a criminal offence in most jurisdictions (e.g. UK Computer Misuse Act, US 18 U.S.C. §1030, EU GDPR Art. 6/9). [verify 2026-10-29] Use only published / leaked / sanctions-listed identifiers; pivot to a regulated channel (MLRO, FIU SAR, mutual legal assistance) for non-public account intel.
+- **Sanctions hits are time-stamped facts.** Record both the activity timestamp **and** the sanctions-list state at that time (e.g. Tornado Cash addresses were SDN-listed 2022-08-08 → re-designated 2022-11-08 → Fifth Circuit held them unblockable under IEEPA 2024-11-26 (*Van Loon v. Treasury*, No. 23-50669) → delisted by OFAC 2025-03-21). Liability assessments hinge on the temporal alignment. [verify 2026-10-29]
 - **PII minimization (GDPR / UK DPA / CCPA):** collect only what is necessary for the analytical purpose; document lawful basis (legitimate interest / legal claim / public-task) per query.
 - **Mandatory reporting / Suspicious Activity Reports:** if you are operating inside a regulated entity, route findings through the MLRO. Outside a regulated entity, route serious findings (sanctions evasion, terrorist financing, child exploitation funding) via the appropriate FIU (FinCEN, NCA, FIU-NL, etc.) — see [[sop-sensitive-crime-intake-escalation|Sensitive Crime Intake & Escalation]].
 - **Log every query** (URL, search terms, UTC timestamp, hash of saved output) — see [[sop-collection-log|Collection Log]] for the canonical format.
@@ -344,26 +344,26 @@ OPSEC for the investigator (separation of attribution, network egress, wallet/ac
 
 | Resource | Type | URL |
 |----------|------|-----|
-| OpenCorporates | Global company search | [opencorporates.com](https://opencorporates.com) |
+| OpenCorporates | Global company search | [opencorporates.com](https://opencorporates.com) [verify 2026-10-29] |
 | Companies House (UK) | UK registry | [find-and-update.company-information.service.gov.uk](https://find-and-update.company-information.service.gov.uk/) |
-| OpenOwnership | Beneficial ownership register | [register.openownership.org](https://register.openownership.org/) |
-| OCCRP Aleph | Investigative document graph | [aleph.occrp.org](https://aleph.occrp.org/) |
-| C4ADS Horizons | Investigative document search (free, but access on request: vetted partners, needs-based) | [Horizons](https://horizons.c4ads.org/about) |
-| OFAC SDN Search | US sanctions | [sanctionssearch.ofac.treas.gov](https://sanctionssearch.ofac.treas.gov/) |
-| OFAC Sanctions List Service | US sanctions data feeds | [sanctionslistservice.ofac.treas.gov](https://sanctionslistservice.ofac.treas.gov/) [verify 2026-04-25] |
-| EU Sanctions Map | EU sanctions | [sanctionsmap.eu](https://www.sanctionsmap.eu/) |
-| EU Financial Sanctions DB | EU consolidated list | [webgate.ec.europa.eu/fsd/fsf](https://webgate.ec.europa.eu/fsd/fsf) |
-| UK Sanctions List | UK OFSI consolidated list | [gov.uk/government/publications/financial-sanctions-consolidated-list-of-targets](https://www.gov.uk/government/publications/financial-sanctions-consolidated-list-of-targets) |
-| UN Security Council Sanctions | UN consolidated list | [un.org/securitycouncil/sanctions/information](https://www.un.org/securitycouncil/sanctions/information) |
+| Open Ownership BODS data | Beneficial ownership bulk datasets (Register closed 2024-11-29) | [bods-data.openownership.org](https://bods-data.openownership.org/) [verify 2026-10-29] |
+| OCCRP Aleph | Investigative document graph | [aleph.occrp.org](https://aleph.occrp.org/) [verify 2026-10-29] |
+| C4ADS Horizons | Investigative document search (access on request; terms not published — confirm with C4ADS) | [Horizons](https://horizons.c4ads.org/about) |
+| OFAC SDN Search | US sanctions | [sanctionssearch.ofac.treas.gov](https://sanctionssearch.ofac.treas.gov/) [verify 2026-10-29] |
+| OFAC Sanctions List Service | US sanctions data downloads (SDN, non-SDN consolidated, delta files, custom datasets) | [sanctionslist.ofac.treas.gov/Home/SdnList](https://sanctionslist.ofac.treas.gov/Home/SdnList) [verify 2026-10-29] |
+| EU Sanctions Map | EU sanctions | [sanctionsmap.eu](https://www.sanctionsmap.eu/) [verify 2026-10-29] |
+| EU Financial Sanctions DB | EU consolidated list | [webgate.ec.europa.eu/fsd/fsf](https://webgate.ec.europa.eu/fsd/fsf) [verify 2026-10-29] |
+| UK Sanctions List | UK designations (FCDO; OFSI Consolidated List closed 2026-01-28) | [gov.uk/government/publications/the-uk-sanctions-list](https://www.gov.uk/government/publications/the-uk-sanctions-list) [verify 2026-10-29] |
+| UN Security Council Consolidated List | UN consolidated list | [main.un.org/securitycouncil/en/content/un-sc-consolidated-list](https://main.un.org/securitycouncil/en/content/un-sc-consolidated-list) [verify 2026-10-29] |
 | OpenSanctions | Aggregated sanctions/PEP/CRIME | [opensanctions.org](https://www.opensanctions.org/) |
-| ICIJ Offshore Leaks | Leaked offshore data | [offshoreleaks.icij.org](https://offshoreleaks.icij.org/) |
-| Etherscan | Ethereum explorer | [etherscan.io](https://etherscan.io/) |
+| ICIJ Offshore Leaks | Leaked offshore data | [offshoreleaks.icij.org](https://offshoreleaks.icij.org/) [verify 2026-10-29] |
+| Etherscan | Ethereum explorer | [etherscan.io](https://etherscan.io/) [verify 2026-10-29] |
 | Blockchair | Multi-chain explorer | [blockchair.com](https://blockchair.com/) |
-| Mempool.space | Bitcoin mempool & explorer | [mempool.space](https://mempool.space/) |
+| Mempool.space | Bitcoin mempool & explorer | [mempool.space](https://mempool.space/) [verify 2026-10-29] |
 | Blockchain.com | Bitcoin explorer | [blockchain.com/explorer](https://www.blockchain.com/explorer) |
-| Chainabuse | Crypto scam database | [chainabuse.com](https://www.chainabuse.com/) |
-| Arkham Intelligence | On-chain entity labels | [arkhamintelligence.com](https://www.arkhamintelligence.com/) |
-| Breadcrumbs | Free blockchain visualization | [breadcrumbs.app](https://www.breadcrumbs.app/) |
+| Chainabuse | Crypto scam database | [chainabuse.com](https://www.chainabuse.com/) [verify 2026-10-29] |
+| Arkham Intelligence | On-chain entity labels | [info.arkm.com](https://info.arkm.com/) [verify 2026-10-29] |
+| Breadcrumbs | Blockchain visualization (pricing unverified) | [breadcrumbs.app](https://www.breadcrumbs.app/) |
 | FATF | Standards & VASP guidance | [fatf-gafi.org](https://www.fatf-gafi.org/) |
 
 ---
@@ -395,8 +395,8 @@ OPSEC for the investigator (separation of attribution, network egress, wallet/ac
 
 - ❌ Relying on single-source data (cross-verify across registries)
 - ❌ Missing historical changes (directors, addresses, ownership) — corporate registries surface "current state" by default
-- ❌ Not checking sanctions lists thoroughly (OFAC + EU + UK OFSI + UN at minimum; many SDN crypto entries are not present in non-US lists)
-- ❌ Stating sanctions status without a timestamp — Tornado Cash designation status changed three times between 2022 and 2025; report what was true at the time of activity
+- ❌ Not checking sanctions lists thoroughly (OFAC + EU + UK Sanctions List + UN at minimum; many SDN crypto entries are not present in non-US lists)
+- ❌ Stating sanctions status without a timestamp — Tornado Cash's SDN entries were added (2022-08-08), replaced by a re-designation (2022-11-08) and deleted (2025-03-21), with a court ruling in between (2024-11-26); report what was true at the time of activity [verify 2026-10-29]
 - ❌ Assuming privacy = guilt (legitimate reasons for offshore structures exist)
 - ❌ Transacting or interacting with suspect wallets/accounts (taints clusters and may be a criminal offence)
 - ❌ Not documenting sources and timestamps (breaks chain of custody)
@@ -419,4 +419,4 @@ OPSEC for the investigator (separation of attribution, network egress, wallet/ac
 
 ---
 
-**Last Updated:** 2026-04-27
+**Last Updated:** 2026-10-29

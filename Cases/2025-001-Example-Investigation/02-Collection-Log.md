@@ -177,13 +177,13 @@ Transaction Count: 104
 **Data Collection Commands:**
 ```bash
 # Etherscan API (get transaction list)
-curl "https://api.etherscan.io/api?module=account&action=txlist&address=0x1234abcd5678ef90abcd1234ef567890abcd1234&apikey=YOUR_API_KEY" > wallet-txlist.json
+curl "https://api.etherscan.io/v2/api?chainid=1&module=account&action=txlist&address=0x1234abcd5678ef90abcd1234ef567890abcd1234&apikey=$ETHERSCAN_API_KEY" > wallet-txlist.json
 
 # Get token transfers
-curl "https://api.etherscan.io/api?module=account&action=tokentx&address=0x1234abcd5678ef90abcd1234ef567890abcd1234&apikey=YOUR_API_KEY" > wallet-tokens.json
+curl "https://api.etherscan.io/v2/api?chainid=1&module=account&action=tokentx&address=0x1234abcd5678ef90abcd1234ef567890abcd1234&apikey=$ETHERSCAN_API_KEY" > wallet-tokens.json
 
 # Get internal transactions
-curl "https://api.etherscan.io/api?module=account&action=txlistinternal&address=0x1234abcd5678ef90abcd1234ef567890abcd1234&apikey=YOUR_API_KEY" > wallet-internal.json
+curl "https://api.etherscan.io/v2/api?chainid=1&module=account&action=txlistinternal&address=0x1234abcd5678ef90abcd1234ef567890abcd1234&apikey=$ETHERSCAN_API_KEY" > wallet-internal.json
 ```
 
 **Key Transactions:**

@@ -125,11 +125,11 @@ Integrate each entry with the subject's [[sop-entity-dossier|Entity Dossier]].
 
 # Screenshot (full page)
 # Firefox: Right-click → Take Screenshot → Save Full Page
-# Chrome: Ctrl+Shift+P → "Capture full size screenshot"
-# Or use command-line:
+# Chrome: DevTools → Toggle device toolbar → More options (⋮) → "Capture a full size screenshot" [verify 2026-10-29]
+# Or use command-line (Firefox; --screenshot runs headless): [verify 2026-10-29]
 firefox --screenshot=fullpage.png https://example.com
 
-# Command-line archival (wget WARC)
+# Command-line archival (wget WARC) [verify 2026-10-29]
 wget --warc-file=archive \
      --warc-cdx \
      --page-requisites \
@@ -137,8 +137,8 @@ wget --warc-file=archive \
      --user-agent="Mozilla/5.0" \
      https://example.com
 
-# Archive.org Wayback Machine submission
-curl -X POST "https://web.archive.org/save/https://example.com"
+# Archive.org Wayback Machine submission (Save Page Now 2 API; S3 keys: https://archive.org/account/s3.php) [verify 2026-10-29]
+curl -s -X POST "https://web.archive.org/save" -H "Accept: application/json" -H "Authorization: LOW $IA_ACCESS_KEY:$IA_SECRET_KEY" --data-urlencode "url=https://example.com"
 
 # Twitter/X archival (SingleFile)
 # 1. Navigate to x.com/username
@@ -148,7 +148,8 @@ curl -X POST "https://web.archive.org/save/https://example.com"
 # cease-and-desist letters (24 Aug and 8 Sep 2026). Do not rely on it. [verify 2026-10-29]
 
 # API-based capture (Twitter API v2 example)
-# Requires authentication and API key
+# Requires authentication (Bearer token) [verify 2026-10-29]
+# X reference docs name the field parameter post.fields; X's data dictionary still uses tweet.fields — confirm which your client accepts
 curl -s "https://api.x.com/2/tweets/TWEET_ID?expansions=author_id&tweet.fields=created_at,text&user.fields=username,name" \
   -H "Authorization: Bearer $YOUR_ACCESS_TOKEN" \
   -o tweet_data.json
@@ -157,27 +158,27 @@ curl -s "https://api.x.com/2/tweets/TWEET_ID?expansions=author_id&tweet.fields=c
 
 **Step 3: Hash Calculation** (see [[../../Security/Analysis/sop-hash-generation-methods|Hash Generation Methods SOP]])
 
-> **Algorithm selection:** SHA-256 (NIST FIPS 180-4) is the default for evidence integrity throughout this SOP. SHA-3 (FIPS 202) is a future-compatible successor — SHA-2 has not been deprecated. **MD5 and SHA-1 are collision-broken** (Wang 2004 / Stevens et al. SHAttered 2017) and should appear only in legacy-compatibility contexts with an explicit deprecation note. BLAKE2 / BLAKE3 are fast modern hashes but lack a NIST FIPS standard and are not generally accepted as court-grade [verify 2026-04-26].
+> **Algorithm selection:** SHA-256 (NIST FIPS 180-4) is the default for evidence integrity throughout this SOP. SHA-3 (FIPS 202) is a future-compatible successor — SHA-2 has not been deprecated. **MD5 and SHA-1 are collision-broken** (Wang 2004 / Stevens et al. SHAttered 2017) and should appear only in legacy-compatibility contexts with an explicit deprecation note. BLAKE2 / BLAKE3 are fast modern hashes but lack a NIST FIPS standard and are not generally accepted as court-grade [verify 2026-10-29].
 
 ```bash
 # Linux/macOS
 sha256sum captured_file.html > captured_file.sha256
 
-# Windows (PowerShell)
+# Windows (PowerShell) [verify 2026-10-29]
 Get-FileHash -Path "captured_file.html" -Algorithm SHA256 | Format-List
 
 # Batch processing (all files in directory)
 # Linux:
 find /Evidence/CASE-001/20251005/ -type f -exec sha256sum {} \; > SHA256SUMS
 
-# Windows:
+# Windows: [verify 2026-10-29]
 Get-ChildItem -Path "C:\Evidence\CASE-001\20251005\" -File | Get-FileHash -Algorithm SHA256 | Export-Csv -Path "hashes.csv"
 ```
 
 **Step 4: Metadata Extraction** (see [[sop-image-video-osint|Image/Video OSINT SOP]] for advanced analysis)
 
 ```bash
-# Web page metadata
+# Web page metadata [verify 2026-10-29]
 exiftool captured_page.html | tee metadata.txt
 
 # Image metadata (if screenshot or photo)
@@ -186,7 +187,7 @@ exiftool screenshot.png
 # PDF metadata
 exiftool document.pdf
 
-# Extract HTTP headers from WARC
+# Extract HTTP headers from WARC [verify 2026-10-29]
 zcat archive.warc.gz | grep -A 20 "WARC-Type: response"
 ```
 
@@ -200,12 +201,14 @@ mkdir -p /Evidence/CASE-2025-1005-001/{screenshots,html,archives,documents,metad
 mv twitter_profile.html /Evidence/CASE-2025-1005-001/html/20251005_twitter_profile.html
 mv twitter_screenshot.png /Evidence/CASE-2025-1005-001/screenshots/20251005_twitter_screenshot.png
 
-# Generate master hash file
+# Generate master hash file (skips the manifest itself) [verify 2026-10-29]
 cd /Evidence/CASE-2025-1005-001/
-find . -type f -exec sha256sum {} \; > MANIFEST_SHA256SUMS.txt
+find . -type f -not -name "MANIFEST*" -exec sha256sum {} + > MANIFEST_SHA256SUMS.txt
 
-# Create evidence package (password-protected)
-7z a -pinfected -mhe=on CASE-2025-1005-001_evidence.7z /Evidence/CASE-2025-1005-001/
+# Create evidence package outside the evidence tree: -p prompts for a strong password;
+# send it out-of-band. Never use "infected" — that is the public malware-sample convention,
+# not protection. [verify 2026-10-29]
+7z a -p -mhe=on /Evidence/CASE-2025-1005-001_evidence.7z /Evidence/CASE-2025-1005-001/
 ```
 
 ---
@@ -221,12 +224,12 @@ find . -type f -exec sha256sum {} \; > MANIFEST_SHA256SUMS.txt
 # maintainer's notice). Capture x.com pages with SingleFile instead (Step 2). [verify 2026-10-29]
 
 # Method 1: Twitter API (requires authentication)
-# Get user profile
+# Get user profile [verify 2026-10-29]
 curl -X GET "https://api.x.com/2/users/by/username/crypto_alex" \
      -H "Authorization: Bearer $TWITTER_BEARER_TOKEN" \
      > twitter_user_data.json
 
-# Get user tweets
+# Get user tweets [verify 2026-10-29]
 curl -X GET "https://api.x.com/2/users/USER_ID/tweets?max_results=100" \
      -H "Authorization: Bearer $TWITTER_BEARER_TOKEN" \
      > twitter_tweets.json
@@ -243,7 +246,7 @@ curl -X GET "https://api.x.com/2/users/USER_ID/tweets?max_results=100" \
 # 3. SingleFile to capture HTML
 # 4. Screenshot each post individually
 
-# Instaloader (command-line, no login required for public profiles)
+# Instaloader (command-line, no login required for public profiles) [verify 2026-10-29]
 instaloader --no-videos --no-video-thumbnails username
 # Downloads: profile pic, posts, metadata
 ```
@@ -253,7 +256,7 @@ instaloader --no-videos --no-video-thumbnails username
 # Manual capture (no API access for OSINT)
 # 1. Navigate to linkedin.com/in/username
 # 2. SingleFile + Screenshot (must be logged in to see full profile)
-# 3. Export profile as PDF (LinkedIn feature: More → Save to PDF)
+# 3. Export profile as PDF (LinkedIn feature: More → Save to PDF) [verify 2026-10-29]
 
 # IMPORTANT: LinkedIn ToS prohibits scraping - manual only
 ```
@@ -266,7 +269,7 @@ instaloader --no-videos --no-video-thumbnails username
 # SingleFile + Screenshot
 
 # Method 2: Export chat (requires Telegram Desktop)
-# Open channel → ⋮ Menu → Export Chat History → HTML format
+# Open channel → ⋮ Menu → Export Chat History → HTML format [verify 2026-10-29]
 # Includes: messages, media, metadata
 ```
 
@@ -274,7 +277,7 @@ instaloader --no-videos --no-video-thumbnails username
 
 **Web Pages:**
 ```bash
-# Full page archive (wget WARC)
+# Full page archive (wget WARC) [verify 2026-10-29]
 wget --warc-file=example_com_20251005 \
      --warc-cdx \
      --page-requisites \
@@ -285,10 +288,10 @@ wget --warc-file=example_com_20251005 \
      --user-agent="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36" \
      https://example.com
 
-# Archive.org submission
-curl -X POST "https://web.archive.org/save/https://example.com"
+# Archive.org submission (Save Page Now 2 API; S3 keys: https://archive.org/account/s3.php) [verify 2026-10-29]
+curl -s -X POST "https://web.archive.org/save" -H "Accept: application/json" -H "Authorization: LOW $IA_ACCESS_KEY:$IA_SECRET_KEY" --data-urlencode "url=https://example.com"
 
-# Check existing archives
+# Check existing archives [verify 2026-10-29]
 curl "https://archive.org/wayback/available?url=example.com" | jq
 ```
 
@@ -298,8 +301,8 @@ curl "https://archive.org/wayback/available?url=example.com" | jq
 whois example.com > whois_example_com_20251005.txt
 
 # Historical WHOIS (requires commercial service)
-# DomainTools: https://whois.domaintools.com/example.com
-# SecurityTrails: https://securitytrails.com/domain/example.com/history/whois
+# DomainTools: https://whois.domaintools.com/example.com [verify 2026-10-29]
+# SecurityTrails: https://securitytrails.com/domain/example.com/history/whois (may require a SecurityTrails account)
 
 # Calculate hash
 sha256sum whois_example_com_20251005.txt
@@ -307,14 +310,10 @@ sha256sum whois_example_com_20251005.txt
 
 **DNS Records:**
 ```bash
-# Complete DNS enumeration
-dig example.com ANY > dns_example_com_20251005.txt
-
-# Specific record types
-dig example.com A
-dig example.com MX
-dig example.com TXT
-dig example.com NS
+# Per-type queries, saved as evidence (+stats keeps the ;; SERVER: and ;; WHEN: lines).
+# Don't rely on ANY: RFC 8482 lets servers answer it with a minimal subset [verify 2026-10-29]
+for t in A MX TXT NS; do dig example.com "$t" +noall +answer +stats; done > dns_example_com_20251005.txt
+sha256sum dns_example_com_20251005.txt
 
 # Historical DNS (passive DNS)
 # SecurityTrails, DomainTools (commercial)
@@ -322,7 +321,7 @@ dig example.com NS
 
 **SSL Certificates:**
 ```bash
-# Certificate transparency search
+# Certificate transparency search [verify 2026-10-29]
 curl -s "https://crt.sh/?q=%25.example.com&output=json" | jq > certs_example_com_20251005.json
 
 # Current certificate
@@ -333,8 +332,8 @@ echo | openssl s_client -connect example.com:443 -servername example.com 2>/dev/
 
 **Bitcoin Transactions:**
 ```bash
-# Blockchain.info API
-# https://www.blockchain.com/fr/explorer/api/blockchain_api
+# Blockchain.info API [verify 2026-10-29]
+# https://www.blockchain.com/explorer/api/blockchain_api [verify 2026-10-29]
 curl -s "https://blockchain.info/rawaddr/BITCOIN_ADDRESS" | jq > btc_address_20251005.json
 
 # Calculate hash
@@ -347,8 +346,8 @@ sha256sum btc_address_20251005.json
 
 **Ethereum Transactions:**
 ```bash
-# Etherscan API
-curl -s "https://api.etherscan.io/api?module=account&action=txlist&address=ETH_ADDRESS&startblock=0&endblock=99999999&sort=asc&apikey=YourApiKey" | jq > eth_address_20251005.json
+# Etherscan API V2 (chainid=1 = Ethereum mainnet; V1 /api fully deprecated 2025-08-15) [verify 2026-10-29]
+curl -s "https://api.etherscan.io/v2/api?chainid=1&module=account&action=txlist&address=ETH_ADDRESS&startblock=0&endblock=99999999&sort=asc&apikey=$ETHERSCAN_API_KEY" | jq > eth_address_20251005.json
 
 # Screenshot Etherscan page
 # https://etherscan.io/address/ETH_ADDRESS
@@ -358,8 +357,8 @@ curl -s "https://api.etherscan.io/api?module=account&action=txlist&address=ETH_A
 
 **Have I Been Pwned:**
 ```bash
-# Check email for breaches (requires API key)
-curl -H "hibp-api-key: YOUR_API_KEY" \
+# Check email for breaches (requires API key) [verify 2026-10-29]
+curl -H "hibp-api-key: $HIBP_API_KEY" \
      "https://haveibeenpwned.com/api/v3/breachedaccount/email@example.com" \
      | jq > hibp_results_20251005.json
 
@@ -470,8 +469,8 @@ gpg --clearsign MANIFEST_SHA256SUMS.txt
 ### Evidence Transfer Protocol
 
 ```bash
-# Create password-protected archive
-7z a -pinfected -mhe=on CASE-2025-1005-001_evidence_20251005.7z /Evidence/CASE-2025-1005-001/20251005/
+# Create password-protected archive (-p prompts; share the password out-of-band) [verify 2026-10-29]
+7z a -p -mhe=on CASE-2025-1005-001_evidence_20251005.7z /Evidence/CASE-2025-1005-001/20251005/
 
 # Calculate archive hash
 sha256sum CASE-2025-1005-001_evidence_20251005.7z > CASE-2025-1005-001_evidence_20251005.sha256
@@ -483,7 +482,7 @@ sha256sum CASE-2025-1005-001_evidence_20251005.7z > CASE-2025-1005-001_evidence_
 
 # Receiver verification
 sha256sum -c CASE-2025-1005-001_evidence_20251005.sha256
-# Extract with password: infected
+# Extract (7z prompts for the password received out-of-band)
 7z x CASE-2025-1005-001_evidence_20251005.7z
 ```
 
@@ -753,27 +752,27 @@ sha256sum file.txt | tee file.txt.sha256 | xclip -selection clipboard
 
 | Tool | Purpose | Platform | Command/Link |
 |------|---------|----------|--------------|
-| **SingleFile** | Save complete web page as single HTML | Browser extension | [Chrome/Firefox](https://github.com/gildas-lormeau/SingleFile) |
+| **SingleFile** | Save complete web page as single HTML [verify 2026-10-29] | Browser extension | [Chrome/Firefox](https://github.com/gildas-lormeau/SingleFile) |
 | **wget** | Archive websites to WARC format | CLI (Linux/Mac/Win) | `wget --warc-file=archive URL` |
-| **ArchiveBox** | Self-hosted web archiving | CLI/Web | [archivebox.io](https://archivebox.io) |
-| **Wayback Machine** | Public third-party web archive (Internet Archive) | Web/API | `https://web.archive.org/save/<URL>` |
+| **ArchiveBox** | Self-hosted web archiving [verify 2026-10-29] | CLI/Web | [archivebox.io](https://archivebox.io) |
+| **Wayback Machine** | Public third-party web archive (Internet Archive) | Web/API | `POST https://web.archive.org/save` with `url=<URL>` (S3-key auth) [verify 2026-10-29] |
 | **Twint** | Twitter scraping (no API) — **archived Feb 2023, unmaintained; do not use** [verify 2026-10-29] | CLI (Python) | [github.com/twintproject/twint](https://github.com/twintproject/twint) |
 | **Instaloader** | Instagram archival | CLI (Python) | `instaloader username` |
 | **exiftool** | Metadata extraction | CLI | `exiftool file.jpg` |
 | **sha256sum** | Hash calculation | CLI (Linux/Mac) | `sha256sum file.txt` |
 | **Get-FileHash** | Hash calculation | PowerShell (Windows) | `Get-FileHash -Path file.txt -Algorithm SHA256` |
-| **shasum -a 256** | Hash calculation (Perl, ships with macOS) | CLI (macOS/Linux) | `shasum -a 256 file.txt` |
-| **hashdeep / md5deep / sha256deep** | Recursive multi-hash for chain-of-custody verification | CLI (Linux/Mac/Win) | `sha256deep -r /Evidence/CASE-001/ > MANIFEST.txt` |
-| **7-Zip** | Password-protected archiving (deterministic, AES-256) | GUI/CLI | `7z a -pinfected -mhe=on archive.7z files/` |
-| **age** | Modern file encryption (Filippo Valsorda) for sealed evidence packages | CLI | `age -r <recipient_pubkey> -o evidence.7z.age evidence.7z` |
+| **shasum -a 256** | Hash calculation (Perl, ships with macOS) [verify 2026-10-29] | CLI (macOS/Linux) | `shasum -a 256 file.txt` |
+| **hashdeep / md5deep / sha256deep** | Recursive multi-hash for chain-of-custody verification [verify 2026-10-29] | CLI (Linux/Mac/Win) | `sha256deep -r /Evidence/CASE-001/ > MANIFEST.txt` |
+| **7-Zip** | Password-protected archiving (AES-256; `-mhe=on` also encrypts headers/filenames) [verify 2026-10-29] | GUI/CLI | `7z a -p -mhe=on archive.7z files/` |
+| **age** | Modern file encryption (Filippo Valsorda) for sealed evidence packages [verify 2026-10-29] | CLI | `age -r <recipient_pubkey> -o evidence.7z.age evidence.7z` |
 | **GnuPG (GPG)** | OpenPGP signing of hash manifests / sealed packages | CLI (Linux/Mac/Win) | `gpg --clearsign MANIFEST_SHA256SUMS.txt` |
-| **dd / dc3dd / dcfldd** | Bit-for-bit acquisition (raw imaging); dc3dd / dcfldd add hashing on read | CLI (Linux/Mac) | `dc3dd if=/dev/sdX hash=sha256 log=acq.log of=image.dd` [verify 2026-04-26] |
-| **ewfacquire (libewf)** | Expert Witness Format (E01/Ex01) acquisition with embedded hashing | CLI (Linux/Mac/Win) | `ewfacquire /dev/sdX` |
-| **Guymager** | Forensic acquisition GUI (E01/AFF/dd) | Linux GUI | [guymager.sourceforge.io](https://guymager.sourceforge.io) |
-| **FTK Imager** | Free forensic imager (E01/dd, hash verification) — **vendor: Exterro (acquired AccessData 2020)** [verify 2026-04-26] | GUI/CLI (Win/Mac/Linux) | [exterro.com](https://www.exterro.com/) |
-| **Autopsy / The Sleuth Kit** | Open-source forensic platform (Brian Carrier) | GUI / CLI | [sleuthkit.org/autopsy](https://www.sleuthkit.org/autopsy/) |
-| **OpenTimestamps** | Bitcoin-anchored timestamping (corroboration only — not court-qualified) | CLI/Web | [opentimestamps.org](https://opentimestamps.org) |
-| **openssl ts** | RFC 3161 Time-Stamp Protocol client (qualified TSP requests) | CLI | `openssl ts -query -data file -sha256 -cert -out req.tsq` |
+| **dd / dc3dd / dcfldd** | Bit-for-bit acquisition (raw imaging); dc3dd / dcfldd add hashing on read | CLI (Linux/Mac) | `dc3dd if=/dev/sdX hash=sha256 log=acq.log of=image.dd` [verify 2026-10-29] |
+| **ewfacquire (libewf)** | Expert Witness Format (E01) acquisition with embedded hashing; Ex01 write support is still work in progress upstream [verify 2026-10-29] | CLI (Linux/Mac/Win) | `ewfacquire /dev/sdX` |
+| **Guymager** | Forensic acquisition GUI (E01/AFF/dd) [verify 2026-10-29] | Linux GUI | [guymager.sourceforge.io](https://guymager.sourceforge.io) |
+| **FTK Imager** | Free forensic imager (hash verification; separate FTK Imager Pro tier) — **vendor: Exterro** [verify 2026-10-29] | GUI (Windows) | [exterro.com/digital-forensics-software/ftk-imager](https://www.exterro.com/digital-forensics-software/ftk-imager) |
+| **Autopsy / The Sleuth Kit** | Open-source forensic platform (Brian Carrier) [verify 2026-10-29] | GUI / CLI | [sleuthkit.org/autopsy](https://www.sleuthkit.org/autopsy/) |
+| **OpenTimestamps** | Bitcoin-anchored timestamping (corroboration only — not court-qualified) [verify 2026-10-29] | CLI/Web | [opentimestamps.org](https://opentimestamps.org) |
+| **openssl ts** | RFC 3161 Time-Stamp Protocol client (qualified TSP requests) [verify 2026-10-29] | CLI | `openssl ts -query -data file -sha256 -cert -out req.tsq` |
 
 ---
 
@@ -783,15 +782,15 @@ sha256sum file.txt | tee file.txt.sha256 | xclip -selection clipboard
 
 ### Admissibility Requirements
 
-**Daubert Standard (US Federal Courts — *Daubert v. Merrell Dow Pharmaceuticals*, 509 U.S. 579 (1993)):**
+**Daubert Standard (US Federal Courts — *Daubert v. Merrell Dow Pharmaceuticals*, 509 U.S. 579 (1993)):** [verify 2026-10-29]
 - [ ] Evidence collection method is scientifically valid (testable, falsifiable)
 - [ ] Method has been peer-reviewed and published
 - [ ] Known error rate is acceptable
 - [ ] Method is generally accepted in the relevant field
 
-**Frye Standard** (older "general acceptance" test) still applies in some US state courts — confirm the forum's controlling test before relying on Daubert framing alone. [verify 2026-04-26]
+**Frye Standard** (older "general acceptance" test) still applies in some US state courts — confirm the forum's controlling test before relying on Daubert framing alone. [verify 2026-10-29]
 
-**Best Evidence Rule (FRE 1001–1003):**
+**Best Evidence Rule (FRE 1001–1003):** [verify 2026-10-29]
 - [ ] Original digital file preserved (not edited copy)
 - [ ] Hash proves file hasn't been altered
 - [ ] Chain of custody demonstrates integrity
@@ -803,48 +802,48 @@ sha256sum file.txt | tee file.txt.sha256 | xclip -selection clipboard
 
 **Self-Authenticating Electronic Records (FRE 902(13) and 902(14)):**
 
-Added by the 2017 amendment to the US Federal Rules of Evidence (effective 2017-12-01) [verify 2026-04-26]:
+Added by the 2017 amendment to the US Federal Rules of Evidence (effective 2017-12-01) [verify 2026-10-29]:
 
-- **FRE 902(13)** — Certified records generated by an electronic process or system, accompanied by a written certification of a qualified person.
-- **FRE 902(14)** — Data copied from an electronic device, storage medium, or file, authenticated by hash comparison certified by a qualified person.
+- **FRE 902(13)** — Certified records generated by an electronic process or system, accompanied by a written certification of a qualified person. [verify 2026-10-29]
+- **FRE 902(14)** — Data copied from an electronic device, storage medium, or file, authenticated by hash comparison certified by a qualified person. [verify 2026-10-29]
 
 Practical effect: a properly certified hash list with chain-of-custody documentation can authenticate digital evidence without requiring trial testimony from the original analyst. Build collection logs with this in mind — a "qualified person" certification template should accompany the master `MANIFEST_SHA256SUMS.txt`.
 
 ### Standards & Frameworks
 
-- **ISO/IEC 27037:2012** — Identification, collection, acquisition and preservation of digital evidence (international baseline).
-- **ISO/IEC 27041:2015** — Investigation assurance; **27042:2015** — analysis & interpretation; **27043:2015** — investigation principles & processes (companion standards, often missed).
-- **NIST SP 800-86** — *Guide to Integrating Forensic Techniques into Incident Response* (US baseline, 2006; still authoritative).
-- **NIST SP 800-101 Rev. 1** — *Guidelines on Mobile Device Forensics* (2014) [verify 2026-04-26].
-- **Berkeley Protocol on Digital Open Source Investigations** (UN OHCHR + UC Berkeley HRC, 2022) — §IV "Information Preservation" and §V "Information Verification" are the canonical OSINT chain-of-custody references for human-rights / war-crimes investigations and increasingly cited in international tribunals.
-- **ACPO Good Practice Guide for Digital Evidence** (UK, v5, 2012) — still cited in UK courts.
-- **SWGDE Best Practices** ([swgde.org](https://www.swgde.org)) — discipline-specific guidance (Best Practices for Computer Forensic Acquisitions; for Mobile Phone Forensic Examination; etc.). Verify current published versions before citing in a report. [verify 2026-04-26]
+- **ISO/IEC 27037:2012** — Identification, collection, acquisition and preservation of digital evidence (international baseline). [verify 2026-10-29]
+- **ISO/IEC 27041:2015** — Investigation assurance; **27042:2015** — analysis & interpretation; **27043:2015** — investigation principles & processes (companion standards, often missed). [verify 2026-10-29]
+- **NIST SP 800-86** — *Guide to Integrating Forensic Techniques into Incident Response* (US baseline, 2006; still authoritative). [verify 2026-10-29]
+- **NIST SP 800-101 Rev. 1** — *Guidelines on Mobile Device Forensics* (2014) [verify 2026-10-29].
+- **Berkeley Protocol on Digital Open Source Investigations** (UN OHCHR + UC Berkeley HRC, 2022) — Part VI "Investigation process", §D "Preservation" and §E "Verification", are the canonical OSINT chain-of-custody references for human-rights / war-crimes investigations and increasingly cited in international tribunals. [verify 2026-10-29]
+- **ACPO Good Practice Guide for Digital Evidence** (UK, v5, 2012) — still cited in UK courts. [verify 2026-10-29]
+- **SWGDE Best Practices** ([swgde.org](https://www.swgde.org)) — discipline-specific guidance (Best Practices for Computer Forensic Acquisitions 17-F-002-2.1, 2025; Best Practices for Mobile Device Evidence Collection & Preservation Handling and Acquisition 18-F-003-2.0, 2025; Best Practices for Acquiring Online Content 21-F-001-1.1, 2024). Verify current published versions before citing in a report. [verify 2026-10-29]
 
 ### Other Jurisdictions (verify locally)
 
-- **UK** — Civil Evidence Act 1995 + Criminal Procedure Rules 2020 Part 19; *R v. Cochrane* on hearsay-from-electronic-records [verify 2026-04-26].
-- **EU** — admissibility varies by Member State; **eIDAS Regulation (EU) 910/2014** governs qualified trust service providers (timestamping, e-signatures). **eIDAS 2 (Regulation (EU) 2024/1183)** entered into force 2024-05-20, becomes applicable in stages from 2026-05; introduces the European Digital Identity Wallet and updates qualified-trust-service requirements [verify 2026-04-26].
+- **UK** — Civil Evidence Act 1995 + Criminal Procedure Rules 2025 (SI 2025/909) Part 19 (expert evidence; in force 6 Oct 2025, replacing the 2020 Rules); *R v. Cochrane* on hearsay-from-electronic-records [verify 2026-10-29].
+- **EU** — admissibility varies by Member State; **eIDAS Regulation (EU) 910/2014** governs qualified trust service providers (timestamping, e-signatures). **eIDAS 2 (Regulation (EU) 2024/1183)** entered into force 2024-05-20; introduces the European Digital Identity Wallet (Member States must offer one within 24 months of the wallet implementing acts — end-2026 per the Commission) and updates qualified-trust-service requirements [verify 2026-10-29].
 
 ### Qualified Timestamping
 
 For chain-of-custody assertions that must survive challenges to local-clock accuracy or operator integrity:
 
-- **RFC 3161 Time-Stamp Protocol (TSP)** — IETF standard for trusted timestamping. Use an `openssl ts` workflow against a qualified Time-Stamp Authority (TSA):
+- **RFC 3161 Time-Stamp Protocol (TSP)** — IETF standard for trusted timestamping [verify 2026-10-29]. Use an `openssl ts` workflow against a qualified Time-Stamp Authority (TSA):
   ```bash
-  # Linux/macOS — request TSA signature on an evidence hash
+  # Linux/macOS — request TSA signature on an evidence hash [verify 2026-10-29]
   openssl ts -query -data MANIFEST_SHA256SUMS.txt -sha256 -cert -out req.tsq
   curl -H "Content-Type: application/timestamp-query" \
        --data-binary @req.tsq \
        https://<tsa-endpoint> -o resp.tsr
   openssl ts -reply -in resp.tsr -text
   ```
-- **eIDAS qualified TSPs** — examples include DigiCert, GlobalSign, and EU Trusted List members; a *qualified* electronic timestamp gets the EU presumption of accuracy and integrity. [verify 2026-04-26]
-- **OpenTimestamps** ([opentimestamps.org](https://opentimestamps.org)) — Bitcoin-blockchain-anchored, free, useful for OSINT corroboration; **not** court-qualified under eIDAS or RFC 3161.
+- **eIDAS qualified TSPs** — examples include DigiCert, GlobalSign, and EU Trusted List members; a *qualified* electronic timestamp gets the EU presumption of accuracy and integrity. [verify 2026-10-29]
+- **OpenTimestamps** ([opentimestamps.org](https://opentimestamps.org)) — Bitcoin-blockchain-anchored, free, useful for OSINT corroboration; **not** court-qualified under eIDAS or RFC 3161. [verify 2026-10-29]
 
 ### Date / Time Conventions
 
 - **ISO 8601 / RFC 3339** for textual timestamps; UTC strongly preferred (`Z` suffix, e.g., `2026-04-26T14:30:22Z`). Never log local time without explicit offset.
-- Filesystem `mtime` / `ctime` / `atime` should be preserved on evidence drives — mount with `noatime`/`relatime` *only* on working copies, never on the originals. macOS resource forks and extended attributes (`xattr`) are preserved by `cp -p`, `rsync -aHAX`, or block-level `dd` only.
+- Filesystem `mtime` / `ctime` / `atime` should be preserved on evidence drives — mount with `noatime`/`relatime` *only* on working copies, never on the originals. macOS resource forks and extended attributes (`xattr`) are preserved by `cp -p`, `rsync -aHAX`, or block-level `dd` only. [verify 2026-10-29]
 
 ### GDPR Compliance (if applicable)
 
@@ -857,10 +856,10 @@ For chain-of-custody assertions that must survive challenges to local-clock accu
 ---
 
 **Quick Reference:**
-- Hash calculation: `sha256sum file.txt` (Linux) or `Get-FileHash file.txt` (Windows)
+- Hash calculation: `sha256sum file.txt` (Linux) or `Get-FileHash file.txt` (Windows) [verify 2026-10-29]
 - Evidence storage: `/Evidence/CASE-ID/YYYYMMDD/`
 - Verification: `sha256sum -c SHA256SUMS.txt`
-- Archive: `7z a -pinfected -mhe=on archive.7z files/`
+- Archive: `7z a -p -mhe=on archive.7z files/` [verify 2026-10-29]
 
 **Related SOPs:**
 - [[sop-legal-ethics|Legal & Ethics]]
@@ -887,32 +886,32 @@ For chain-of-custody assertions that must survive challenges to local-clock accu
 ## External / Reference Resources
 
 **Standards & frameworks:**
-- ISO/IEC 27037:2012 — [iso.org/standard/44381.html](https://www.iso.org/standard/44381.html)
+- ISO/IEC 27037:2012 — [iso.org/standard/44381.html](https://www.iso.org/standard/44381.html) [verify 2026-10-29]
 - ISO/IEC 27041 / 27042 / 27043:2015 — companion incident-investigation standards
-- NIST SP 800-86 — [csrc.nist.gov/pubs/sp/800/86/final](https://csrc.nist.gov/pubs/sp/800/86/final)
-- Berkeley Protocol on Digital Open Source Investigations (UN OHCHR + UC Berkeley HRC, 2022) — [ohchr.org/sites/default/files/2022-04/OHCHR_BerkeleyProtocol.pdf](https://www.ohchr.org/sites/default/files/2022-04/OHCHR_BerkeleyProtocol.pdf) [verify 2026-04-26]
-- ACPO Good Practice Guide for Digital Evidence (UK, v5, 2012)
-- SWGDE Best Practices — [swgde.org](https://www.swgde.org)
-- Federal Rules of Evidence — [law.cornell.edu/rules/fre](https://www.law.cornell.edu/rules/fre)
+- NIST SP 800-86 — [csrc.nist.gov/pubs/sp/800/86/final](https://csrc.nist.gov/pubs/sp/800/86/final) [verify 2026-10-29]
+- Berkeley Protocol on Digital Open Source Investigations (UN OHCHR + UC Berkeley HRC, 2022) — [humanrights.berkeley.edu (PDF, 2022 ed.)](https://humanrights.berkeley.edu/wp-content/uploads/archive/2024/02/Berkeley-Protocol.pdf) [verify 2026-10-29]
+- ACPO Good Practice Guide for Digital Evidence (UK, v5, 2012) [verify 2026-10-29]
+- SWGDE Best Practices — [swgde.org](https://www.swgde.org) [verify 2026-10-29]
+- Federal Rules of Evidence — [law.cornell.edu/rules/fre](https://www.law.cornell.edu/rules/fre) [verify 2026-10-29]
 
 **RFCs & technical references:**
-- RFC 3161 — Internet X.509 Public Key Infrastructure Time-Stamp Protocol
+- RFC 3161 — Internet X.509 Public Key Infrastructure Time-Stamp Protocol [verify 2026-10-29]
 - RFC 3339 — Date and Time on the Internet: Timestamps
-- ISO 8601:2019 — Date and time format
-- NIST FIPS 180-4 — Secure Hash Standard (SHA-2)
-- NIST FIPS 202 — SHA-3 Standard
+- ISO 8601-1:2019 (+ Amd 1:2022) — Date and time — Representations for information interchange — Part 1: Basic rules [verify 2026-10-29]
+- NIST FIPS 180-4 — Secure Hash Standard (SHA-2) [verify 2026-10-29]
+- NIST FIPS 202 — SHA-3 Standard [verify 2026-10-29]
 
 **Tooling references:**
-- libewf (E01/Ex01 acquisition) — [github.com/libyal/libewf](https://github.com/libyal/libewf)
-- The Sleuth Kit / Autopsy — [sleuthkit.org](https://www.sleuthkit.org)
-- hashdeep — [github.com/jessek/hashdeep](https://github.com/jessek/hashdeep) [verify 2026-04-26]
-- age (file encryption) — [age-encryption.org](https://age-encryption.org)
-- OpenTimestamps — [opentimestamps.org](https://opentimestamps.org)
+- libewf (E01/Ex01 format library; ewfacquire) — [github.com/libyal/libewf](https://github.com/libyal/libewf) [verify 2026-10-29]
+- The Sleuth Kit / Autopsy — [sleuthkit.org](https://www.sleuthkit.org) [verify 2026-10-29]
+- hashdeep — [github.com/jessek/hashdeep](https://github.com/jessek/hashdeep) [verify 2026-10-29]
+- age (file encryption) — [age-encryption.org](https://age-encryption.org) [verify 2026-10-29]
+- OpenTimestamps — [opentimestamps.org](https://opentimestamps.org) [verify 2026-10-29]
 
 **Regulatory:**
-- eIDAS Regulation (EU) 910/2014 — [eur-lex.europa.eu/eli/reg/2014/910](https://eur-lex.europa.eu/eli/reg/2014/910)
-- eIDAS 2 — Regulation (EU) 2024/1183 [verify 2026-04-26]
-- GDPR — [gdpr-info.eu](https://gdpr-info.eu)
+- eIDAS Regulation (EU) 910/2014 — [eur-lex.europa.eu/eli/reg/2014/910](https://eur-lex.europa.eu/eli/reg/2014/910) [verify 2026-10-29]
+- eIDAS 2 — Regulation (EU) 2024/1183 [verify 2026-10-29]
+- GDPR — [gdpr-info.eu](https://gdpr-info.eu) [verify 2026-10-29]
 
 ---
 

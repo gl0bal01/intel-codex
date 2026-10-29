@@ -9,13 +9,13 @@ tags:
   - messaging
   - osint
 created: 2026-04-27
-updated: 2026-10-18
+updated: 2026-10-29
 template_version: 1.0
 ---
 
 # Discord OSINT SOP
 
-> **Authorized OSINT use only.** Investigation accounts must comply with Discord's [Terms of Service](https://discord.com/terms) and the platform's prohibitions on bulk scraping, automated account creation, self-bots, and coordinated inauthentic behavior. Review [[../Techniques/sop-legal-ethics|Legal & Ethics SOP]] and [[../Techniques/sop-opsec-plan|OPSEC Planning]] before any engagement. CSAM, threat-to-life DMs, or trafficking content trigger an immediate hard stop and routing per [[../Techniques/sop-sensitive-crime-intake-escalation|Sensitive Crime Escalation SOP]].
+> **Authorized OSINT use only.** Investigation accounts must comply with Discord's [Terms of Service](https://discord.com/terms) and the platform's prohibitions on bulk scraping, automated account creation, self-bots, and coordinated inauthentic behavior [verify 2026-10-29]. Review [[../Techniques/sop-legal-ethics|Legal & Ethics SOP]] and [[../Techniques/sop-opsec-plan|OPSEC Planning]] before any engagement. CSAM, threat-to-life DMs, or trafficking content trigger an immediate hard stop and routing per [[../Techniques/sop-sensitive-crime-intake-escalation|Sensitive Crime Escalation SOP]].
 
 ## Table of Contents
 
@@ -40,38 +40,38 @@ template_version: 1.0
 
 ## 1) Access & Client Options
 
-- **Web**: https://discord.com/app (full feature parity with desktop, runs in browser)
+- **Web**: https://discord.com/app [verify 2026-10-29] (runs in the browser; no install)
 - **Desktop apps**: Windows / macOS / Linux clients with full feature access
 - **Mobile apps**: iOS / Android with most features (some admin actions desktop-only)
-- **Official API**: Discord HTTP + Gateway APIs documented at https://discord.com/developers/docs (bot accounts only; user-token automation is a ToS violation called "self-botting")
+- **Official API**: Discord HTTP + Gateway APIs documented at https://docs.discord.com/developers/intro (automate only through an application's bot account; user-token automation is a ToS violation called "self-botting") [verify 2026-10-29]
 - **Bot integration**: discord.py (Python), discord.js (Node), serenity (Rust), JDA (Java) — bot must be invited to a server by an admin via OAuth2 URL
 - **Authorized export tooling**: DiscordChatExporter (CLI/GUI) — see §8 for ToS framing
-- **Third-party clients**: BetterDiscord, Powercord/Replugged, and similar client mods are ToS violations and risk account termination — do not use on investigation accounts
+- **Third-party clients**: BetterDiscord, Powercord/Replugged, and similar client mods are ToS violations and risk account termination — do not use on investigation accounts [verify 2026-10-29]
 
 ## 2) Discovery & Search Methods
 
 ### Server Discovery
-- **Direct invites**: `discord.gg/<code>` and `discord.com/invite/<code>` resolve to a server preview (server name, icon, approximate member count, approximate online count) without joining
-- **Vanity URLs**: `discord.gg/<vanity>` — vanity codes require Boost Level 3 to claim [verify 2026-04-27 — Discord has rotated boost-tier reward thresholds; current boost count for Level 3 may differ]; presence of a vanity is a weak signal of established/funded server
-- **Server listing sites**: Disboard (https://disboard.org), Disforge (https://disforge.com), Top.gg server directory (https://top.gg/servers), Discords.com (https://discords.com), DiscordHome (https://discordhome.com) — quality varies; treat as discovery surface, not authoritative inventory
-- **Bot listing sites**: Top.gg bot directory, Discord Bot List (https://discordbotlist.com) — useful for identifying bots seen in target server
+- **Direct invites**: `discord.gg/<code>` and `discord.com/invite/<code>` resolve to a server preview (server name, icon, approximate member count, approximate online count) without joining [verify 2026-10-29]
+- **Vanity URLs**: `discord.gg/<vanity>` — vanity codes come with Boost Level 3 (14 boosts) or Partnered/Verified status; presence of a vanity is a weak signal of established/funded server [verify 2026-10-29]
+- **Server listing sites**: Disboard (https://disboard.org), DiscordServers.io (https://discordservers.io; the former Disforge domain disforge.com now redirects here), Top.gg server directory (https://top.gg/discord/servers), Discords.com (https://discords.com), DiscordHome (https://discordhome.com) — quality varies; treat as discovery surface, not authoritative inventory [verify 2026-10-29]
+- **Bot listing sites**: Top.gg bot directory, Discord Bot List (https://discordbotlist.com) — useful for identifying bots seen in target server [verify 2026-10-29]
 - **Cross-platform mentions**: Twitter/X bios, Reddit posts, Telegram channels, GitHub READMEs, YouTube descriptions frequently link to Discord invites
 - **Invite-graph pivots**: a single user posting an invite across 5 unrelated platforms is a coordination signal — capture all source posts before the invite is rotated or revoked
 
 ### Invite Resolution Without Joining
-- The unauthenticated endpoint `https://discord.com/api/v10/invites/<code>?with_counts=true&with_expiration=true` returns server name, ID, icon hash, splash hash, approximate_member_count, approximate_presence_count, expiration timestamp, inviter (if set), and the target channel — without joining and without an authenticated session [verify 2026-04-27 — endpoint version may have rotated]
+- The Get Invite endpoint `https://discord.com/api/v10/invites/<code>?with_counts=true` returns the Invite object — server name, ID, icon and splash hashes, approximate_member_count, approximate_presence_count, expires_at, inviter (if set) and the target channel — without joining; the developer docs do not say whether it answers unauthenticated requests, so record whether yours was authenticated [verify 2026-10-29]
 - Useful for documenting a server's existence and rough size before deciding whether to join with a sock-puppet account
-- Rate-limited per IP; do not script bulk resolution against this endpoint
+- Rate-limited per IP; do not script bulk resolution against this endpoint [verify 2026-10-29]
 
 ### Search Techniques
-- **Username enumeration**: try common variations (underscores, numbers, leetspeak) — note Discord moved from `username#discriminator` (legacy) to globally unique handles in 2023; both forms may surface in old screenshots/logs
+- **Username enumeration**: try common variations (underscores, numbers, leetspeak) — note Discord moved from `username#discriminator` (legacy) to globally unique handles in 2023; both forms may surface in old screenshots/logs [verify 2026-10-29]
 - **Server name search**: server-listing sites support keyword search and tag filters (gaming, crypto, NFT, anime, etc.)
 - **Channel structure inference**: common naming patterns (`#announcements`, `#rules`, `#general`, `#trades`, `#vendors`, `#leaks`) correlate with server purpose
 - **Bot fingerprinting**: presence of MEE6, Dyno, Carl-bot, Tatsu indicates moderation maturity; Tip.cc, Collab.Land, Vulcan indicate crypto/Web3 focus
 
 ## 3) Search Operators & Methods
 
-Discord's in-app search supports a limited operator set scoped to the current server (DMs and group DMs have their own search). Key operators (verify current set against client UI — Discord rotates these):
+Discord's in-app search is scoped to the current server or DM. Officially documented operators are `from:`, `in:`, `mentions:` and `has:`, plus date-range and author-type (user, bot, webhook) filters in the UI [verify 2026-10-29]; the remaining operators below are undocumented client behaviour — verify them in the live client before relying on them in a report:
 
 - `from:@user` — messages authored by a specific user
 - `mentions:@user` — messages mentioning a specific user
@@ -81,7 +81,7 @@ Discord's in-app search supports a limited operator set scoped to the current se
 - `pinned:true` — pinned messages only
 - Operators stack: `from:@vendor has:link in:#trades after:2024-01-01`
 - **Quote** exact phrases with double quotes: `"contract address"`
-- **Limitation**: search results are capped (UI shows up to ~25 per page, with paginated continuation); for completeness, use authorized export
+- **Limitation**: Discord does not document a per-page result count; treat in-app search as a lead-finder and use authorized export for completeness
 
 ## 4) Repeatable Workflow
 
@@ -89,30 +89,30 @@ Discord's in-app search supports a limited operator set scoped to the current se
 2. **Pre-join intel**: resolve invite metadata (member counts, server ID, channel ID); decide whether joining is in scope
 3. **Sock-puppet selection**: choose investigation account appropriate for server profile (gaming, crypto, hobby) — see [[../Techniques/sop-opsec-plan|OPSEC Planning]]
 4. **Server enumeration**: capture full channel list, role list, emoji set, server boost level, server creation date (from server snowflake ID)
-5. **Member-list discipline**: large servers (10k+ members) only render online members in the sidebar by default; full member list requires scrolling, bot enumeration via authorized API, or [verify 2026-04-27 — Member List Update gateway opcode behavior]
+5. **Member-list discipline**: large servers hide offline members from the member sidebar (Discord does not document the threshold; user reports on its support forum cite 1,000 members); a full member list requires the Members page (server owner, or Administrator / Manage Server / Manage Roles / Manage Nicknames / Ban / Kick / Timeout Members — not a lurker role) or an authorized bot with the privileged Server Members intent [verify 2026-10-29]
 6. **Lurking phase**: passive observation, role-assignment to limit detectability (avoid roles that grant moderator visibility), no posting
 7. **Content harvest**: targeted message capture (screenshots + authorized export); preserve full chain (server → channel → message ID)
-8. **User-ID resolution**: extract snowflake IDs (Developer Mode → right-click → Copy ID) for every entity of interest
+8. **User-ID resolution**: extract snowflake IDs (Developer Mode → right-click → Copy ID) for every entity of interest [verify 2026-10-29]
 9. **Cross-server pivots**: shared bots, shared moderators, shared invite-poster accounts → enumerate adjacent servers
 10. **Documentation**: timestamps in UTC, SHA-256 hashes for media, log entries in [[../Techniques/sop-collection-log|Collection Log]]
 
 ## 5) Server & Channel Analysis
 
 ### Server Intelligence
-- **Server ID**: snowflake ID — extractable via Developer Mode → right-click server icon → Copy Server ID
+- **Server ID**: snowflake ID — extractable via Developer Mode → right-click server icon → Copy Server ID [verify 2026-10-29]
 - **Server creation date**: derived from server snowflake (see §6 snowflake structure); useful for distinguishing established communities from rapidly stood-up scam infrastructure
-- **Boost Level (0–3)**: indicates community investment; vanity URL and animated icon require Level 3
-- **Verification Level**: Discord's anti-spam tier (None / Low / Medium / High / Highest) — visible to members, affects who can post
-- **Explicit Content Filter**: server-wide image scanning setting
-- **Server description / About**: discoverable via server-listing sites and the Discovery feature for Community-enabled servers
-- **Welcome Screen / Onboarding**: Community-feature servers expose channel hints and rule summaries to new members — capture before joining if possible
+- **Boost Level (0–3)**: indicates community investment; animated server icon unlocks at Level 1 (2 boosts), static server banner at Level 2 (7), custom invite link (vanity URL) and animated banner at Level 3 (14) [verify 2026-10-29]
+- **Verification Level**: Discord's anti-spam tier (None / Low / Medium / High / Highest) — visible to members, affects who can post [verify 2026-10-29]
+- **Explicit Content Filter**: server-wide image scanning setting [verify 2026-10-29]
+- **Server description / About**: discoverable via server-listing sites and the Discovery feature for Community-enabled servers [verify 2026-10-29]
+- **Welcome Screen / Onboarding**: Community-feature servers expose channel hints and rule summaries to new members — capture before joining if possible [verify 2026-10-29]
 
 ### Channel Intelligence
-- **Channel types**: Text, Voice, Announcement, Stage, Forum, Media, Thread (parent-child), Category (organizational only)
-- **Channel ID**: snowflake — Developer Mode → right-click channel → Copy Channel ID
+- **Channel types**: Text, Voice, Announcement, Stage, Forum, Media, Thread (parent-child), Category (organizational only) [verify 2026-10-29]
+- **Channel ID**: snowflake — Developer Mode → right-click channel → Copy Channel ID [verify 2026-10-29]
 - **Channel creation date**: derived from snowflake; channels created during a single short window suggest scripted server setup (template, bot, or copied server)
 - **Permission overwrites**: each channel can override server-wide role permissions (visible to members with View Channel)
-- **Slowmode / NSFW flag / Age-restricted**: channel metadata visible in channel settings preview
+- **Slowmode / NSFW flag / Age-restricted**: channel metadata visible in channel settings preview [verify 2026-10-29]
 - **Pinned messages**: often contain rules, vendor menus, contract addresses, or admin contact info — capture early
 - **Forum channels** (post-2022): each post is a thread with tags; search behaves differently from text channels
 
@@ -123,23 +123,23 @@ Discord's in-app search supports a limited operator set scoped to the current se
 - **Role color**: cosmetic but consistent within a server hierarchy
 
 ### Audit Log Limits
-- **Audit Log access**: requires `View Audit Log` permission (typically admin/mod only); the analyst account in a lurker role will not see audit logs
-- **Retention**: Discord retains audit logs for a limited window (commonly cited as 45–90 days depending on source) [verify 2026-04-27 — confirm current retention against Discord's published documentation before relying on a specific number in a report]
-- **Coverage**: audit log captures structural changes (channel create/delete, role create/delete, ban, kick, member role change, webhook create) — does **not** capture message content
+- **Audit Log access**: requires `View Audit Log` permission (typically admin/mod only); the analyst account in a lurker role will not see audit logs [verify 2026-10-29]
+- **Retention**: Discord stores audit log entries for 45 days (developer docs, Audit Log resource); older entries cannot be recovered from the server UI or API [verify 2026-10-29]
+- **Coverage**: audit log captures structural changes (channel create/delete, role create/delete, ban, kick, member role change, webhook create) — does **not** capture message content [verify 2026-10-29]
 
 ## 6) User Profile Intelligence
 
 ### Profile Analysis
 - **Global Name** (display name): user-chosen, server-overridable, may not match handle
-- **Username** (handle): globally unique, lowercase, post-2023 migration replaces the legacy `username#discriminator` form
-- **Discriminator (legacy)**: `#1234` four-digit suffix — phased out in 2023 but still appears in archived screenshots / logs / older bots
+- **Username** (handle): globally unique, lowercase, post-2023 migration replaces the legacy `username#discriminator` form [verify 2026-10-29]
+- **Discriminator (legacy)**: `#1234` four-digit suffix — phased out in 2023 but still appears in archived screenshots / logs / older bots [verify 2026-10-29]
 - **Server Nickname**: per-server alias, set by the user or by mods; differs from global name
-- **Bio / About Me**: free-text profile field, supports limited markdown and links
-- **Pronouns**: profile field added 2023
+- **Bio / About Me**: free-text profile field, supports limited markdown and links [verify 2026-10-29]
+- **Pronouns**: profile field [verify 2026-10-29]
 - **Profile picture (avatar)**: server-overridable; reverse-image search candidate, often reused across platforms
-- **Banner**: Nitro-only profile field
-- **Connections**: linked accounts (Twitch, YouTube, Steam, Spotify, GitHub, Twitter/X, Reddit, eBay, PlayStation, Xbox, etc.) — visible per the user's privacy settings; high-value pivot when present
-- **Mutual servers / Mutual friends**: visible to anyone who shares at least one server with the target (privacy setting)
+- **Banner**: Nitro-only profile field [verify 2026-10-29]
+- **Connections**: linked accounts (Twitch, YouTube, Steam, Spotify, GitHub, Twitter/X, Reddit, eBay, PlayStation, Xbox, etc.) — visible per the user's privacy settings; high-value pivot when present [verify 2026-10-29]
+- **Mutual servers / Mutual friends**: visible to anyone who shares at least one server with the target; not hidden by the Profile Privacy setting [verify 2026-10-29]
 - **Activity / Status**: "Playing", "Listening to Spotify", "Streaming on Twitch" — leaks platform usage and timezone
 - **Custom Status**: free-text status, often contains contact info (Telegram handle, email, Tox ID)
 
@@ -149,11 +149,11 @@ Discord IDs (user, server, channel, message, role, webhook, etc.) are **snowflak
 
 **Extraction formula:**
 
-```
+```text
 unix_ms = (snowflake_id >> 22) + 1420070400000
 ```
 
-Where `1420070400000` is Discord's epoch (2015-01-01T00:00:00.000Z) in milliseconds since the Unix epoch. The result is a millisecond Unix timestamp; divide by 1000 for seconds.
+Where `1420070400000` is Discord's epoch (2015-01-01T00:00:00.000Z) in milliseconds since the Unix epoch. The result is a millisecond Unix timestamp; divide by 1000 for seconds [verify 2026-10-29].
 
 **Python example:**
 
@@ -167,12 +167,12 @@ def snowflake_to_datetime(snowflake: int) -> datetime.datetime:
     unix_ms = (snowflake >> 22) + DISCORD_EPOCH_MS
     return datetime.datetime.fromtimestamp(unix_ms / 1000, tz=datetime.timezone.utc)
 
-# Example: a user ID
+# Example: a user ID [verify 2026-10-29]
 user_id = 175928847299117063  # any valid snowflake
 print(snowflake_to_datetime(user_id))  # -> 2016-04-30 11:18:25.796000+00:00
 ```
 
-**One-liner (any shell with python3):**
+**One-liner (any shell with python3):** [verify 2026-10-29]
 
 ```bash
 python3 -c 'import sys, datetime; s=int(sys.argv[1]); print(datetime.datetime.fromtimestamp(((s>>22)+1420070400000)/1000, tz=datetime.timezone.utc))' 175928847299117063
@@ -185,11 +185,11 @@ python3 -c 'import sys, datetime; s=int(sys.argv[1]); print(datetime.datetime.fr
 - **Message creation date** from a message's snowflake → independent of any client-displayed timestamp; useful when a screenshot's timestamp is suspect
 - **Webhook creation date** → see §9 webhook discovery
 
-The 22-bit shift discards: 5 bits internal worker ID, 5 bits process ID, 12 bits sequence counter — none of which are operationally useful for OSINT.
+The 22-bit shift discards: 5 bits internal worker ID, 5 bits process ID, 12 bits sequence counter — none of which are operationally useful for OSINT [verify 2026-10-29].
 
 ### Behavioral Analysis
 - **Posting cadence**: tracked across captured messages; identifies timezone clusters
-- **Cross-server presence**: mutual-servers UI shows shared servers (subject to privacy setting); valuable for identifying community overlap
+- **Cross-server presence**: mutual-servers UI shows shared servers (not hidden by the Profile Privacy setting); valuable for identifying community overlap [verify 2026-10-29]
 - **Reaction patterns**: who reacts to what — note that reactions are visible and tracked
 - **Voice activity**: who joins which voice channels and when (visible in voice channel member list while joined)
 - **Bot interactions**: which slash commands a target invokes, which bots they have authorized via OAuth
@@ -255,22 +255,22 @@ The 22-bit shift discards: 5 bits internal worker ID, 5 bits process ID, 12 bits
 ## 8) Collection & Evidence Integrity
 
 ### Authorized Export
-- **Discord's first-party data export** (Settings → Privacy & Safety → Request All My Data) returns ZIP of analyst's own messages / servers / connections — useful for investigator-account record-keeping, not third-party-server collection
-- **DiscordChatExporter** (https://github.com/Tyrrrz/DiscordChatExporter): CLI/GUI exports a channel to HTML / JSON / plaintext / CSV. **ToS framing:**
+- **Discord's first-party data export** (User Settings → Data & Privacy → Request your data → Request Data; a download link is emailed and the request can take up to 30 days) returns ZIP of analyst's own messages / servers / connections — useful for investigator-account record-keeping, not third-party-server collection [verify 2026-10-29]
+- **DiscordChatExporter** (https://github.com/Tyrrrz/DiscordChatExporter): CLI/GUI exports a channel to HTML / JSON / plaintext / CSV [verify 2026-10-29]. **ToS framing:**
   - **Self-owned data**: clearly permitted (analyst's own DMs, analyst-owned servers)
   - **Authorized customer-server engagement**: permitted under the server-owner's authority and within engagement scope
   - **Third-party server (analyst joined as lurker)**: ToS gray area — Discord ToS prohibits scraping and data-mining; route the question to [[../Techniques/sop-legal-ethics|Legal & Ethics SOP]] before automating, document the legal basis in [[../Techniques/sop-collection-log|Collection Log]]
-  - DiscordChatExporter operates against a user token by default (which is itself self-bot territory) or a bot token (requires bot to be present in the server, which requires admin-side OAuth). Use the bot path when the engagement permits it.
-- **Authorized bot collection**: discord.py / discord.js bots invited via OAuth2 with `Read Message History` and the necessary intents (Server Members Intent, Message Content Intent — both privileged, require Discord-side verification once the bot crosses the verification threshold) [verify 2026-04-27 — exact server-count threshold for required privileged-intent verification]. Cleaner audit trail than user-token tooling.
+  - DiscordChatExporter accepts either a user token (self-bot territory — its README warns that automating user accounts is against Discord ToS and may get the account banned) or a bot token (the bot must be in the server, which requires admin-side OAuth). Use the bot path when the engagement permits it [verify 2026-10-29].
+- **Authorized bot collection**: discord.py / discord.js bots invited via OAuth2 with `Read Message History` and the necessary intents (Server Members Intent, Message Content Intent — both privileged: an app with fewer than 10,000 users enables them in the Developer Portal, above 10,000 unique users Discord requires a privileged-intent review, and apps in 100+ servers must be verified and have the intents approved) [verify 2026-10-29]. Cleaner audit trail than user-token tooling.
 
 ### Manual Capture
 - **Screenshot capture**: include channel name, server name, timestamp visible (or hover-revealed full timestamp); capture both compact and cozy modes when message structure matters
-- **Message ID copy**: Developer Mode → right-click message → Copy Message ID (snowflake captures exact creation time independent of client display)
+- **Message ID copy**: Developer Mode → right-click message → Copy Message ID (snowflake captures exact creation time independent of client display) [verify 2026-10-29]
 - **Message link copy**: right-click → Copy Message Link → returns `https://discord.com/channels/<server_id>/<channel_id>/<message_id>` — the canonical reference form, even though it requires server membership to resolve
 
 ### File Organization
 
-```
+```text
 /Evidence/{{case_id}}/Discord/
 ├── YYYYMMDD-HHMM/
 │   ├── servers/
@@ -304,23 +304,23 @@ The 22-bit shift discards: 5 bits internal worker ID, 5 bits process ID, 12 bits
 
 Discord webhooks have the URL form:
 
-```
+```text
 https://discord.com/api/webhooks/<webhook_id>/<webhook_token>
 ```
 
-- The `<webhook_id>` is a snowflake; the `<webhook_token>` is a long opaque secret — anyone holding the URL can post to the channel until the webhook is rotated/deleted
+- The `<webhook_id>` is a snowflake; the `<webhook_token>` is a long opaque secret — anyone holding the URL can post to the channel until the webhook is rotated/deleted [verify 2026-10-29]
 - Webhooks frequently leak in:
   - Public GitHub commits (CI configs, `.env` files, JS bundles)
   - Public S3 / GCS buckets (config drift)
   - Mobile app reversed binaries
   - JavaScript files served from compromised sites
-- **Do not POST to a third-party webhook URL** — this is unauthorized access to a target system, regardless of how publicly the URL was exposed. Capture the URL, GET its metadata via `GET https://discord.com/api/webhooks/<id>/<token>` only when authorized in scope (this is read-only and returns webhook name, channel ID, server ID, avatar) [verify 2026-04-27]
+- **Do not POST to a third-party webhook URL** — this is unauthorized access to a target system, regardless of how publicly the URL was exposed. Capture the URL, GET its metadata via `GET https://discord.com/api/webhooks/<id>/<token>` only when authorized in scope (read-only, no authentication required; returns the webhook object — id, type, guild_id, channel_id, name, avatar, application_id — without the creator's user object) [verify 2026-10-29]
 - Webhook leaks discovered during bug-bounty engagements: route disclosure through [[../../Security/Pentesting/sop-bug-bounty|Bug Bounty Methodology SOP]] and report to the program; do not validate by posting
 
 ### Bot Scope & Slash-Command Surface Review
 - Bots in a server expose their slash commands via the `/` autocomplete UI; capture the full command list as part of server enumeration
-- Bot OAuth scopes can be inspected via the Authorized Apps page (Settings → Authorized Apps) for the analyst's account; for a target's bot, scopes can be inferred from the bot's invite URL: `client_id=<bot_id>&scope=bot+applications.commands&permissions=<permission_int>`
-- Decode the `permissions` integer (Discord publishes the bit table at https://discord.com/developers/docs/topics/permissions) to enumerate exactly what the bot can do — `Administrator` (bit 3) or `Manage Server` (bit 5) on a third-party bot is a strong supply-chain signal
+- Bot OAuth scopes can be inspected via the Authorized Apps page (User Settings → Authorized Apps) for the analyst's account; for a target's bot, scopes can be inferred from the bot's invite URL: `client_id=<bot_id>&scope=bot+applications.commands&permissions=<permission_int>` [verify 2026-10-29]
+- Decode the `permissions` integer (Discord publishes the bit table at https://docs.discord.com/developers/topics/permissions) to enumerate exactly what the bot can do — `Administrator` (bit 3) or `Manage Server` (bit 5) on a third-party bot is a strong supply-chain signal [verify 2026-10-29]
 - High-risk permission combinations on a community bot:
   - `Manage Webhooks` + `Manage Server` → bot can pivot to webhook-based exfiltration
   - `Manage Roles` + position above `@everyone` → bot can self-elevate trusted users
@@ -329,15 +329,15 @@ https://discord.com/api/webhooks/<webhook_id>/<webhook_token>
 ### Cross-Server Moderator / Bot Overlap
 - Mutual-server enumeration on a confirmed admin account often reveals the operator's other servers
 - Shared custom bots (especially uncommon or self-hosted) across multiple servers indicate operational overlap
-- Reaction-emoji custom emoji are server-bound; a custom emoji from server A appearing as a reaction in server B reveals that the reactor has Nitro and is a member of server A
+- Reaction-emoji custom emoji are server-bound; a custom emoji from server A appearing as a reaction in server B reveals that the reactor has Nitro (or Nitro Basic) and is a member of server A [verify 2026-10-29]
 
 ### Voice & Stage Channel Surveillance Discipline
 - **Joining a voice channel announces presence** to every member with View Channel permission on that voice channel — there is no silent observe mode
-- **Stage Channels** (audience-style): joining as audience does not announce as prominently as voice-channel join, but the audience list is visible to speakers and moderators
+- **Stage Channels** (audience-style): joining as audience does not announce as prominently as voice-channel join, but the audience list is visible to everyone in the Stage — speakers are shown at the top, audience members listed below [verify 2026-10-29]
 - For evidence collection from voice content, prefer authorized recording with explicit operator consent or law-enforcement legal process; surreptitious recording violates wiretap statutes in many jurisdictions — consult [[../Techniques/sop-legal-ethics|Legal & Ethics SOP]]
 
 ### Deleted Content
-- Discord does not retroactively expose deleted messages
+- Discord does not retroactively expose deleted messages [verify 2026-10-29]
 - Continuous capture (authorized bot logging every message, or active analyst with notification cache) is the only OSINT path
 - Some moderation bots (Vulcan, Dyno, Carl-bot) keep a deletion log within their own server scope — visible only to staff with the relevant permission
 
@@ -345,7 +345,7 @@ https://discord.com/api/webhooks/<webhook_id>/<webhook_token>
 
 ### Profile Pivots
 - **Bio / About Me links** → personal sites, X, Telegram, GitHub, Linktree
-- **Connections panel** → linked Twitch / YouTube / Steam / GitHub / Spotify / X / Reddit / PlayStation / Xbox / eBay accounts (visibility per user privacy)
+- **Connections panel** → linked Twitch / YouTube / Steam / GitHub / Spotify / X / Reddit / PlayStation / Xbox / eBay accounts (visibility per user privacy) [verify 2026-10-29]
 - **Username** → cross-platform handle search via Sherlock, Maigret, WhatsMyName ([[../Techniques/sop-entity-dossier|Entity Dossier]] consolidation)
 - **Avatar** → reverse-image search (Google Lens, Yandex, TinEye); avatars are reused across platforms more than display names
 - **Custom Status** → free-text often contains Telegram `@handle`, Tox ID, Session ID, or email
@@ -356,7 +356,7 @@ https://discord.com/api/webhooks/<webhook_id>/<webhook_token>
 - **Cryptocurrency addresses** in messages → [[../Techniques/sop-blockchain-investigation|Blockchain Investigation]] / [[../Techniques/sop-financial-aml-osint|Financial AML OSINT]]
 - **Smart-contract addresses** in trade-call channels → contract source review via block explorer; route audit-style review to existing audit SOPs
 - **Leaked API keys / cloud credentials** posted in chat (AWS / GCP / Azure keys, Discord bot tokens, OpenAI keys, GitHub PATs are common in screenshots) → [[../../Security/Pentesting/sop-cloud-pentest|Cloud Pentesting SOP]] for authorized validation, or report to the affected vendor
-- **Media files** → reverse search, EXIF stripping behavior (Discord generally strips most EXIF from images on upload, but documents / archives / video containers retain their metadata) [verify 2026-04-27 — confirm current upload-pipeline behavior; Discord has changed this several times] — [[../Techniques/sop-image-video-osint|Image & Video OSINT]]
+- **Media files** → reverse search; Discord strips EXIF data from uploaded media (engineering blog, WebP/AVIF support post) [verify 2026-10-29]. That post does not cover documents, archives or video containers, so inspect each downloaded attachment for metadata rather than assuming it is clean — [[../Techniques/sop-image-video-osint|Image & Video OSINT]]
 - **Document metadata** → author, organization, file path artifacts in PDFs / Office docs
 
 ### Network Pivots
@@ -371,26 +371,26 @@ https://discord.com/api/webhooks/<webhook_id>/<webhook_token>
 
 | Tool                       | Purpose                                                            | Platform     | Access                                                          |
 | -------------------------- | ------------------------------------------------------------------ | ------------ | --------------------------------------------------------------- |
-| **Discord Desktop**        | Primary investigation client (enable Developer Mode in Settings)   | Desktop      | https://discord.com/download                                    |
-| **DiscordChatExporter**    | Authorized channel/DM export (HTML/JSON/CSV/plaintext)             | CLI / GUI    | https://github.com/Tyrrrz/DiscordChatExporter                   |
-| **discord.py**             | Python bot library for authorized monitoring                       | Python       | `pip install discord.py`                                        |
+| **Discord Desktop**        | Primary investigation client (enable Developer Mode in Settings)   | Desktop      | https://discord.com/download [verify 2026-10-29]               |
+| **DiscordChatExporter**    | Authorized channel/DM export (HTML/JSON/CSV/plaintext)             | CLI / GUI    | https://github.com/Tyrrrz/DiscordChatExporter [verify 2026-10-29]  |
+| **discord.py**             | Python bot library for authorized monitoring                       | Python       | `pip install discord.py` [verify 2026-10-29]                       |
 | **discord.js**             | Node.js bot library for authorized monitoring                      | Node         | `npm install discord.js`                                        |
 | **Disboard**               | Server discovery & tag-filter search                               | Web          | https://disboard.org                                            |
-| **Disforge**               | Server discovery directory                                         | Web          | https://disforge.com                                            |
+| **DiscordServers.io**      | Server discovery directory (disforge.com now redirects here)       | Web          | https://discordservers.io [verify 2026-10-29]                  |
 | **Top.gg**                 | Server + bot directory                                             | Web          | https://top.gg                                                  |
-| **Discords.com**           | Server directory (formerly discord.me)                             | Web          | https://discords.com                                            |
-| **Snowflake decoder**      | Convert snowflake → UTC creation timestamp                         | Web / CLI    | `python3 -c '...'` (see §6) or https://snowsta.mp [verify 2026-04-27 — third-party site availability] |
-| **Sherlock / Maigret**     | Cross-platform username enumeration                                | CLI / Python | `pip install maigret` / Sherlock GitHub                         |
-| **WhatsMyName**            | Username presence across hundreds of sites                         | Web / CLI    | https://whatsmyname.app                                         |
+| **Discords.com**           | Server directory (formerly discord.me)                             | Web          | https://discords.com [verify 2026-10-29]                           |
+| **Snowflake decoder**      | Convert snowflake → UTC creation timestamp                         | Web / CLI    | `python3 -c '...'` (see §6) or https://snowsta.mp [verify 2026-10-29] |
+| **Sherlock / Maigret**     | Cross-platform username enumeration                                | CLI / Python | `pip install maigret` / Sherlock GitHub [verify 2026-10-29]        |
+| **WhatsMyName**            | Username presence across hundreds of sites                         | Web / CLI    | https://whatsmyname.app [verify 2026-10-29]                        |
 | **Nuclei (osint tags)**    | Templated username enumeration                                     | CLI          | `nuclei -tags osint -esc -var user=<handle>` (user-enumeration templates are self-contained; `-esc` loads them) [verify 2026-10-18]                         |
-| **Discord API docs**       | Official endpoint and gateway reference                            | Docs         | https://discord.com/developers/docs                             |
-| **IntelX**                 | Discord token / webhook leak search                                | Web          | https://intelx.io                                               |
-| **GrepApp / GitHub search**| Code-search for leaked Discord webhooks / tokens                   | Web          | https://grep.app, https://github.com/search                     |
+| **Discord API docs**       | Official endpoint and gateway reference                            | Docs         | https://docs.discord.com/developers/intro [verify 2026-10-29]      |
+| **IntelX**                 | Discord token / webhook leak search                                | Web          | https://intelx.io [verify 2026-10-29]                              |
+| **GrepApp / GitHub search**| Code-search for leaked Discord webhooks / tokens                   | Web          | https://grep.app, https://github.com/search [verify 2026-10-29]    |
 
 ### API Usage Example (authorized bot)
 
 ```python
-# discord.py - capture authorized channel history (analyst-side bot, invited via OAuth)
+# discord.py - capture authorized channel history (analyst-side bot, invited via OAuth) [verify 2026-10-29]
 import os
 import discord
 
@@ -415,22 +415,22 @@ client.run(os.environ["DISCORD_BOT_TOKEN"])
 ### Snowflake Decode One-Liner
 
 ```bash
-# Decode a snowflake to UTC datetime
+# Decode a snowflake to UTC datetime [verify 2026-10-29]
 python3 -c 'import sys, datetime; s=int(sys.argv[1]); print(datetime.datetime.fromtimestamp(((s>>22)+1420070400000)/1000, tz=datetime.timezone.utc))' 175928847299117063
 ```
 
 ## 12) Risks & Limitations
 
-- **ToS prohibition on scraping & self-bots**: user-token automation, mass DMs, automated account creation, and scraping are explicitly prohibited; investigation accounts that violate ToS risk ban and evidence inadmissibility
+- **ToS prohibition on scraping & self-bots**: user-token automation, mass DMs, automated account creation, and scraping are explicitly prohibited; investigation accounts that violate ToS risk ban and evidence inadmissibility [verify 2026-10-29]
 - **Coordinated inauthentic behavior detection**: Discord aggressively bans linked sock-puppet accounts (shared payment, shared IP, shared device fingerprint, similar registration cadence)
 - **Voice-channel join announces presence** to all members with View Channel — there is no silent observation mode
-- **DM acceptance signal**: opening a DM may notify the recipient depending on their privacy settings (server-shared default, friends-only, off); consider this before initiating
+- **DM acceptance signal**: opening a DM may notify the recipient depending on their privacy settings (server-shared default, friends-only, off); consider this before initiating [verify 2026-10-29]
 - **Reaction-emoji visibility**: reactions are public to the channel and persistent until removed — a reaction is evidentially equivalent to a post
-- **Friend request signal**: sending a friend request notifies the target
-- **Profile / Connections privacy**: targets can hide mutual servers, mutual friends, connections, and "Now Playing" — absence of data is not absence of activity
+- **Friend request signal**: sending a friend request notifies the target [verify 2026-10-29]
+- **Profile / Connections privacy**: a target's Profile Privacy setting (Friends & All Servers / Friends & Small Servers Only — servers of 200 or fewer members / Friends Only) can hide connected accounts, custom status, pronouns, bio and badges from a non-friend viewer; activity ("Now Playing") is controlled by the separate Activity Sharing setting; mutual servers and mutual friends stay visible — absence of data is not absence of activity [verify 2026-10-29]
 - **Phone / email obscured**: Discord does not surface email or phone to other users; data-broker correlation requires legal process or breach data
-- **Account verification phone requirement**: high-risk-flagged servers may require verified phone on the joining account; investigation phones must be isolated from analyst identity per [[../Techniques/sop-opsec-plan|OPSEC Planning]]
-- **Rate limiting**: REST endpoints rate-limit per route per token; Gateway has connection identify limits — bulk enumeration scripts will be throttled or terminated
+- **Account verification phone requirement**: servers set to the Highest verification level require a verified phone on the joining account [verify 2026-10-29]; investigation phones must be isolated from analyst identity per [[../Techniques/sop-opsec-plan|OPSEC Planning]]
+- **Rate limiting**: REST endpoints rate-limit per route per token; Gateway has connection identify limits — bulk enumeration scripts will be throttled or terminated [verify 2026-10-29]
 - **Content deletion**: messages, channels, servers, and accounts can disappear without warning; capture early
 - **Server template / mass-deployment churn**: many scam servers are stood up from a template, banned, and re-deployed within hours — sustained tracking requires automation under engagement scope
 - **Malware risk**: attachments in criminal servers may contain malicious payloads; never open on the analyst host — route to [[../../Security/Analysis/sop-malware-analysis|Malware Analysis SOP]] sandbox
@@ -439,7 +439,7 @@ python3 -c 'import sys, datetime; s=int(sys.argv[1]); print(datetime.datetime.fr
 
 ### Source Verification
 - **Snowflake-derived timestamps** are authoritative for creation time of the entity (server, channel, message, user) — use them to validate any user-displayed timestamp
-- **Server authenticity**: Community-feature servers expose verified status for partners; "verification" claimed in a server's About text is not the same as Discord's verification — confirm via the badge on the server icon
+- **Server authenticity**: Discord's Verified badge (green checkmark) is now granted only to official game servers; the Partner Program is closed to new applications, so the Partner badge (blurple infinity logo) is held only by existing Partnered servers. "Verification" claimed in a server's About text is not Discord verification — confirm via the badge next to the server name [verify 2026-10-29]
 - **Bot identity**: a bot's `client_id` (snowflake) is fixed; impostor bots use similar names but new IDs — capture and compare
 - **Cross-source corroboration**: cross-reference claims with Telegram channels, X profiles, dark-web forum posts, and on-chain activity before attribution
 
@@ -487,7 +487,7 @@ python3 -c 'import sys, datetime; s=int(sys.argv[1]); print(datetime.datetime.fr
 
 **Approach**:
 1. **Do not POST** to the webhook URL — that is unauthorized access to a customer system
-2. GET the webhook metadata via `GET https://discord.com/api/webhooks/<id>/<token>` to confirm ownership (returns webhook name, server ID, channel ID) — only if read-only metadata access is in scope
+2. GET the webhook metadata via `GET https://discord.com/api/webhooks/<id>/<token>` to confirm ownership (returns webhook name, server ID, channel ID) — only if read-only metadata access is in scope [verify 2026-10-29]
 3. Document the leak with: source URL of the leaked config, capture timestamp, file SHA-256, webhook ID (snowflake → creation timestamp), server ID, channel ID
 4. Report through the bug-bounty program's official channel per [[../../Security/Pentesting/sop-bug-bounty|Bug Bounty Methodology SOP]]
 5. Recommend remediation: rotate webhook (delete + recreate), audit S3 bucket policy, enable secret-scanning in CI
@@ -519,8 +519,8 @@ python3 -c 'import sys, datetime; s=int(sys.argv[1]); print(datetime.datetime.fr
 - **Capture URL + timestamp + snowflake ID + server / channel ID only**
 - **Do not analyze further**
 - **Route immediately** per [[../Techniques/sop-sensitive-crime-intake-escalation|Sensitive Crime Intake & Escalation SOP]]
-- **CSAM**: report to NCMEC CyberTipline (US — https://report.cybertip.org), IWF (UK), INHOPE network national member elsewhere; preserve URL only
-- **Imminent threat-to-life**: local emergency services + Discord Trust & Safety (https://dis.gd/request) with emergency-disclosure framing
+- **CSAM**: report to NCMEC CyberTipline (US — https://report.cybertip.org), IWF (UK), INHOPE network national member elsewhere; preserve URL only [verify 2026-10-29]
+- **Imminent threat-to-life**: contact local emergency services first; content can also be reported to Discord Trust & Safety (https://dis.gd/request). Emergency-disclosure and preservation requests are made by law enforcement only, through Discord's Government Request Portal — hand off to the LE liaison per RoE; see [Legal Process & Preservation](#legal-process--preservation) [verify 2026-10-29]
 
 ### Escalation Triggers (see [[../Techniques/sop-sensitive-crime-intake-escalation|Sensitive Crime Escalation SOP]])
 - **Immediate threats**: terrorism, mass violence, specific threats to identifiable individuals
@@ -529,12 +529,19 @@ python3 -c 'import sys, datetime; s=int(sys.argv[1]); print(datetime.datetime.fr
 - **National security**: state-sponsored influence operations, espionage adjacency, CI targeting
 - **Legal process**: court orders, subpoenas, mutual-legal-assistance requests routed to the engagement lead
 
+### Legal Process & Preservation
+- **Government Request Portal**: Discord requires governmental and law-enforcement requests relating to user data, including emergency disclosure and preservation requests, to be submitted via its Portal (https://app.kodexglobal.com/discord/signin), not via mail or other means; see the Law Enforcement Guidelines in §18 [verify 2026-10-29]
+- **Preservation**: 90 days, subject to extension for an additional 90 days [verify 2026-10-29]
+- **Non-law-enforcement investigators**: report imminent threats to emergency services or police, and law enforcement files any emergency-disclosure or preservation request through the Portal; https://dis.gd/request is Discord's general Trust & Safety request form for reporting content, not a legal-process channel [verify 2026-10-29]
+- Review [[../Techniques/sop-legal-ethics|Legal & Ethics]] before any request or referral
+
 ## 16) Legal & Ethical Considerations
 
 > Discord OSINT sits at the intersection of platform ToS, sock-puppet pretexting law, and (frequently) sensitive-crime evidence. The canonical source for legal posture is [[../Techniques/sop-legal-ethics|Legal & Ethics SOP]] — never re-derive it here.
 
-- **Platform ToS**: bulk scraping, self-bots (user-token automation), mass DMs, coordinated inauthentic behavior, automated account creation, and ToS-circumventing client mods are prohibited by [Discord's ToS](https://discord.com/terms) and [Community Guidelines](https://discord.com/guidelines). Investigation accounts that violate ToS risk ban and evidence-admissibility challenges.
-- **Sock-puppet & pretexting framing**: lurking in a server joined via a public invite is generally OSINT; sustained false-identity engagement (fake vendor persona, fake buyer interaction, paid VIP-tier access under a manufactured backstory) crosses into pretexting under several legal frameworks (US — varies by state and engagement context; EU — GDPR Recital 47 / lawful basis; UK — CMA pretexting prohibitions) and may compromise evidence admissibility. Document the legal basis in [[../Techniques/sop-collection-log|Collection Log]].
+- **Platform ToS**: bulk scraping, self-bots (user-token automation), mass DMs, coordinated inauthentic behavior, automated account creation, and ToS-circumventing client mods are prohibited by [Discord's ToS](https://discord.com/terms) and [Community Guidelines](https://discord.com/guidelines) [verify 2026-10-29]. Investigation accounts that violate ToS risk ban and evidence-admissibility challenges.
+- **Legal process**: preservation, disclosure and emergency requests go through Discord's Government Request Portal; see [Legal Process & Preservation](#legal-process--preservation) in §15.
+- **Sock-puppet & pretexting framing**: lurking in a server joined via a public invite is generally OSINT; sustained false-identity engagement (fake vendor persona, fake buyer interaction, paid VIP-tier access under a manufactured backstory) crosses into pretexting under several legal frameworks (US — varies by state and engagement context; EU — GDPR Recital 47 / lawful basis; UK — Data Protection Act 2018 s.170 offence of knowingly or recklessly obtaining personal data without the controller's consent, i.e. "blagging" [verify 2026-10-29]) and may compromise evidence admissibility. Document the legal basis in [[../Techniques/sop-collection-log|Collection Log]].
 - **DiscordChatExporter ToS gray area**: self-owned data is fine; authorized customer-server engagement is fine; running it against a third-party server the analyst joined as a lurker is a ToS gray area — flag and route to [[../Techniques/sop-legal-ethics|Legal & Ethics SOP]]. Prefer authorized-bot collection when in scope; document the authority chain.
 - **Wiretap / eavesdropping statutes**: surreptitious recording of voice channels and Stage Channels triggers wiretap statutes in many jurisdictions (US — federal Wiretap Act and state-level "two-party consent" rules in CA, FL, IL, MA, MD, MT, NH, PA, WA; EU — varies); only record under explicit consent or legal process.
 - **Webhook & token interaction limits**: capturing a leaked webhook URL is OSINT; POSTing to it is unauthorized access. Capturing a leaked bot token is OSINT; using it to authenticate is unauthorized access. Treat any leaked credential as evidence to disclose, not to validate.
@@ -562,37 +569,38 @@ python3 -c 'import sys, datetime; s=int(sys.argv[1]); print(datetime.datetime.fr
 ## 18) External Resources
 
 **Official Documentation:**
-- Discord Developer Portal: https://discord.com/developers/docs
-- Discord API Reference: https://discord.com/developers/docs/reference
-- Discord Permissions Reference: https://discord.com/developers/docs/topics/permissions
-- Discord Terms of Service: https://discord.com/terms
-- Discord Community Guidelines: https://discord.com/guidelines
-- Discord Privacy Policy: https://discord.com/privacy
-- Discord Trust & Safety / Law Enforcement: https://dis.gd/request
+- Discord Developer Documentation: https://docs.discord.com/developers/intro [verify 2026-10-29]
+- Discord API Reference: https://docs.discord.com/developers/reference [verify 2026-10-29]
+- Discord Permissions Reference: https://docs.discord.com/developers/topics/permissions [verify 2026-10-29]
+- Discord Terms of Service: https://discord.com/terms [verify 2026-10-29]
+- Discord Community Guidelines: https://discord.com/guidelines [verify 2026-10-29]
+- Discord Privacy Policy: https://discord.com/privacy [verify 2026-10-29]
+- Discord Trust & Safety request form (user reports; not a legal-process channel): https://dis.gd/request [verify 2026-10-29]
+- Discord Law Enforcement Guidelines (Government Request Portal, preservation, emergency disclosure): https://discord.com/safety/360044157931-working-with-law-enforcement [verify 2026-10-29]
 
 **Third-Party Tools:**
-- DiscordChatExporter: https://github.com/Tyrrrz/DiscordChatExporter
-- discord.py: https://discordpy.readthedocs.io
-- discord.js: https://discord.js.org
-- serenity (Rust): https://github.com/serenity-rs/serenity
-- Sherlock: https://github.com/sherlock-project/sherlock
-- Maigret: https://github.com/soxoj/maigret
-- WhatsMyName: https://whatsmyname.app
+- DiscordChatExporter: https://github.com/Tyrrrz/DiscordChatExporter [verify 2026-10-29]
+- discord.py: https://discordpy.readthedocs.io [verify 2026-10-29]
+- discord.js: https://discord.js.org [verify 2026-10-29]
+- serenity (Rust): https://github.com/serenity-rs/serenity [verify 2026-10-29]
+- Sherlock: https://github.com/sherlock-project/sherlock [verify 2026-10-29]
+- Maigret: https://github.com/soxoj/maigret [verify 2026-10-29]
+- WhatsMyName: https://whatsmyname.app [verify 2026-10-29]
 
 **Server Discovery Directories:**
-- Disboard: https://disboard.org
-- Disforge: https://disforge.com
+- Disboard: https://disboard.org [verify 2026-10-29]
+- DiscordServers.io (former disforge.com domain redirects here): https://discordservers.io [verify 2026-10-29]
 - Top.gg: https://top.gg
-- Discords.com: https://discords.com
-- DiscordHome: https://discordhome.com
+- Discords.com: https://discords.com [verify 2026-10-29]
+- DiscordHome: https://discordhome.com [verify 2026-10-29]
 
 **Training & Guides:**
-- Bellingcat OSINT Resources: https://www.bellingcat.com/resources/
-- OSINT Framework: https://osintframework.com
-- DFRLab Investigative Resources: https://www.atlanticcouncil.org/programs/digital-forensic-research-lab/
+- Bellingcat OSINT Resources: https://www.bellingcat.com/resources/ [verify 2026-10-29]
+- OSINT Framework: https://osintframework.com [verify 2026-10-29]
+- DFRLab Investigative Resources: https://www.atlanticcouncil.org/programs/digital-forensic-research-lab/ [verify 2026-10-29]
 
 ---
 
-**Last Updated:** 2026-10-18
+**Last Updated:** 2026-10-29
 **Version:** 1.0 (initial draft — Group H queue)
 **Review Frequency:** Quarterly (Fast tier — platform APIs, ToS, attacker TTPs rotate frequently)

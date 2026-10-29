@@ -15,7 +15,7 @@ tags:
   - phishing-kit
   - wire-recall
 created: 2026-04-27
-updated: 2026-09-20
+updated: 2026-10-29
 template_version: 2026-09-20
 ---
 
@@ -1256,7 +1256,7 @@ The wire-recall section of the BEC report typically contains:
 | SWIFT GPI Stop and Recall | Originating-bank operations via the GPI network |
 | EPC (European Payments Council) Rulebooks | SEPA / SCT Inst recall rules — https://www.europeanpaymentscouncil.eu [verify 2026-04-27] |
 | NCSC (UK) | https://www.ncsc.gov.uk — UK cyber-fraud reporting + advice |
-| Action Fraud (UK) | https://www.actionfraud.police.uk — UK fraud reporting |
+| Report Fraud (UK; replaced Action Fraud 2025-12-04) | https://www.reportfraud.police.uk — UK fraud and cyber crime reporting; 0300 123 2040; Scotland: Police Scotland 101 [verify 2026-10-29] |
 | Europol EC3 | https://www.europol.europa.eu/about-europol/european-cybercrime-centre-ec3 — EU cybercrime |
 
 ### Open-Source / Vendor-Neutral
@@ -1443,7 +1443,7 @@ Email and BEC forensics actions are typically read-only against tenants and infr
 - Pre-disclosure findings are restricted to the engagement team and the client per the engagement contract.
 - Findings affecting third parties (a vendor whose identity was impersonated; a customer of the customer who fell to a downstream pivot; an upstream SEG vendor whose detection failed) are escalated through the affected party's security contact, not embedded silently in the client's report.
 - Vendor coordination is sometimes warranted (provider-resident vulnerability in service surface; widespread credential-leak indicator). MSRC, Google VRP, Cloudflare Trust & Safety, and most SEG vendors publish coordinated-disclosure paths.
-- LE coordination — IC3 and FBI Field Office for active wire fraud; Secret Service Field Office for concurrent-jurisdiction financial crimes; NCSC (UK), Action Fraud (UK), Europol EC3, national CERTs in other jurisdictions.
+- LE coordination — IC3 and FBI Field Office for active wire fraud; Secret Service Field Office for concurrent-jurisdiction financial crimes; NCSC (UK), Report Fraud (UK; formerly Action Fraud), Europol EC3, national CERTs in other jurisdictions. [verify 2026-10-29]
 - Live-incident findings (the investigation discovers an active campaign attacking customers the investigator does not own) trigger immediate client escalation; the operational response is the client's, not the investigator's, unless explicitly contracted.
 
 ### Conflict-of-Interest Posture
@@ -1524,7 +1524,7 @@ Email and BEC forensics actions are typically read-only against tenants and infr
 - FinCEN Rapid Response Program — search FinCEN for current program scope [verify 2026-04-27]
 - US Treasury OFAC SDN list — https://sanctionssearch.ofac.treas.gov/
 - NCSC (UK) — https://www.ncsc.gov.uk
-- Action Fraud (UK) — https://www.actionfraud.police.uk
+- Report Fraud (UK; formerly Action Fraud) — https://www.reportfraud.police.uk [verify 2026-10-29]
 - Europol European Cybercrime Centre (EC3) — https://www.europol.europa.eu/about-europol/european-cybercrime-centre-ec3
 - Australian Cyber Security Centre (ACSC) — https://www.cyber.gov.au [verify 2026-04-27]
 - Canadian Anti-Fraud Centre — https://www.antifraudcentre-centreantifraude.ca [verify 2026-04-27]
@@ -1581,5 +1581,5 @@ Email and BEC forensics actions are typically read-only against tenants and infr
 ---
 
 **Version:** 1.0
-**Last Updated:** 2026-09-20
+**Last Updated:** 2026-10-29
 **Review Frequency:** Quarterly (BEC TTPs, AiTM kit landscape, lookalike-domain registrar patterns, M365 / Workspace / SEG message-trace API field renames, and IC3 / FFKC threshold guidance evolve on a quarterly cadence; RFC-level SPF / DKIM / DMARC / ARC fundamentals and chain-of-custody discipline are slower)

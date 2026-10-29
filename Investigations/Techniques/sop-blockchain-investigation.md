@@ -15,7 +15,7 @@ tags:
   - osint
   - investigation
 created: 2026-04-26
-updated: 2026-04-26
+updated: 2026-10-29
 template_version: 2026-04-26
 ---
 
@@ -346,7 +346,7 @@ The investigator's job: pair the source `lock`/`burn` log with the destination `
 - **Authority:** US Treasury Office of Foreign Assets Control (OFAC) administers the Specially Designated Nationals (SDN) list. Since 2018, individual cryptocurrency addresses have been listed as DCA entries appended to SDN profiles, tagged by currency code (`XBT`, `ETH`, `USDT`, `USDC`, `XMR`, `BSV`, `ZEC`, `LTC`, `DASH`, `ETC`, `XRP`, etc.). [verify 2026-04-26]
 - **Source feeds:**
   - HTML search: [sanctionssearch.ofac.treas.gov](https://sanctionssearch.ofac.treas.gov/)
-  - Bulk data: [OFAC sanctions list service](https://sanctionslistservice.ofac.treas.gov/) (XML / CSV / JSON; daily updates) [verify 2026-04-26]
+  - Bulk data: [OFAC sanctions list service](https://sanctionslist.ofac.treas.gov/Home/SdnList) (XML / CSV / fixed-width / PDF) [verify 2026-10-29]
   - File finder (legacy): [ofac.treasury.gov/file-finder](https://ofac.treasury.gov/file-finder)
 - **Investigative use:**
   - Screen every wallet observed in scope against the latest SDN feed (cache locally; refresh daily for active investigations).
@@ -362,7 +362,7 @@ The investigator's job: pair the source `lock`/`burn` log with the destination `
 
 ### 7.3 UK OFSI and other regimes
 
-- **UK:** Office of Financial Sanctions Implementation publishes the [UK Sanctions List](https://www.gov.uk/government/publications/financial-sanctions-consolidated-list-of-targets); FCA supervises crypto-AML registration under the Money Laundering Regulations 2017 (as amended).
+- **UK:** the [UK Sanctions List](https://www.gov.uk/government/publications/the-uk-sanctions-list) (FCDO) is the only source of UK designations since 2026-01-28, replacing the OFSI Consolidated List; FCA supervises crypto-AML registration under the Money Laundering Regulations 2017 (as amended). [verify 2026-10-29]
 - **UN:** UN Security Council [consolidated list](https://www.un.org/securitycouncil/sanctions/information).
 - **Other major regimes:** Canada (OSFI / Global Affairs), Australia (DFAT consolidated list), Switzerland (SECO), Japan (METI), Singapore (MAS), South Korea (FIU).
 - **OpenSanctions** ([opensanctions.org](https://www.opensanctions.org/)) aggregates the major lists and publishes a normalized data feed; useful for cross-jurisdiction screening.
@@ -551,7 +551,7 @@ A representative case lifecycle. Adapt to the specific engagement (LE investigat
 
 ### 11.3 Step 3 — Sanctions / risk screen
 
-- Cross-check every input address against SDN (OFAC), EU, UK OFSI, UN consolidated lists.
+- Cross-check every input address against SDN (OFAC), EU, UK Sanctions List, UN consolidated lists. [verify 2026-10-29]
 - Cross-check against open-source label sources (Chainabuse, Etherscan labels, Arkham).
 - Flag any cluster-level matches.
 
@@ -736,10 +736,10 @@ See §6.5 — major bridge indexers (wormholescan, layerzeroscan, Midgard, Acros
 | Source                           | Feed                                                       | Notes                                        |
 | -------------------------------- | ---------------------------------------------------------- | -------------------------------------------- |
 | OFAC SDN search (HTML)           | [sanctionssearch.ofac.treas.gov](https://sanctionssearch.ofac.treas.gov/) | Daily-refresh interactive search             |
-| OFAC sanctions list service      | [sanctionslistservice.ofac.treas.gov](https://sanctionslistservice.ofac.treas.gov/) | XML / CSV / JSON bulk feed [verify 2026-04-26] |
+| OFAC sanctions list service      | [sanctionslist.ofac.treas.gov](https://sanctionslist.ofac.treas.gov/Home/SdnList) | XML / CSV / fixed-width / PDF bulk files [verify 2026-10-29] |
 | EU Sanctions Map                 | [sanctionsmap.eu](https://www.sanctionsmap.eu/)             | EU consolidated                              |
 | EU Financial Sanctions DB        | [webgate.ec.europa.eu/fsd/fsf](https://webgate.ec.europa.eu/fsd/fsf) | Machine-readable                             |
-| UK OFSI list                     | [gov.uk/government/publications/financial-sanctions-consolidated-list-of-targets](https://www.gov.uk/government/publications/financial-sanctions-consolidated-list-of-targets) | UK consolidated list                          |
+| UK Sanctions List                | [gov.uk/government/publications/the-uk-sanctions-list](https://www.gov.uk/government/publications/the-uk-sanctions-list) | UK designations; sole source since 2026-01-28 (OFSI Consolidated List closed) [verify 2026-10-29] |
 | UN Security Council Sanctions    | [un.org/securitycouncil/sanctions/information](https://www.un.org/securitycouncil/sanctions/information) | UN consolidated                              |
 | OpenSanctions                    | [opensanctions.org](https://www.opensanctions.org/)         | Aggregated multi-jurisdiction; open data     |
 
@@ -864,7 +864,7 @@ See §6.5 — major bridge indexers (wormholescan, layerzeroscan, Midgard, Acros
 
 1. From the negotiation chat / ransom note, capture the receiving BTC address; validate format and chain.
 2. Cluster the address — common-input + change-address heuristics across recent activity. Identify the wider wallet.
-3. Sanctions screen against OFAC SDN, EU, UK OFSI; cluster-screen as well as address-screen.
+3. Sanctions screen against OFAC SDN, EU, UK Sanctions List; cluster-screen as well as address-screen. [verify 2026-10-29]
 4. Trace the outflow forward — exchange deposit? Mixer entry (hand off to [[sop-mixer-tracing|Mixer & Privacy-Pool Tracing]])? Bridge to another chain (pair per §6 and continue)?
 5. If outflow reaches a known VASP, package the evidence per §10.2 and route to LE for legal-process pursuit.
 6. Coordinate with [[../../Security/Analysis/sop-malware-analysis|Malware Analysis]] on the binary IOCs — same actor, complementary evidence.
@@ -940,7 +940,7 @@ Blockchain investigations rarely involve immediate threat-to-life, but several s
 
 - **US ransomware / sanctions exposure:** OFAC compliance hotline; FBI IC3 (`ic3.gov`); CISA `report@cisa.gov`.
 - **EU:** Europol European Cybercrime Centre (EC3); national CERT; national FIU.
-- **UK:** Action Fraud (`actionfraud.police.uk`); NCA NCSC Reporting; FCA for regulated entities.
+- **UK:** Report Fraud (`reportfraud.police.uk`, 0300 123 2040; replaced Action Fraud 2025-12-04; Scotland: Police Scotland 101); NCA NCSC Reporting; FCA for regulated entities. [verify 2026-10-29]
 - **Trafficking / CSAM funding:** route per [[sop-sensitive-crime-intake-escalation|Sensitive Crime Intake & Escalation]].
 - **Exchange freeze requests:** maintain a contact list of active exchange LE-channels for the engagement; many require pre-existing relationships.
 
@@ -977,7 +977,7 @@ Blockchain-investigation-specific guardrails:
 - **Authorization in writing.** Names blockchain analytics as in-scope; lists target wallets / contracts / chains where known. Sanctions-research carve-out should be explicit if SDN-designated entities are in scope (research is permitted in most jurisdictions; transactional engagement is not).
 - **Observation-only.** No transactions to or from target addresses, no test sends, no "verification" of vendor cluster labels by interacting. The line between observation and participation is the legal line.
 - **Cluster-as-heuristic discipline.** Report cluster membership with the heuristic basis and a confidence label per [[sop-entity-dossier|Entity Dossier]]. Do not assert identity from cluster membership alone.
-- **Sanctions discipline.** Screen against OFAC, EU, UK OFSI, UN at minimum; many SDN crypto entries are not in non-US lists. Time-stamp every finding — sanctions designations change over time, and the legal posture at the time of activity is what matters.
+- **Sanctions discipline.** Screen against OFAC, EU, UK Sanctions List, UN at minimum; many SDN crypto entries are not in non-US lists. Time-stamp every finding — sanctions designations change over time, and the legal posture at the time of activity is what matters. [verify 2026-10-29]
 - **PII minimization.** Apply GDPR Art. 6 / 9 (or equivalent) minimization. Lawful basis (legitimate interest, legal claim, public task, regulator-mandated) per query class. Subpoena pathway for KYC data is the proper channel; vendor-aggregated identity data must be assessed for provenance.
 - **Mandatory reporting.** If operating inside a regulated entity, route findings via MLRO. Outside, route serious findings (sanctions evasion, terrorism financing, child exploitation, trafficking) via the appropriate FIU / national authority — see [[sop-sensitive-crime-intake-escalation|Sensitive Crime Intake & Escalation]].
 - **Court-admissibility tradecraft.** Pin tool versions; capture raw on-chain data; cross-corroborate vendor findings with open-source methods where the matter could go to court (§12).
@@ -1049,5 +1049,5 @@ See §6.5 (wormholescan, layerzeroscan, Midgard, Across, Hop, Stargate, bungee /
 ---
 
 **Version:** 1.0 (Initial)
-**Last Updated:** 2026-04-26
+**Last Updated:** 2026-10-29
 **Review Frequency:** Quarterly (medium-rot — vendor product lineup, sanctions trajectory, bridge protocol churn, exchange / VASP status)
