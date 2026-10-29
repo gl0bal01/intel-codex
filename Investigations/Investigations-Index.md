@@ -207,8 +207,8 @@ A
 **Social Media:**
 - Nuclei (username enumeration)
 - Social-Analyzer (social media OSINT)
-- Twint (Twitter scraping - archived tweets)
-- Nitter (Twitter privacy frontend)
+- Twint (Twitter scraping — repo archived Feb 2023, unmaintained; do not use)
+- Nitter (Twitter privacy frontend — repo archived Oct 2026 after X Corp. cease-and-desist; treat as unavailable)
 
 **Image/Video:**
 - Google Image Search, TinEye, Yandex
@@ -265,11 +265,11 @@ A
 
 **New Organization Investigation:**
 1. Create entity file from [[Techniques/sop-entity-dossier|template]]
-2. Corporate records: [[Techniques/sop-financial-aml-osint#Company Registries|Company Registry Search]]
+2. Corporate records: [[Techniques/sop-financial-aml-osint#Company Registries (Public)|Company Registry Search]]
 3. Domain analysis: [[Techniques/sop-web-dns-whois-osint|Web/DNS/WHOIS OSINT]]
-4. Blockchain (if applicable): [[Techniques/sop-financial-aml-osint#Cryptocurrency Tracing|Crypto Tracing]]
+4. Blockchain (if applicable): [[Techniques/sop-financial-aml-osint#5. Cryptocurrency Tracing — AML Analyst Quick Reference|Crypto Tracing]]
 5. Employee mapping: [[Platforms/sop-platform-linkedin|LinkedIn OSINT]]
-6. Sanctions screening: [[Techniques/sop-financial-aml-osint#Sanctions Screening|AML Checks]]
+6. Sanctions screening: [[Techniques/sop-financial-aml-osint#3. Sanctions & PEP Screening|AML Checks]]
 
 **New Domain Investigation:**
 1. WHOIS lookup: `whois domain.com`
@@ -312,9 +312,9 @@ SORT updated DESC
 
 ## 🔔 Updates & Maintenance
 
-**Last Updated:** 2026-10-18
+**Last Updated:** 2026-10-29
 **Index Version:** 2.0 (post-reorganization)
-**Next Review:** 2025-11-05
+**Next Review:** 2027-04-27
 
 **Recent Changes:**
 - 2025-10-05: Complete rewrite after vault reorganization

@@ -4,7 +4,7 @@ title: OSINT Collection Log & Chain of Custody
 description: "Evidence documentation guide: SHA-256 hashing, chain of custody, metadata preservation & forensically sound collection for legal admissibility."
 tags: [sop, log, chain-of-custody, evidence, documentation]
 template_version: 2026-09-20
-updated: 2026-09-20
+updated: 2026-10-29
 ---
 
 # OSINT Collection Log & Chain of Custody
@@ -42,7 +42,7 @@ updated: 2026-09-20
 
 **Before you capture anything**
 - [ ] Authorisation and lawful basis recorded — [[sop-legal-ethics|Legal & Ethics]]
-- [ ] Collection log entry opened *before* the capture, not after — [§1](#1-collection-log-template-integrate-with-entity-dossier)
+- [ ] Collection log entry opened *before* the capture, not after — [§1](#1-collection-log-template)
 
 **Every single item, no exceptions**
 - [ ] Captured by the method that fits the source type — [§3](#3-collection-methods-by-source-type)
@@ -60,7 +60,9 @@ as a gap. Do not reconstruct it from memory — [§8](#8-common-pitfalls--best-p
 
 ---
 
-## 1. Collection Log Template (integrate with [[sop-entity-dossier|Entity Dossier]])
+## 1. Collection Log Template
+
+Integrate each entry with the subject's [[sop-entity-dossier|Entity Dossier]].
 
 ### Standard Collection Log Entry
 
@@ -138,10 +140,12 @@ wget --warc-file=archive \
 # Archive.org Wayback Machine submission
 curl -X POST "https://web.archive.org/save/https://example.com"
 
-# Twitter archival (Nitter + SingleFile)
-# 1. Navigate to nitter.net/username (privacy-respecting Twitter frontend)
+# Twitter/X archival (SingleFile)
+# 1. Navigate to x.com/username
 # 2. Use SingleFile to capture
 # 3. Screenshot for visual proof
+# Nitter is unavailable: zedeus/nitter was archived on 9 Oct 2026 after X Corp.
+# cease-and-desist letters (24 Aug and 8 Sep 2026). Do not rely on it. [verify 2026-10-29]
 
 # API-based capture (Twitter API v2 example)
 # Requires authentication and API key
@@ -212,15 +216,11 @@ find . -type f -exec sha256sum {} \; > MANIFEST_SHA256SUMS.txt
 
 **Twitter/X:** (see [[../Platforms/sop-platform-twitter-x|Twitter/X Platform SOP]])
 ```bash
-# Method 1: Nitter + SingleFile (no account required)
-# Navigate to: https://nitter.net/username
-# WARNING: nitter.net main instance has been intermittent/down since 2024 after
-# Twitter API restrictions; community-run instances exist but vary in
-# availability and trust posture. Verify before relying. [verify 2026-04-26]
-# Use SingleFile to capture HTML
-# Screenshot for visual proof
+# Nitter is no longer a collection method: treat it as unavailable (repo archived
+# 9 Oct 2026 after X Corp. cease-and-desist letters; nitter.net shows only the
+# maintainer's notice). Capture x.com pages with SingleFile instead (Step 2). [verify 2026-10-29]
 
-# Method 2: Twitter API (requires authentication)
+# Method 1: Twitter API (requires authentication)
 # Get user profile
 curl -X GET "https://api.x.com/2/users/by/username/crypto_alex" \
      -H "Authorization: Bearer $TWITTER_BEARER_TOKEN" \
@@ -231,12 +231,8 @@ curl -X GET "https://api.x.com/2/users/USER_ID/tweets?max_results=100" \
      -H "Authorization: Bearer $TWITTER_BEARER_TOKEN" \
      > twitter_tweets.json
 
-# Method 3: Twint (LEGACY — repository archived 2022; Python 3.10+ compatibility
-# broken; cannot fetch tweets after the 2023 Twitter API lockdown without
-# unofficial patches). Document if still usable in a constrained legacy
-# environment, but prefer paid Twitter API v2 or browser-driven capture.
-# [verify 2026-04-26]
-twint -u username --json -o tweets.json
+# Twint is not a collection method: its repository was archived in Feb 2023 and is
+# unmaintained. Use the X API above or browser capture (Step 2). [verify 2026-10-29]
 ```
 
 **Instagram:** (see [[../Platforms/sop-platform-instagram|Instagram Platform SOP]])
@@ -566,23 +562,23 @@ To ensure another analyst can reproduce your findings:
 ## Collection Details - Twitter Profile Capture
 
 **Target:** @crypto_alex
-**URL:** https://twitter.com/crypto_alex
+**URL:** https://x.com/crypto_alex
 **Timestamp:** 2025-10-05 14:30:22 UTC
-**Method:** Nitter frontend (nitter.net/crypto_alex)
+**Method:** Direct capture of x.com profile (browser, research persona)
 **Tool:** Firefox 119.0 + SingleFile extension v1.22.59
 **User-Agent:** Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:109.0) Gecko/20100101 Firefox/119.0
-**Login Status:** Not logged in (public view via Nitter)
+**Login Status:** Logged in as research persona (ID in persona register)
 **VPN:** Active (exit node: Switzerland, Mullvad)
 **Screen Resolution:** 1920x1080
 **Page State:** Scrolled to load 20 tweets
 **JavaScript:** Enabled (default browser settings)
-**Cookies:** Disabled
+**Cookies:** Persona session only (dedicated browser profile)
 **Notes:** Account verified (blue checkmark), 45k followers at time of capture
 
 ## Reproduction Steps:
 1. Configure Firefox with user-agent string above
 2. Enable SingleFile extension
-3. Navigate to https://nitter.net/crypto_alex
+3. Log in as the research persona, then navigate to https://x.com/crypto_alex
 4. Wait 5 seconds for page load
 5. Scroll down to load first 20 tweets
 6. Click SingleFile icon → Save complete page
@@ -761,7 +757,7 @@ sha256sum file.txt | tee file.txt.sha256 | xclip -selection clipboard
 | **wget** | Archive websites to WARC format | CLI (Linux/Mac/Win) | `wget --warc-file=archive URL` |
 | **ArchiveBox** | Self-hosted web archiving | CLI/Web | [archivebox.io](https://archivebox.io) |
 | **Wayback Machine** | Public third-party web archive (Internet Archive) | Web/API | `https://web.archive.org/save/<URL>` |
-| **Twint** | Twitter scraping (no API) — **archived 2022, legacy use only** [verify 2026-04-26] | CLI (Python) | [github.com/twintproject/twint](https://github.com/twintproject/twint) |
+| **Twint** | Twitter scraping (no API) — **archived Feb 2023, unmaintained; do not use** [verify 2026-10-29] | CLI (Python) | [github.com/twintproject/twint](https://github.com/twintproject/twint) |
 | **Instaloader** | Instagram archival | CLI (Python) | `instaloader username` |
 | **exiftool** | Metadata extraction | CLI | `exiftool file.jpg` |
 | **sha256sum** | Hash calculation | CLI (Linux/Mac) | `sha256sum file.txt` |
@@ -921,5 +917,5 @@ For chain-of-custody assertions that must survive challenges to local-clock accu
 ---
 
 **Version:** 1.1
-**Last Updated:** 2026-09-20
+**Last Updated:** 2026-10-29
 **Review Frequency:** Annual (anchor SOP — slow-rot; the underlying standards do move)

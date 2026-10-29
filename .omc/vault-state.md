@@ -1,5 +1,5 @@
 ---
-generated: 2026-10-18
+generated: 2026-10-29
 generator: tools/build-vault-state.sh
 ---
 
@@ -22,24 +22,24 @@ generator: tools/build-vault-state.sh
 - `sop-platform-discord` — Discord SOP (updated 2026-10-18)
 - `sop-platform-instagram` — Instagram SOP (updated 2026-10-18)
 - `sop-platform-linkedin` — LinkedIn SOP (updated 2026-10-18)
-- `sop-platform-reddit` — Reddit SOP (updated 2026-10-18)
+- `sop-platform-reddit` — Reddit SOP (updated 2026-10-29)
 - `sop-platform-telegram` — Telegram SOP (updated 2026-10-18)
 - `sop-platform-tiktok` — TikTok SOP (updated 2026-10-18)
-- `sop-platform-twitter-x` — Twitter/X SOP (updated 2026-10-18)
+- `sop-platform-twitter-x` — Twitter/X SOP (updated 2026-10-29)
 
 ### Investigations/Techniques (12 SOPs)
 
 - `sop-blockchain-investigation` — Blockchain Investigation (updated 2026-04-26)
-- `sop-collection-log` — OSINT Collection Log & Chain of Custody (updated 2026-09-20)
+- `sop-collection-log` — OSINT Collection Log & Chain of Custody (updated 2026-10-29)
 - `sop-darkweb-investigation` — Darkweb Investigation (updated 2026-09-20)
 - `sop-entity-dossier` — Entity Dossier Guide (updated 2026-10-18)
 - `sop-financial-aml-osint` — Financial Crime & AML OSINT (updated 2026-04-27)
 - `sop-image-video-osint` — Image & Video OSINT (updated 2026-04-25)
-- `sop-legal-ethics` — Legal, Ethics & Data Governance for OSINT (updated 2026-04-26)
+- `sop-legal-ethics` — Legal, Ethics & Data Governance for OSINT (updated 2026-10-29)
 - `sop-mixer-tracing` — Mixer & Privacy-Pool Tracing (updated 2026-04-26)
-- `sop-opsec-plan` — OPSEC Planning for OSINT Investigations (updated 2026-09-20)
-- `sop-reporting-packaging-disclosure` — Reporting, Packaging & Disclosure (updated 2026-10-18)
-- `sop-sensitive-crime-intake-escalation` — Sensitive Crime Intake & Escalation (updated 2026-04-26)
+- `sop-opsec-plan` — OPSEC Planning for OSINT Investigations (updated 2026-10-29)
+- `sop-reporting-packaging-disclosure` — Reporting, Packaging & Disclosure (updated 2026-10-29)
+- `sop-sensitive-crime-intake-escalation` — Sensitive Crime Intake & Escalation (updated 2026-10-29)
 - `sop-web-dns-whois-osint` — Web, DNS & WHOIS OSINT (updated 2026-04-25)
 
 ### Security/Analysis (10 SOPs)
@@ -48,7 +48,7 @@ generator: tools/build-vault-state.sh
 - `sop-cloud-forensics` — Cloud Forensics SOP (updated 2026-04-27)
 - `sop-cryptography-analysis` — Cryptography Analysis SOP (updated 2026-04-25)
 - `sop-email-bec-forensics` — Email & BEC Forensics SOP (updated 2026-09-20)
-- `sop-forensics-investigation` — Digital Forensics Investigation SOP (updated 2026-04-25)
+- `sop-forensics-investigation` — Digital Forensics Investigation SOP (updated 2026-10-29)
 - `sop-hash-generation-methods` — Hash Generation Methods for Evidence Integrity (updated 2026-04-26)
 - `sop-malware-analysis` — Malware Analysis SOP (updated 2026-10-18)
 - `sop-reverse-engineering` — Reverse Engineering (updated 2026-09-20)

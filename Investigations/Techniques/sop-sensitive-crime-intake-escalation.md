@@ -3,7 +3,7 @@ type: sop
 title: Sensitive Crime Intake & Escalation
 description: "Critical incident protocols: CSAM reporting, violent threats, terrorism escalation & law enforcement referral procedures for sensitive investigations."
 created: 2024-11-16
-updated: 2026-04-26
+updated: 2026-10-29
 template_version: 2026-04-26
 tags:
   - sop
@@ -57,9 +57,9 @@ tags:
 
 **Mandatory Reporting Laws** (canonical jurisdictional analysis lives in [[sop-legal-ethics|Legal & Ethics]]; the bullets below are operational triggers, not legal advice):
 
-- **United States — 18 U.S.C. § 2258A:** Electronic Service Providers must report apparent violations to NCMEC CyberTipline. The **REPORT Act (Pub. L. 118-59, signed 2024-05-07)** expanded the reportable categories to include online enticement of children for sexual acts and child sex trafficking (alongside CSAM) and extended NCMEC's evidence-retention window from 90 to 365 days. `[verify 2026-04-26]`
+- **United States — 18 U.S.C. § 2258A:** Electronic Service Providers must report apparent violations to NCMEC CyberTipline. The **REPORT Act (Pub. L. 118-59, signed 2024-05-07)** expanded the reportable categories to include online enticement of children for sexual acts and child sex trafficking (alongside CSAM) and extended providers' preservation of reported content (§ 2258A(h)(1)) from 90 days to 1 year. `[verify 2026-10-29]`
 - **European Union — GDPR Article 6(1)(d):** Processing necessary to protect *vital interests* of the data subject or another natural person is a lawful basis (life-threatening situations). Article 9(2)(c) covers special-category data on the same grounds. `[verify 2026-04-26]`
-- **European Union — CSAM-detection regime:** **Interim Regulation (EU) 2021/1232** (the "ePrivacy derogation" allowing voluntary scanning of communications for CSAM by number-independent interpersonal communications services) **expired 2026-04-03**; the proposed permanent **CSAM Regulation** remains under negotiation in the Council and Parliament. Confirm current EU detection authority before relying on platform-side reports from EU services. `[verify 2026-04-26]`
+- **European Union — CSAM-detection regime:** **Interim Regulation (EU) 2021/1232** (the "ePrivacy derogation" allowing voluntary scanning of communications for CSAM by number-independent interpersonal communications services) **expired 2026-04-03**. **Regulation (EU) 2026/1881** (OJ L, 28.7.2026) provides a new temporary derogation from 2026-07-31 until 2028-04-03; it excludes end-to-end-encrypted communications and audio. The proposed permanent **CSAM Regulation** remains under negotiation in the Council and Parliament. Confirm current EU detection authority before relying on platform-side reports from EU services. `[verify 2026-10-29]`
 - **United Kingdom — Modern Slavery Act 2015 § 52:** Statutory duty on specified public authorities (police forces, NCA, certain local authorities — the "First Responder" cohort under the National Referral Mechanism) to notify the Secretary of State of suspected victims of slavery or human trafficking. **Note:** § 54 of the same Act covers *supply-chain transparency* (corporate annual statement) — the two are commonly conflated; § 52 is the victim-referral duty. `[verify 2026-04-26]`
 - **Australia — Criminal Code Act 1995 (Cth) Division 474 / s 474.22 et seq.:** Possession, control, production, supply and access offences for child abuse material obtained or transmitted using a carriage service. `[verify 2026-04-26]`
 
@@ -444,7 +444,7 @@ Contact: [Your phone/email]"
 - Visual depiction of minor (<18 years) engaged in sexually explicit conduct
 - Statutory definition centres on real minors; treatment of CGI / "virtual" CSAM and obscenity-statute overlap is jurisdiction-specific (see *Ashcroft v. Free Speech Coalition*, 535 U.S. 234 (2002), and the PROTECT Act 2003 obscenity provisions). Confirm current charging posture with counsel.
 - Possession, distribution, receipt, and production are federal crimes (18 U.S.C. §§ 2251, 2252, 2252A)
-- Mandatory ESP reporting to NCMEC under 18 U.S.C. § 2258A as amended by the **REPORT Act 2024** (Pub. L. 118-59) — categories now include online enticement and child sex trafficking; NCMEC retention extended to 365 days. `[verify 2026-04-26]`
+- Mandatory ESP reporting to NCMEC under 18 U.S.C. § 2258A as amended by the **REPORT Act 2024** (Pub. L. 118-59) — categories now include online enticement and child sex trafficking; provider preservation of reported content (§ 2258A(h)(1)) extended from 90 days to 1 year. `[verify 2026-10-29]`
 
 **Recognition Indicators:**
 - Images/videos depicting children in sexual situations
@@ -476,7 +476,7 @@ DO NOT upload CSAM content - provide metadata only
 ```
 
 **UK Reporting (IWF):**
-- Internet Watch Foundation: https://report.iwf.org.uk/
+- Internet Watch Foundation: https://www.iwf.org.uk/en/uk-report/ `[verify 2026-10-29]`
 - CEOP (Child Exploitation and Online Protection): https://www.ceop.police.uk/
 
 **Post-Report:**
@@ -691,7 +691,7 @@ My contact: [your phone number for follow-up]"
 
 **Child Safety:**
 - **CEOP (Child Exploitation and Online Protection):** https://www.ceop.police.uk/
-- **IWF (Internet Watch Foundation):** https://report.iwf.org.uk/
+- **IWF (Internet Watch Foundation):** https://www.iwf.org.uk/en/uk-report/ `[verify 2026-10-29]`
 - **NSPCC Helpline:** 0808 800 5000
 
 **Terrorism:**
@@ -712,7 +712,7 @@ My contact: [your phone number for follow-up]"
 - **INHOPE Hotline Network:** https://www.inhope.org/ — global directory of CSAM-reporting hotlines (EU + 50+ member jurisdictions). Use https://www.inhope.org/EN/find-a-hotline to locate the in-country member. `[verify 2026-04-26]`
 - **ICMEC (International Centre for Missing & Exploited Children):** https://www.icmec.org/ — coordinates global response; partners with national hotlines.
 - **Europol EC3 (European Cybercrime Centre):** Via national contact point — https://www.europol.europa.eu/
-- **Note on detection regime:** **Interim Regulation (EU) 2021/1232** (voluntary CSAM scanning derogation from ePrivacy Directive) **expired 2026-04-03**. The proposed permanent CSAM Regulation remained under negotiation in the Council/Parliament at expiry. Confirm authority basis before relying on EU service-provider proactive detection. `[verify 2026-04-26]`
+- **Note on detection regime:** **Interim Regulation (EU) 2021/1232** (voluntary CSAM scanning derogation from ePrivacy Directive) **expired 2026-04-03**. **Regulation (EU) 2026/1881** replaces it with a new temporary derogation from 2026-07-31 until 2028-04-03, excluding end-to-end-encrypted communications and audio. The proposed permanent CSAM Regulation remained under negotiation in the Council/Parliament at expiry. Confirm authority basis before relying on EU service-provider proactive detection. `[verify 2026-10-29]`
 
 **Terrorism:**
 - **Europol Counter-Terrorism (ECTC):** Via national law enforcement
@@ -1347,17 +1347,19 @@ Duration: [Start date] to [End date or "until case closure"]
 4. **Secure deletion (when authorized)**
 ```bash
 # Verify law enforcement authorization to delete
-# Cryptographically wipe evidence files:
+# NIST SP 800-88r2: for "clear", "multi-pass overwrite is not needed"; DoD 5220.22-M pass counts are obsolete [verify 2026-10-29]
+# Overwriting suits HDDs. On SSD/flash, wear levelling leaves old data behind: use the drive's
+# sanitize command or cryptographic erase (sanitize the encryption keys) instead.
 
 # Linux (shred):
-shred -vfz -n 7 /Evidence/ESC-2025-1005-001/*
+shred -vfzu -n 1 /Evidence/ESC-2025-1005-001/*   # -u removes each file after overwriting
 
 # Windows (sdelete):
-sdelete -p 7 E:\Evidence\ESC-2025-1005-001\*
+sdelete -p 1 E:\Evidence\ESC-2025-1005-001\*
 
 # Document deletion:
 # Date: [deletion date]
-# Method: 7-pass DoD wipe
+# Method: [single-pass overwrite / sanitize command / cryptographic erase / destruction, per NIST SP 800-88r2]
 # Authorization: [LE case closure letter or email]
 # Verified by: [Supervisor name]
 ```
@@ -1416,7 +1418,7 @@ sdelete -p 7 E:\Evidence\ESC-2025-1005-001\*
 ---
 
 **Version:** 2.1
-**Last Updated:** 2026-04-26
+**Last Updated:** 2026-10-29
 **Review Cycle:** Yearly (anchor SOP — bump only on legal-framework changes, hotline rebrands, or canonical-source URL moves)
 
 ---

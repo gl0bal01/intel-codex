@@ -10,7 +10,7 @@ tags:
   - social-media
   - osint
 created: 2023-02-05
-updated: 2026-10-18
+updated: 2026-10-29
 ---
 
 # Twitter/X OSINT SOP
@@ -551,7 +551,7 @@ curl [...] | tee raw_response.json | jq '.' > processed_response.json
 | Tool                        | Purpose                            | Platform    | Access                                                |
 | --------------------------- | ---------------------------------- | ----------- | ----------------------------------------------------- |
 | **Twitter Advanced Search** | Native search interface            | Web         | https://x.com/search-advanced (login required) [verify 2026-10-18] |
-| **Nitter**                  | Privacy-focused Twitter frontend   | Web         | Archived Oct 2026; remaining community instances are unsupported and may disappear [verify 2026-10-18] |
+| **Nitter**                  | Privacy-focused Twitter frontend   | Web         | Treat as unavailable: repo archived 9 Oct 2026 after X Corp. cease-and-desist letters (24 Aug and 8 Sep 2026); nitter.net shows only the maintainer's notice. Do not rely on public instances or self-host one [verify 2026-10-29] |
 | **Twint**                   | Twitter scraping (archived tweets) | CLI         | `pip install twint` (repo archived Feb 2023, unmaintained; historical reference only) [verify 2026-10-18] |
 | **X API v2**                | Programmatic access                | API         | https://docs.x.com/x-api/introduction [verify 2026-10-18] |
 | **Wayback Machine**         | Historical Twitter snapshots       | Web         | https://web.archive.org                               |
@@ -713,7 +713,7 @@ curl [...] | tee raw_response.json | jq '.' > processed_response.json
 **Third-Party Tools:**
 - Social-Analyzer: https://github.com/qeeqbox/social-analyzer [verify 2026-10-18]
 - Nuclei: https://github.com/projectdiscovery/nuclei-templates [verify 2026-10-18]
-- Nitter Instances (project archived Oct 2026, unsupported): https://github.com/zedeus/nitter/wiki/Instances [verify 2026-10-18]
+- Nitter status (archived 9 Oct 2026 after X Corp. cease-and-desist letters; treat as unavailable): https://nitter.net/ [verify 2026-10-29]
 - Twint Archive: https://github.com/twintproject/twint [verify 2026-10-18]
 
 **Training & Guides:**
@@ -723,6 +723,6 @@ curl [...] | tee raw_response.json | jq '.' > processed_response.json
 
 ---
 
-**Last Updated:** 2026-10-18
+**Last Updated:** 2026-10-29
 **Version:** 3.0
 **Review Frequency:** Yearly

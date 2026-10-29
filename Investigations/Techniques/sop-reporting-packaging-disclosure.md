@@ -3,7 +3,7 @@ type: sop
 title: Reporting, Packaging & Disclosure
 description: "Professional OSINT reporting: executive summaries, evidence packaging, chain of custody, law enforcement disclosure & responsible reporting protocols."
 created: 2025-10-10
-updated: 2026-10-18
+updated: 2026-10-29
 tags: [sop, reporting, evidence, disclosure, documentation]
 ---
 
@@ -316,7 +316,7 @@ strong evidence that @DarkPhoenix1993 is John Doe, 32, software developer based 
 **Technical Annexes:**
 - **Annex A: Indicators of Compromise (IOCs)** - IPs, domains, hashes, email addresses
 - **Annex B: Collection Log** - Full audit trail from [[sop-collection-log|Collection Log Template]]
-- **Annex C: Persona Documentation** - Research personas used, activity logs (see [[sop-opsec-plan#identity-management|OPSEC - Identity Management]])
+- **Annex C: Persona Documentation** - Research personas used, activity logs (see [[sop-opsec-plan#Identity Management|OPSEC - Identity Management]])
 - **Annex D: Tool Outputs** - Raw tool outputs (theHarvester, Sherlock, etc.)
 
 ---
@@ -386,7 +386,7 @@ Confidence rates the evidence behind a judgment (source quality, corroboration),
 **Remove Investigator Identifiers:**
 - Use "the investigation team" or "we" instead of personal names
 - Remove organization names unless legally required
-- Scrub metadata from all files (see [Metadata Scrubbing](#metadata-scrubbing) and [[sop-opsec-plan#golden-rules|OPSEC Golden Rules]])
+- Scrub metadata from all files (see [Metadata Scrubbing](#metadata-scrubbing) and [[sop-opsec-plan#OPSEC Checklist|OPSEC Checklist]])
 
 **Sanitize Screenshots:**
 - Remove taskbar, browser tabs, file paths
@@ -1123,7 +1123,7 @@ gpg --decrypt file.pdf.gpg > file.pdf
 ---
 
 **Version:** 2.0
-**Last Updated:** 2026-10-18
+**Last Updated:** 2026-10-29
 **Review Cycle:** Yearly
 
 ---

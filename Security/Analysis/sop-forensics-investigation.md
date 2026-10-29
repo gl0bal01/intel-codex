@@ -4,7 +4,7 @@ title: Digital Forensics Investigation SOP
 description: "Conduct digital forensics: disk imaging, memory analysis, artifact recovery, timeline creation & chain of custody. Tools: FTK, Autopsy, Volatility."
 tags: [sop, forensics, incident-response, dfir, investigation]
 template_version: 2026-04-25
-updated: 2026-04-25
+updated: 2026-10-29
 ---
 
 # Digital Forensics Investigation SOP
@@ -1197,7 +1197,7 @@ Digital Security:
 - **Post-Investigation (Pending Action)**: Retain per legal hold requirements
 - **Closed Cases**: Follow organizational policy (typically 3-7 years)
 - **Legal Proceedings**: Retain until final adjudication + appeal period
-- **Secure Disposal**: DoD 5220.22-M wipe or physical destruction with certificate
+- **Secure Disposal**: Sanitize per NIST SP 800-88r2 (clear, purge or destroy, matched to the media type; multi-pass overwrite is not needed and DoD 5220.22-M pass counts are obsolete), with a certificate of sanitization [verify 2026-10-29]
 
 ---
 
@@ -1382,5 +1382,5 @@ Digital Security:
 ---
 
 **Version:** 2.0
-**Last Updated:** 2026-04-25
+**Last Updated:** 2026-10-29
 **Review Frequency:** Quarterly (cloud, mobile-vendor, and Volatility ecosystems rot fastest)

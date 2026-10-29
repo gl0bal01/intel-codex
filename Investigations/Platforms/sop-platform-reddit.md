@@ -9,7 +9,7 @@ tags:
   - social-media
   - osint
 created: 2025-10-02
-updated: 2026-10-18
+updated: 2026-10-29
 ---
 
 # Reddit OSINT SOP
@@ -39,7 +39,7 @@ updated: 2026-10-18
 ## 1) Access & Client Options
 
 - **Web**: https://www.reddit.com/search (basic search interface)
-- **Old Reddit**: https://old.reddit.com (legacy interface, sometimes better search)
+- **Old Reddit**: https://old.reddit.com (legacy interface, sometimes better search). Requires login since July 2026; logged-out browsing still works on www.reddit.com (Reddit Changelog, 9 Jul 2026) [verify 2026-10-29]
 - **Mobile apps**: iOS/Android (limited search functionality)
 - **API access**: Reddit API (requires OAuth, rate limited) [verify 2026-10-18]
 - **Third-party tools**: Arctic Shift, Reveddit
@@ -308,7 +308,7 @@ for submission in subreddit.stream.submissions():
 | Tool                | Purpose                                    | Platform | Access                                  |
 | ------------------- | ------------------------------------------ | -------- | --------------------------------------- |
 | **Reddit Search**   | Native search interface                    | Web      | https://www.reddit.com/search           |
-| **Old Reddit**      | Legacy interface, better for some searches | Web      | https://old.reddit.com                  |
+| **Old Reddit**      | Legacy interface, better for some searches | Web      | https://old.reddit.com (login required since July 2026) [verify 2026-10-29] |
 | **Arctic Shift**    | Historical data, deleted content           | API      | https://arctic-shift.photon-reddit.com  |
 | **Reveddit**        | Mod-removed (not user-deleted) content     | Web      | https://www.reveddit.com [verify 2026-10-18] |
 | **PRAW**            | Python Reddit API wrapper                  | Python   | `pip install praw` (Python ≥ 3.10) [verify 2026-10-18] |
@@ -491,6 +491,6 @@ for submission in reddit.subreddit("news").hot(limit=10):
 
 ---
 
-**Last Updated:** 2026-10-18
+**Last Updated:** 2026-10-29
 **Version:** 1.0
 **Review Frequency:** Yearly
