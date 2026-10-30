@@ -651,12 +651,21 @@ Analysis Log Must Include:
 
 **Linux:**
 ```bash
-# Mount E01 image (requires ewf-tools/libewf) [verify 2026-10-30]
-ewfmount image.E01 /mnt/ewf
-mount -o ro,loop,noexec /mnt/ewf/ewf1 /mnt/analysis
+# Verify the hash first, attach the image as a read-only loop device, then mount without journal
+# replay -- plain "-o ro" still replays a dirty ext4 journal / XFS log (writes) [verify 2026-10-30]
 
-# Mount dd image (read-only)
-mount -o ro,loop,noexec image.dd /mnt/analysis
+# E01 image (requires ewf-tools/libewf) [verify 2026-10-30]
+ewfverify image.E01                          # verifies the media data stored in the EWF segments
+ewfmount image.E01 /mnt/ewf
+LOOP=$(losetup --find --show --read-only /mnt/ewf/ewf1)
+
+# dd image: must match the acquisition hash
+sha256sum -c image.dd.sha256
+LOOP=$(losetup --find --show --read-only image.dd)
+
+mount -o ro,noexec,noload "$LOOP" /mnt/analysis    # ext4: noload = no journal replay
+# XFS instead: mount -o ro,noexec,norecovery,nouuid "$LOOP" /mnt/analysis
+# Skipping replay can leave a dirty file system inconsistent: replay only on a working copy, never the evidence image [verify 2026-10-30]
 
 # Mount with specific filesystem
 mount -t ntfs-3g -o ro,loop,noexec image.dd /mnt/analysis

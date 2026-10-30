@@ -45,7 +45,7 @@ generator: tools/build-vault-state.sh
 ### Security/Analysis (10 SOPs)
 
 - `sop-ai-vulnerability-evasion` — AI/ML Vulnerability & Evasion Testing SOP (updated 2026-04-26)
-- `sop-cloud-forensics` — Cloud Forensics SOP (updated 2026-04-27)
+- `sop-cloud-forensics` — Cloud Forensics SOP (updated 2026-10-30)
 - `sop-cryptography-analysis` — Cryptography Analysis SOP (updated 2026-04-25)
 - `sop-email-bec-forensics` — Email & BEC Forensics SOP (updated 2026-10-29)
 - `sop-forensics-investigation` — Digital Forensics Investigation SOP (updated 2026-10-30)
