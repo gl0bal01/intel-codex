@@ -4,7 +4,7 @@ title: Digital Forensics Investigation SOP
 description: "Conduct digital forensics: disk imaging, memory analysis, artifact recovery, timeline creation & chain of custody. Tools: FTK, Autopsy, Volatility."
 tags: [sop, forensics, incident-response, dfir, investigation]
 template_version: 2026-04-25
-updated: 2026-10-29
+updated: 2026-10-30
 ---
 
 # Digital Forensics Investigation SOP
@@ -49,7 +49,7 @@ updated: 2026-10-29
 - **State Laws**: Vary by jurisdiction (e.g., California CCPA)
 
 **Documentation Requirements:**
-```
+```text
 Authorization Form Must Include:
 - Name of authorizing party (CEO, General Counsel, etc.)
 - Scope of investigation (specific systems/users/time period)
@@ -83,8 +83,8 @@ Authorization Form Must Include:
 
 **Most volatile to least volatile:**
 1. CPU registers, cache
-2. RAM (running processes, network connections)
-3. Swap/pagefile
+2. Routing table, ARP cache, process table, kernel statistics, memory (RAM) [verify 2026-10-30]
+3. Temporary file systems
 4. Hard disk
 5. Remote logging and monitoring data
 6. Physical configuration, network topology
@@ -93,7 +93,7 @@ Authorization Form Must Include:
 ### Immediate Actions
 
 **If system is RUNNING:**
-```bash
+```text
 # DO NOT:
 ❌ Power off the system (loses volatile memory)
 ❌ Close running applications
@@ -109,7 +109,7 @@ Authorization Form Must Include:
 ```
 
 **If system is OFF:**
-```bash
+```text
 # DO NOT:
 ❌ Power on the system
 ❌ Boot from internal drives
@@ -125,64 +125,71 @@ Authorization Form Must Include:
 
 **Windows:**
 ```powershell
-# Using FTK Imager
+# Using FTK Imager [verify 2026-10-30]
 FTK Imager.exe → File → Capture Memory
 # Output: memdump.mem
 
-# Using Magnet RAM Capture
+# Using Magnet RAM Capture (free; legacy — last release v1.20, Jul 2019) [verify 2026-10-30]
 MagnetRAMCapture.exe
 # Follow GUI prompts
 
 # Using DumpIt
 DumpIt.exe
-# Automatically dumps to DumpIt.exe directory
+# Magnet DumpIt for Windows (free; x86/x64/ARM64) writes a full-memory Microsoft crash dump; the vendor does not document the output path, so record where the dump lands [verify 2026-10-30]
 ```
 
 **Linux:**
 ```bash
 # LiME (Linux Memory Extractor) — kernel module; must be built against the EXACT running kernel
-# (uname -r). Pre-build in a clean test VM with matching headers, then load on the target.
+# (uname -r). Pre-build in a clean test VM with matching headers, then load on the target. [verify 2026-10-30]
 insmod lime.ko "path=/mnt/usb/memory.lime format=lime"
 # Or stream over TCP to investigator host (avoids touching target disk):
 insmod lime.ko "path=tcp:4444 format=lime"
 # Investigator: nc target 4444 > memory.lime
 
 # AVML (Microsoft, statically linked, no kernel module required — preferred for cloud/containers)
-sudo ./avml --compress memory.lime.compressed
+# AVML >= 0.19 needs the `acquire` subcommand; older releases took the output path directly [verify 2026-10-30]
+sudo ./avml acquire --compress /mnt/usb/memory.lime.compressed
 
-# /proc/kcore (read via static memcap or LiME's "lime-forensics-static") — limited to mapped kernel memory
-# /dev/mem and /dev/crash are restricted (CONFIG_STRICT_DEVMEM=y on modern kernels) — generally unusable
+# With no source given, AVML tries /dev/crash, /proc/kcore and /dev/mem in turn; it cannot acquire if kernel_lockdown is enabled [verify 2026-10-30]
+# /dev/mem is filtered by CONFIG_STRICT_DEVMEM on modern kernels; /dev/crash is the Red Hat/Fedora crash driver used where /dev/mem is restricted [verify 2026-10-30]
 ```
 
 **macOS:**
 ```bash
 # Note: traditional macOS RAM acquisition tooling has degraded. SIP, kernel extension deprecation
-# (KEXTs disabled by default since macOS 11), and hypervisor-protected memory regions on Apple Silicon
-# have made full physical RAM capture difficult or impossible without DMA / EFI access.
-# OSXPmem (Rekall project) and Volexity Surge Collect are the historical tools; verify current
-# support for the exact macOS major version before relying on either. [verify 2026-04-25]
+# (kexts deprecated since macOS 10.15, kexts using deprecated KPIs not loaded by default since macOS 11,
+# third-party kexts on Apple silicon need Reduced Security + explicit approval) [verify 2026-10-30]
+# and hypervisor-protected memory regions on Apple Silicon have made full physical RAM capture
+# difficult or impossible without DMA / EFI access.
+# OSXPmem (Rekall project) is the historical tool. Verify support for the exact macOS major version
+# before relying on any RAM-capture tool. [verify 2026-10-30]
 
-# Live triage alternative: collect runtime state without a full RAM image
+# Live triage alternative: collect runtime state without a full RAM image [verify 2026-10-30]
 sudo log collect --output sysdiagnose-$(date +%Y%m%d).logarchive    # unified log capture
 sudo sysdiagnose -f /tmp/sysdiagnose                                # full diagnostic bundle (heavyweight)
 
-# Volexity Surge Collect Pro (commercial) — supports current macOS including Apple Silicon [verify 2026-04-25]
-# osxpmem (Rekall) — last release 2017, unmaintained; Rekall itself is end-of-life
+# Volexity Surge Collect (commercial) — vendor advertises Windows/Linux/macOS acquisition; Apple silicon
+# support is not stated on the product page, so confirm with the vendor for the target macOS build [verify 2026-10-30]
+# osxpmem (Rekall) — last release 2017, unmaintained; Rekall itself is end-of-life [verify 2026-10-30]
 ```
 
 ### System State Documentation
 
 **Capture before imaging:**
-```bash
+```cmd
 # Windows (from external USB with forensic tools)
-date /t && time /t > system_info.txt
+# Parentheses group both commands so date AND time go to the file [verify 2026-10-30]
+(date /t && time /t) > system_info.txt
 echo %COMPUTERNAME% >> system_info.txt
 ipconfig /all >> system_info.txt
 netstat -ano >> netstat.txt
 tasklist /v >> processes.txt
 net user >> users.txt
 net localgroup administrators >> admins.txt
+```
 
+```bash
 # Linux
 date -u > system_info.txt
 hostname >> system_info.txt
@@ -195,7 +202,7 @@ last > login_history.txt
 # macOS
 date -u > system_info.txt
 hostname >> system_info.txt
-ifconfig > system_info.txt
+ifconfig >> system_info.txt
 netstat -an > netstat.txt
 ps aux > processes.txt
 last > login_history.txt
@@ -204,7 +211,7 @@ last > login_history.txt
 ### Network Isolation
 
 **Immediate containment:**
-```bash
+```text
 # Physical isolation (preferred)
 1. Unplug Ethernet cable
 2. Disable Wi-Fi (airplane mode or physical switch)
@@ -249,7 +256,7 @@ last > login_history.txt
 ### Chain of Custody
 
 **Evidence Labeling:**
-```
+```text
 Label Format:
 CASE-[YYYY-MM-DD]-[EVIDENCE_TYPE]-[###]
 
@@ -270,7 +277,7 @@ CASE-2025-10-05-PHONE-003
 - [ ] Transfer log (who received evidence, when, purpose)
 
 **Physical Evidence Handling:**
-```bash
+```text
 # Immediate steps upon collection:
 1. Photograph evidence in situ (before touching)
 2. Apply evidence label with unique identifier
@@ -286,7 +293,7 @@ CASE-2025-10-05-PHONE-003
 
 **Write Blockers (ALWAYS USE):**
 - **Hardware Write Blockers**: Tableau, WiebeTech, CRU
-- **Software Write Blockers**: Linux live boot (read-only mount), FTK Imager
+- **Software Write Blockers**: Linux live boot (read-only mount)
 
 **Creating Forensic Images:**
 
@@ -296,27 +303,30 @@ CASE-2025-10-05-PHONE-003
 lsblk
 fdisk -l
 
-# Create forensic image with write blocker attached
+# Create forensic image with write blocker attached [verify 2026-10-30]
 dd if=/dev/sdb of=/mnt/evidence/case001-disk.dd bs=512 conv=noerror,sync status=progress
 
-# Create split image (for FAT32 file systems with 4GB limit)
+# Create split image (for FAT32 file systems with 4GB limit) [verify 2026-10-30]
 dd if=/dev/sdb bs=512 conv=noerror,sync | split -b 4000M - /mnt/evidence/case001-disk.dd.
 
-# Generate hash simultaneously
-dd if=/dev/sdb bs=512 conv=noerror,sync | tee /mnt/evidence/case001-disk.dd | sha256sum > case001-disk.dd.sha256
+# Generate hash simultaneously. sha256sum labels stdin "-"; sed swaps in the image name so that
+# `cd /mnt/evidence && sha256sum -c case001-disk.dd.sha256` works [verify 2026-10-30]
+dd if=/dev/sdb bs=512 conv=noerror,sync | tee /mnt/evidence/case001-disk.dd | sha256sum | sed 's|-$|case001-disk.dd|' > /mnt/evidence/case001-disk.dd.sha256
 ```
 
 **Using dc3dd (Enhanced dd for forensics):**
 ```bash
-# Image with built-in hashing
-dc3dd if=/dev/sdb of=/mnt/evidence/case001-disk.dd hash=sha256 hash=md5 log=/mnt/evidence/case001.log
+# Image with built-in hashing: hof= hashes the output too and verifies it against the input hash
+# (plain of= hashes the input only) [verify 2026-10-30]
+dc3dd if=/dev/sdb hof=/mnt/evidence/case001-disk.dd hash=sha256 hash=md5 log=/mnt/evidence/case001.log
 
-# Source hash verification (read-only re-hash to confirm acquisition matches the live source)
-dc3dd if=/dev/sdb hash=sha256 hash=md5 log=/mnt/evidence/verify.log
+# Source hash verification (read-only re-hash to confirm acquisition matches the live source).
+# of=/dev/null is required: with no output option dc3dd writes the data to stdout [verify 2026-10-30]
+dc3dd if=/dev/sdb of=/dev/null hash=sha256 hash=md5 log=/mnt/evidence/verify.log
 ```
 
-**Using FTK Imager (Windows/GUI):**
-```
+**Using FTK Imager (Windows/GUI):** [verify 2026-10-30]
+```text
 1. File → Create Disk Image
 2. Select Source: Physical Drive
 3. Choose drive from list
@@ -328,10 +338,10 @@ dc3dd if=/dev/sdb hash=sha256 hash=md5 log=/mnt/evidence/verify.log
 ```
 
 **Using Guymager (Linux/GUI):**
-```
+```text
 1. Launch Guymager
 2. Right-click target drive → Acquire image
-3. File format: Expert Witness Format (E01) or dd
+3. File format: Expert Witness Format (E01) or dd [verify 2026-10-30]
 4. Fill case metadata
 5. Enable "Calculate SHA-256" and "Verify image after acquisition"
 6. Start acquisition
@@ -356,27 +366,28 @@ dc3dd if=/dev/sdb hash=sha256 hash=md5 log=/mnt/evidence/verify.log
 - Compressed
 - Metadata support
 - Splitting support
+- Legacy: AFFLIB v3 is in maintenance mode while work on AFFv4 continues; prefer E01 or raw for new acquisitions [verify 2026-10-30]
 
 ### Hash Verification
 
-> **Algorithm choice.** SHA-256 is the minimum baseline for new evidence (NIST FIPS 180-4). MD5 is broken by practical collisions (Wang et al. 2004) and SHA-1 is broken by the SHAttered collision (2017) — record them only as a *secondary* hash for legacy compatibility. Never rely on MD5 or SHA-1 alone in court. See [[sop-hash-generation-methods|Hash Generation Methods]] for full guidance, integration with FTK/EnCase/Autopsy, and verification scripts.
+> **Algorithm choice.** SHA-256 is the minimum baseline for new evidence (NIST FIPS 180-4). MD5 is broken by practical collisions (Wang et al. 2004) and SHA-1 is broken by the SHAttered collision (2017) — record them only as a *secondary* hash for legacy compatibility. Never rely on MD5 or SHA-1 alone in court. See [[sop-hash-generation-methods|Hash Generation Methods]] for full guidance, integration with FTK/EnCase/Autopsy, and verification scripts. [verify 2026-10-30]
 
 **Generate hashes:**
 ```bash
 # SHA-256 (primary — required)
 sha256sum case001-disk.dd > case001-disk.dd.sha256
 
-# MD5 + SHA-1 (secondary — legacy compatibility / NSRL lookups only)
+# MD5 + SHA-1 (secondary — legacy RDS 2.x sets, AV/threat-intel lookups, older case files) [verify 2026-10-30]
 md5sum case001-disk.dd > case001-disk.dd.md5
 sha1sum case001-disk.dd > case001-disk.dd.sha1
 
-# Verify later (sha256sum -c reads "<hash>  <filename>" format directly)
+# Verify later (sha256sum -c reads "<hash>  <filename>" format directly) [verify 2026-10-30]
 sha256sum -c case001-disk.dd.sha256
 ```
 
 **Windows (PowerShell):**
 ```powershell
-# SHA-256
+# SHA-256 [verify 2026-10-30]
 Get-FileHash -Path C:\Evidence\case001-disk.dd -Algorithm SHA256 | Format-List
 
 # MD5
@@ -388,13 +399,13 @@ Get-FileHash -Path C:\Evidence\case001-disk.dd -Algorithm SHA256 | Out-File C:\E
 
 ### Mobile Device Acquisition
 
-> **Tool versioning.** Vendor tools are tightly version-locked to the OS — Cellebrite UFED, Magnet AXIOM, GrayKey, and Elcomsoft iOS Forensic Toolkit publish per-iOS / per-Android support matrices that change every minor release. Always check the vendor matrix against the target's exact OS build before acquisition; an iOS 17.4 device may be unsupported by a UFED build that handled 17.3. [verify 2026-04-25]
+> **Tool versioning.** Vendor tools are tightly version-locked to the OS — Cellebrite UFED, Magnet AXIOM, GrayKey, and Elcomsoft iOS Forensic Toolkit publish per-iOS / per-Android support matrices that change every minor release. Always check the vendor matrix against the target's exact OS build before acquisition; an iOS 17.4 device may be unsupported by a UFED build that handled 17.3. [verify 2026-10-30]
 
 **Preparation:**
-```bash
-# Immediate isolation
+```text
+Immediate isolation
 1. Place device in Faraday bag (blocks cellular/Wi-Fi/Bluetooth/UWB)
-2. If device is on: enable airplane mode FIRST, then disable Wi-Fi and Bluetooth explicitly (airplane mode does not always disable both on iOS)
+2. If device is on: enable airplane mode FIRST, then disable Wi-Fi and Bluetooth explicitly (on iOS, Airplane Mode turns off all radios except Bluetooth, and Wi-Fi/Bluetooth can be re-enabled inside it) [verify 2026-10-30]
 3. Document battery level — connect to charger inside Faraday environment
 4. Photograph device (all sides, screen contents, IMEI/serial sticker if exposed)
 5. Note any passwords/PINs (with user consent and legal authority)
@@ -412,13 +423,16 @@ Preserve AFU state by keeping the device powered and avoiding reboots until the 
 **Logical Acquisition** — extracts active files via vendor APIs (iTunes/Finder backup, ADB). Requires device cooperation (unlocked, paired, backup not encrypted with unknown password):
 
 ```bash
-# iOS logical backup (libimobiledevice)
+# iOS logical backup (libimobiledevice) [verify 2026-10-30]
 idevice_id -l                            # confirm device is paired
 idevicebackup2 backup --full /path/to/backup
 
-# Encrypted iTunes backup with known password (richer artifact set than unencrypted)
-idevicebackup2 -i backup --full /path/to/backup
-# Decrypt later with: iphone-backup-decrypt or Magnet AXIOM / Cellebrite Reader
+# Encrypted iTunes backup (richer artifact set than unencrypted). Encryption is a device setting:
+# turning it on changes the device, so document it. -i prompts for the password. [verify 2026-10-30]
+# Hash the first backup before running this; use a separate target directory (backups land in DIRECTORY/<UDID>/). [verify 2026-10-30]
+idevicebackup2 -i encryption on
+idevicebackup2 backup --full /path/to/backup-encrypted
+# Decrypt later with: iphone-backup-decrypt, or load in Magnet AXIOM as an image and enter the backup password [verify 2026-10-30]
 
 # Android — modern (recommended): ADB pull of accessible app data on rooted/dev devices
 adb devices
@@ -426,43 +440,45 @@ adb shell pm list packages -f            # enumerate package paths
 adb pull /sdcard/                        # external storage
 adb pull /data/data/<package>/           # rooted only
 
-# Android — legacy `adb backup` is deprecated in Android 12+ and removed in Android 13;
-# many OEMs (Samsung, Huawei) disabled it years earlier. Prefer vendor tooling or
-# Android Backup Extractor (`abe.jar`) only for legacy devices that still honor it.
-adb backup -all -apk -shared -system -f backup.ab   # Android <=11 only [verify 2026-04-25]
+# Android — legacy `adb backup`: since Android 12 it excludes app data for apps targeting API 31+
+# unless the app sets android:debuggable=true, so modern devices yield little app data. Prefer vendor
+# tooling; use Android Backup Extractor (`abe.jar`) only for legacy backups. [verify 2026-10-30]
+adb backup -all -apk -shared -system -f backup.ab   # Android 12+: no app data for apps targeting API 31+ unless debuggable
 ```
 
 **Filesystem / Physical Acquisition:**
-- **Filesystem (iOS)** — checkm8-based tools (checkra1n family, palera1n) on A11-and-earlier hardware reach a fuller filesystem; A12+ devices generally require GrayKey or comparable LE-grade tooling
+- **Filesystem (iOS)** — checkm8-based tools (checkra1n family, palera1n) on A11-and-earlier hardware reach a fuller filesystem; A12+ devices generally require GrayKey or comparable LE-grade tooling [verify 2026-10-30]
 - **Physical (Android)** — chip-off, JTAG, ISP, EDL (Qualcomm Emergency Download), or vendor exploits via Cellebrite/MSAB; recovers deleted data and full userdata partition
-- **Advanced iOS** — Cellebrite UFED Premium, GrayKey, Elcomsoft iOS Forensic Toolkit; capability is OS-version-bounded and often LE-restricted
+- **Advanced iOS** — Cellebrite Inseyets (positioned as the successor to Premium; no sunset date announced), GrayKey, Elcomsoft iOS Forensic Toolkit; capability is OS-version-bounded and often LE-restricted [verify 2026-10-30]
 
 **Vendor Tools:**
-- **Cellebrite UFED / UFED Premium / Inseyets** — physical/logical/filesystem extraction, lock bypass; UFED 4PC + UFED Touch hardware; OS support matrix updated monthly [verify 2026-04-25]
-- **Magnet AXIOM (Process / Examine)** — mobile + computer + cloud; iOS/Android filesystem & full-file-system parsing, biome/KnowledgeC enrichment [verify 2026-04-25]
-- **MSAB XRY** — LE-grade physical/logical, decoding of 30k+ apps [verify 2026-04-25]
+- **Cellebrite Inseyets (Inseyets.UFED)** — all-in-one extraction and analysis suite; unlocks sold separately; replaces UFED Ultimate (UFED4PC), Physical Analyzer 7 and Premium, which Cellebrite's FAQ lists for discontinuation (no sunset date announced); requires a Cellebrite Max dongle. Check per-release support notes for the target OS build [verify 2026-10-30]
+- **Magnet AXIOM (Process / Examine)** — mobile, computer, cloud and vehicle sources [verify 2026-10-30]
+- **MSAB XRY** — physical, logical and cloud extraction; app decoding updated in every release [verify 2026-10-30]
 - **Oxygen Forensic Detective** — broad app coverage including encrypted messengers
-- **Elcomsoft iOS Forensic Toolkit** — checkm8-based imaging on supported iPhones; keychain extraction [verify 2026-04-25]
-- **GrayKey (Magnet/Grayshift)** — passcode brute-force and full-file-system on supported iOS [verify 2026-04-25]
+- **Elcomsoft iOS Forensic Toolkit** — checkm8-based imaging on supported iPhones; keychain extraction [verify 2026-10-30]
+- **GrayKey (Magnet/Grayshift)** — passcode brute-force and full-file-system on supported iOS [verify 2026-10-30]
 
 **Open-source parsing (run AFTER vendor extraction):**
-- **iLEAPP** ([github.com/abrignoni/iLEAPP](https://github.com/abrignoni/iLEAPP)) — parses iOS extractions: KnowledgeC, biome, PowerLog, Photos.sqlite, Health, app artifacts; HTML/TSV/KML reports
-- **ALEAPP** ([github.com/abrignoni/ALEAPP](https://github.com/abrignoni/ALEAPP)) — Android counterpart: usagestats, accessibility, Wi-Fi history, app artifacts
-- **VLEAPP / WLEAPP / RLEAPP** — vehicle, watch, returns extractions in the same family
-- **APOLLO** ([github.com/mac4n6/APOLLO](https://github.com/mac4n6/APOLLO)) — Apple Pattern of Life Lazy Output'er; correlates KnowledgeC, biome, Health, PowerLog into a single timeline
-- **artex / mvt-ios / mvt-android** ([mvt.re](https://mvt.re)) — Mobile Verification Toolkit (Amnesty International); spyware indicator scanning against STIX2 IOC bundles
+- **iLEAPP** ([github.com/abrignoni/iLEAPP](https://github.com/abrignoni/iLEAPP)) — parses iOS extractions: KnowledgeC, biome, PowerLog, Photos.sqlite, Health, app artifacts; HTML/TSV/KML reports [verify 2026-10-30]
+- **ALEAPP** ([github.com/abrignoni/ALEAPP](https://github.com/abrignoni/ALEAPP)) — Android counterpart: usagestats, accessibility, Wi-Fi history, app artifacts [verify 2026-10-30]
+- **VLEAPP / RLEAPP** ([github.com/abrignoni/VLEAPP](https://github.com/abrignoni/VLEAPP), [github.com/abrignoni/RLEAPP](https://github.com/abrignoni/RLEAPP)) — vehicle and returns extractions in the same family [verify 2026-10-30]
+- **APOLLO** ([github.com/mac4n6/APOLLO](https://github.com/mac4n6/APOLLO)) — Apple Pattern of Life Lazy Output'er; correlates KnowledgeC, biome, Health, PowerLog into a single timeline [verify 2026-10-30]
+- **mvt-ios / mvt-android** ([mvt.re](https://mvt.re)) — Mobile Verification Toolkit (Amnesty International); spyware indicator scanning against STIX2 IOC bundles [verify 2026-10-30]
 
 **Cloud & SIM Card:**
 ```bash
-# SIM card reader acquisition (Cellebrite UME-36Pro, MSAB XRY, dedicated PC/SC reader)
+# SIM card reader acquisition (MSAB XRY or a dedicated PC/SC reader)
 # Capture: ICCID, IMSI, ADN/SMS, LOCI/PSLOCI (last cell location), authentication keys (Ki not extractable on modern SIMs)
 
 # Cloud data preservation — legal process required (subpoena/warrant/MLAT):
 # - iCloud (Apple): backups, Photos, iCloud Drive, Find My, Messages-in-iCloud
-# - Google Account: Takeout export, Workspace audit (admins), Location History (now "Timeline", on-device since 2024)
+# - Google Account: Takeout export, Workspace audit (admins), Location History (now "Timeline", on-device since 2024) [verify 2026-10-30]
 # - Microsoft 365 / OneDrive: Compliance Search + UAL (see Cloud Forensics §3)
 # - Dropbox / Box / Slack / Discord: provider-specific legal request portals
-# Preservation letter (US) or Article 18 Budapest Convention request (cross-border) freezes data pending warrant.
+# Law-enforcement preservation request (US, 18 U.S.C. § 2703(f): 90 days, renewable once) or a Budapest Convention Article 29
+# expedited-preservation request via the Article 35 24/7 network (cross-border) freezes data pending warrant / MLAT. [verify 2026-10-30]
+# Only a governmental entity can send a § 2703(f) request (Art. 29 is State-to-State); corporate/private teams ask law enforcement, via counsel. [verify 2026-10-30]
 ```
 
 ### Cloud Evidence Acquisition
@@ -477,15 +493,15 @@ adb backup -all -apk -shared -system -f backup.ab   # Android <=11 only [verify 
 #### AWS
 
 ```bash
-# Confirm CloudTrail is enabled across all regions and identify the trail's S3 destination
+# Confirm CloudTrail is enabled across all regions and identify the trail's S3 destination [verify 2026-10-30]
 aws cloudtrail describe-trails --include-shadow-trails
 aws cloudtrail get-trail-status --name <trail-name>
 
-# Lookup recent control-plane events (90-day default lookup window via the API; full retention in the S3 bucket)
+# Lookup recent control-plane events (90-day default lookup window via the API; full retention in the S3 bucket) [verify 2026-10-30]
 aws cloudtrail lookup-events --start-time 2026-04-01T00:00:00Z --end-time 2026-04-25T00:00:00Z \
     --lookup-attributes AttributeKey=Username,AttributeValue=<suspect-iam-user>
 
-# Pull the underlying CloudTrail logs from S3 (gzipped JSON, one object per ~5 min per region)
+# Pull the underlying CloudTrail logs from S3 (gzipped JSON, one object per ~5 min per region) [verify 2026-10-30]
 aws s3 sync s3://<cloudtrail-bucket>/AWSLogs/<account-id>/CloudTrail/ /evidence/cloudtrail/ \
     --exclude "*" --include "*/2026/04/*"
 
@@ -503,46 +519,52 @@ aws guardduty get-findings --detector-id <id> --finding-ids <ids>
 # All land in S3 — sync the relevant prefix and validate hashes
 ```
 
-Key services: **CloudTrail** (control plane), **GuardDuty** (threat detection), **VPC Flow Logs** (network), **S3 Server Access Logs / S3 Access Analyzer** (object access), **IAM Access Analyzer** (over-permissioned roles), **Config** (resource state history). Default CloudTrail management-event retention in Event history is 90 days; long-term retention requires a trail writing to S3.
+Key services: **CloudTrail** (control plane), **GuardDuty** (threat detection), **VPC Flow Logs** (network), **S3 Server Access Logs / IAM Access Analyzer for S3** (object access), **IAM Access Analyzer** (over-permissioned roles), **Config** (resource state history). Default CloudTrail management-event retention in Event history is 90 days; long-term retention requires a trail writing to S3. [verify 2026-10-30]
 
 #### Azure / Microsoft 365
 
 ```bash
-# Azure Activity Log (subscription/tenant control-plane events)
+# Azure Activity Log (subscription/tenant control-plane events) [verify 2026-10-30]
 az login
 az monitor activity-log list --start-time 2026-04-01T00:00:00Z --end-time 2026-04-25T00:00:00Z \
     --max-events 1000 --output json > activity-log.json
 
-# Microsoft Entra ID (Azure AD) sign-in and audit logs — primary identity-compromise evidence
+# Microsoft Entra ID (Azure AD) sign-in and audit logs — primary identity-compromise evidence [verify 2026-10-30]
 az rest --method GET --uri "https://graph.microsoft.com/v1.0/auditLogs/signIns?\$filter=createdDateTime ge 2026-04-01T00:00:00Z"
 az rest --method GET --uri "https://graph.microsoft.com/v1.0/auditLogs/directoryAudits?\$filter=activityDateTime ge 2026-04-01T00:00:00Z"
+```
 
-# M365 Unified Audit Log (UAL) via Exchange Online PowerShell (Search-UnifiedAuditLog is the
-# legacy synchronous cmdlet; for large pulls Microsoft now recommends the Audit Search Graph API
-# or `New-MailboxAuditLogSearch` / `Start-MailboxFolderAuditLogSearch`)
+```powershell
+# M365 Unified Audit Log (UAL) via Exchange Online PowerShell (Search-UnifiedAuditLog). It returns 100 records by
+# default; -SessionCommand is required for more. ReturnLargeSet pages unsorted results (-ResultSize = page size,
+# max 5000): re-run with the same -SessionId until nothing comes back (max 50,000 per session). [verify 2026-10-30]
+# For programmatic pulls Microsoft recommends the Microsoft 365 Management Activity API; the Graph
+# auditLogQuery API (v1.0, POST /security/auditLog/queries) creates a query you poll, then read records.
+# Search-MailboxAuditLog / New-MailboxAuditLogSearch are being deprecated in Exchange Online in favour
+# of Search-UnifiedAuditLog; do not build new collection on them. [verify 2026-10-30]
 Connect-ExchangeOnline -UserPrincipalName <admin>@<tenant>
-Search-UnifiedAuditLog -StartDate 2026-04-01 -EndDate 2026-04-25 -UserIds <upn> -ResultSize 5000
+Search-UnifiedAuditLog -StartDate 2026-04-01 -EndDate 2026-04-25 -UserIds <upn> -SessionId case001-ual -SessionCommand ReturnLargeSet -ResultSize 5000
 
 # Defender / Purview Compliance — content searches for mailbox content (eDiscovery)
 # Compliance Center → Content search → New search → scope to user/site/team
 ```
 
-Key sources: **Azure Activity Log**, **Entra ID sign-in/audit logs**, **M365 Unified Audit Log (UAL)**, **Defender for 365** (alerts, threat-explorer), **Purview eDiscovery** (mailbox/SharePoint/Teams content). UAL retention is **180 days** for most plans, **365 days** with Audit Standard, and up to **10 years** with Audit Premium add-on [verify 2026-04-25].
+Key sources: **Azure Activity Log**, **Entra ID sign-in/audit logs**, **M365 Unified Audit Log (UAL)**, **Defender for 365** (alerts, threat-explorer), **Purview eDiscovery** (mailbox/SharePoint/Teams content). UAL retention is **180 days** with Audit (Standard); **1 year** for Exchange, SharePoint, OneDrive and Entra records with Audit (Premium) / E5 (other workloads stay at 180 days unless a custom retention policy is set); **up to 10 years** only with the 10-Year Audit Log Retention add-on on top of E5 [verify 2026-10-30].
 
 #### Google Cloud / Workspace
 
 ```bash
-# GCP Cloud Audit Logs (Admin Activity, Data Access, System Event, Policy Denied)
+# GCP Cloud Audit Logs (Admin Activity, Data Access, System Event, Policy Denied) [verify 2026-10-30]
 gcloud auth login
 gcloud logging read 'protoPayload.serviceName="iam.googleapis.com" AND timestamp>="2026-04-01T00:00:00Z"' \
     --project=<project> --format=json > gcp-iam-audit.json
 
-# Export audit logs to a sink (BigQuery, Cloud Storage, Pub/Sub) for long-term preservation
+# Export audit logs to a sink (BigQuery, Cloud Storage, Pub/Sub) for long-term preservation [verify 2026-10-30]
 gcloud logging sinks create case-001-sink storage.googleapis.com/<bucket> \
     --log-filter='logName:"cloudaudit.googleapis.com"'
 
 # Google Workspace Reports / Audit API — admin, login, drive, gmail, mobile, token, groups, calendar
-# Required scope: https://www.googleapis.com/auth/admin.reports.audit.readonly
+# Required scope: https://www.googleapis.com/auth/admin.reports.audit.readonly [verify 2026-10-30]
 curl -H "Authorization: Bearer $GOOGLE_ADMIN_TOKEN" \
     "https://admin.googleapis.com/admin/reports/v1/activity/users/all/applications/login?startTime=2026-04-01T00:00:00Z"
 
@@ -550,14 +572,14 @@ curl -H "Authorization: Bearer $GOOGLE_ADMIN_TOKEN" \
 # admin.google.com → Vault → Matter → Hold + Search + Export
 ```
 
-Key sources: **Cloud Audit Logs** (Admin Activity is enabled by default and free; Data Access is opt-in and billed), **Workspace Reports/Audit** (login, drive, admin, token, gmail, mobile), **Google Vault** (eDiscovery hold + export), **Security Center** (findings), **VPC Flow Logs**.
+Key sources: **Cloud Audit Logs** (Admin Activity is enabled by default and free; Data Access is opt-in and billed), **Workspace Reports/Audit** (login, drive, admin, token, gmail, mobile), **Google Vault** (eDiscovery hold + export), **Security Command Center** (findings), **VPC Flow Logs**. [verify 2026-10-30]
 
 #### SaaS / Identity
 
-- **Okta** — System Log API (`/api/v1/logs`); 90-day default retention, longer with subscription
-- **Slack** — Audit Logs API (Enterprise Grid only); Discovery API for content
-- **GitHub** — Audit Log API (org/enterprise); push, fork, repo creation, OAuth grants
-- **Salesforce** — Setup Audit Trail (180 days), Event Monitoring (with add-on), Login History
+- **Okta** — System Log API (`/api/v1/logs`); 90-day sliding window; export (CSV or via the API) to keep older events [verify 2026-10-30]
+- **Slack** — Audit Logs API (Enterprise plan only); Discovery API for content [verify 2026-10-30]
+- **GitHub** — Audit Log API (org/enterprise); push, fork, repo creation, OAuth grants [verify 2026-10-30]
+- **Salesforce** — Setup Audit Trail (180 days), Event Monitoring (with add-on), Login History [verify 2026-10-30]
 
 **Acquisition hashing:** treat exported logs and snapshots like any other digital evidence — hash on download (SHA-256), record source URL/API endpoint and timestamp range, store with a chain-of-custody entry per [[../../Investigations/Techniques/sop-collection-log|Collection Log]].
 
@@ -565,7 +587,7 @@ Key sources: **Cloud Audit Logs** (Admin Activity is enabled by default and free
 
 **Packet Capture:**
 ```bash
-# Live capture with tcpdump
+# Live capture with tcpdump [verify 2026-10-30]
 tcpdump -i eth0 -w capture.pcap
 
 # Capture specific host
@@ -579,12 +601,14 @@ tcpdump -i eth0 port 443 -w https_capture.pcap
 ```
 
 **Log Collection:**
-```bash
-# Windows Event Logs
+```cmd
+# Windows Event Logs [verify 2026-10-30]
 wevtutil epl Security C:\Evidence\Security.evtx
 wevtutil epl System C:\Evidence\System.evtx
 wevtutil epl Application C:\Evidence\Application.evtx
+```
 
+```bash
 # Linux syslog
 cp /var/log/syslog /mnt/evidence/syslog.txt
 cp /var/log/auth.log /mnt/evidence/auth.log.txt
@@ -602,8 +626,8 @@ cp /var/log/nginx/access.log /mnt/evidence/
 ### Preparation
 
 **Working Environment:**
-```bash
-# CRITICAL RULE: Never work on original evidence
+```text
+CRITICAL RULE: Never work on original evidence
 1. Verify hash of forensic image matches collection hash
 2. Create working copy of forensic image
 3. Document analysis workstation specs
@@ -612,7 +636,7 @@ cp /var/log/nginx/access.log /mnt/evidence/
 ```
 
 **Analysis Documentation:**
-```
+```text
 Analysis Log Must Include:
 - Case number and analyst name
 - Date and time of each analysis session (UTC)
@@ -627,7 +651,7 @@ Analysis Log Must Include:
 
 **Linux:**
 ```bash
-# Mount E01 image (requires ewf-tools/libewf)
+# Mount E01 image (requires ewf-tools/libewf) [verify 2026-10-30]
 ewfmount image.E01 /mnt/ewf
 mount -o ro,loop,noexec /mnt/ewf/ewf1 /mnt/analysis
 
@@ -639,7 +663,7 @@ mount -t ntfs-3g -o ro,loop,noexec image.dd /mnt/analysis
 ```
 
 **FTK Imager (Windows):**
-```
+```text
 1. File → Add Evidence Item
 2. Select Image File → Browse to E01/dd file
 3. Evidence tree shows filesystem
@@ -649,37 +673,37 @@ mount -t ntfs-3g -o ro,loop,noexec image.dd /mnt/analysis
 ### File System Analysis
 
 **Autopsy (Open Source Forensics Platform):**
-```
+```text
 1. Create New Case
 2. Add Data Source → Disk Image
 3. Select ingest modules:
    - File Type Identification
    - Extension Mismatch Detector
-   - Deleted File Recovery
+   - PhotoRec Carver (unallocated carving) [verify 2026-10-30]
    - Hash Lookup (NSRL, known bad hashes)
    - Keyword Search
    - Email Parser
-   - Web Artifacts
+   - Recent Activity (web/OS artifacts) [verify 2026-10-30]
 4. Run analysis
 5. Review results in tree view/table
 ```
 
 **Deleted File Recovery:**
 ```bash
-# Using Sleuth Kit
+# Using Sleuth Kit [verify 2026-10-30]
 fls -r -d image.dd > deleted_files.txt  # List deleted files
 icat image.dd [inode] > recovered_file.dat  # Recover specific file
 
-# Using Scalpel (file carving)
+# Using Scalpel (file carving) [verify 2026-10-30]
 scalpel -c scalpel.conf -o /output image.dd
 
-# Using PhotoRec (GUI/CLI)
+# Using PhotoRec (GUI/CLI) [verify 2026-10-30]
 photorec image.dd
 ```
 
 **File Metadata Examination:**
 ```bash
-# Using Sleuth Kit
+# Using Sleuth Kit [verify 2026-10-30]
 ils image.dd  # List inodes (including deleted)
 istat image.dd [inode]  # Get detailed inode info
 
@@ -691,50 +715,51 @@ exiftool -r /mnt/analysis/Users/JohnDoe/Pictures > all_photo_metadata.txt
 # Option A: Sleuth Kit
 icat image.dd 0 > MFT.bin                            # inode 0 is $MFT on NTFS
 
-# Option B: mount image read-only and copy via NTFS-3G (preserves the file)
-mount -o ro,loop,noexec,show_sys_files,streams_interface=windows image.dd /mnt/analysis
+# Option B: mount image read-only and copy via NTFS-3G (show_sys_files / streams_interface are ntfs-3g options) [verify 2026-10-30]
+mount -t ntfs-3g -o ro,loop,noexec,show_sys_files,streams_interface=windows image.dd /mnt/analysis
 cp /mnt/analysis/\$MFT ./MFT.bin
 
-# Parse — MFTECmd (Eric Zimmerman) is the modern recommendation; analyzeMFT is also fine
+# Parse — MFTECmd (Eric Zimmerman) is the modern recommendation; analyzeMFT is also fine [verify 2026-10-30]
 MFTECmd.exe -f MFT.bin --csv .\out --csvf mft.csv     # also parses $J / $LogFile / $Boot / $SDS
-analyzeMFT.py -f MFT.bin -o mft_timeline.csv
+analyzeMFT.py -f MFT.bin -o mft_timeline.csv --csv
 ```
 
 ### Timeline Construction
 
-**Using log2timeline / Plaso** (current release ~20240826; releases are date-versioned) [verify 2026-04-25]:
+**Using log2timeline / Plaso** (current release 20261027; releases are date-versioned) [verify 2026-10-30]:
 ```bash
-# Create the storage file (Plaso 2.x default storage format is SQLite)
+# Create the storage file (Plaso storage is SQLite-based) [verify 2026-10-30]
 log2timeline.py --storage-file timeline.plaso image.dd
 
-# Limit parsers for speed (skip noisy ones during initial triage)
+# Limit parsers for speed (skip noisy ones during initial triage) [verify 2026-10-30]
 log2timeline.py --parsers '!filestat,!winreg' --storage-file timeline.plaso image.dd
 
-# Convert / filter to CSV with psort
+# Convert / filter to CSV with psort [verify 2026-10-30]
 psort.py -o l2tcsv -w timeline.csv timeline.plaso
 
-# Date-range filter (psort filter expression syntax)
+# Date-range filter (psort filter expression syntax) [verify 2026-10-30]
 psort.py -o l2tcsv -w filtered.csv timeline.plaso "date > '2026-04-01' AND date < '2026-04-25'"
 
 # User filter
 psort.py -o l2tcsv -w user_timeline.csv timeline.plaso "username contains 'johndoe'"
 
-# Native output for Timesketch ingestion (recommended for >1 GB timelines)
-psort.py -o opensearch_ts -w analysis.jsonl timeline.plaso
+# Line-delimited JSON export (opensearch_ts writes straight to an OpenSearch server, not to a file).
+# For Timesketch, the .plaso file itself can be imported (web UI or timesketch_importer). [verify 2026-10-30]
+psort.py -o json_line -w analysis.jsonl timeline.plaso
 ```
 
 **Manual timeline (Mac Times):**
 ```bash
-# Sleuth Kit fls + mactime — fast bodyfile generation when you only want filesystem MAC times
+# Sleuth Kit fls + mactime — fast bodyfile generation when you only want filesystem MAC times [verify 2026-10-30]
 fls -m C:/ -r image.dd > bodyfile.txt
 mactime -b bodyfile.txt -d > timeline.csv
 ```
 
 **Timeline Analysis Tools:**
-- **Timesketch** ([github.com/google/timesketch](https://github.com/google/timesketch)) — web-based collaborative timeline analysis with sketches, tagging, Sigma-rule running, and AI-assisted analysis (newer releases)
-- **Timeline Explorer** (Eric Zimmerman) — Windows GUI for filtering CSV/L2TCSV timelines
-- **Hayabusa** ([github.com/Yamato-Security/hayabusa](https://github.com/Yamato-Security/hayabusa)) — Sigma-driven Windows event log timeline; produces a triage-ready CSV in minutes
-- **Chainsaw** ([github.com/WithSecureLabs/chainsaw](https://github.com/WithSecureLabs/chainsaw)) — fast EVTX hunting with Sigma + custom rules
+- **Timesketch** ([github.com/google/timesketch](https://github.com/google/timesketch)) — web-based collaborative timeline analysis with sketches, tagging, Sigma-rule running, and AI-assisted analysis (newer releases) [verify 2026-10-30]
+- **Timeline Explorer** (Eric Zimmerman) — Windows GUI for filtering CSV/L2TCSV timelines [verify 2026-10-30]
+- **Hayabusa** ([github.com/Yamato-Security/hayabusa](https://github.com/Yamato-Security/hayabusa)) — Sigma-driven Windows event log timeline; produces a triage-ready CSV in minutes [verify 2026-10-30]
+- **Chainsaw** ([github.com/WithSecureOpenSource/chainsaw](https://github.com/WithSecureOpenSource/chainsaw)) — fast EVTX hunting with Sigma + custom rules [verify 2026-10-30]
 
 ### Registry Analysis (Windows)
 
@@ -756,20 +781,22 @@ icat image.dd [inode_of_SYSTEM] > SYSTEM
 
 **Registry Analysis:**
 ```bash
-# Using RegRipper (rr.exe / rip.pl). RegRipper3.0 is current; profile-mode plugins live in plugins/
-rip.pl -r SAM -p sam > sam_output.txt
-rip.pl -r SYSTEM -p system > system_output.txt
-rip.pl -r SOFTWARE -p software > software_output.txt
-rip.pl -r NTUSER.DAT -p ntuser > ntuser_output.txt
-rip.pl -r UsrClass.dat -p usrclass > usrclass_output.txt
+# Using RegRipper (rr.exe / rip.pl). RegRipper 4.0 (github.com/keydet89/RegRipper4.0) is current but licensed for
+# personal/academic use only; RegRipper3.0 remains the freely redistributable release.
+# -a runs every plugin for the detected hive type (-aT for TLN output); -p takes a single plugin name. [verify 2026-10-30]
+rip.pl -r SAM -a > sam_output.txt
+rip.pl -r SYSTEM -a > system_output.txt
+rip.pl -r SOFTWARE -a > software_output.txt
+rip.pl -r NTUSER.DAT -a > ntuser_output.txt
+rip.pl -r UsrClass.dat -a > usrclass_output.txt
 
-# Eric Zimmerman's Registry Explorer / RECmd (Windows GUI/CLI) is the modern alternative
+# Eric Zimmerman's Registry Explorer / RECmd (Windows GUI/CLI) is the modern alternative [verify 2026-10-30]
 RECmd.exe --bn BatchExamples\\RegistryASEPs.reb -d C:\\Evidence\\hives --csv .\\out
 
 # Key artifacts (legacy, well-known):
 # - USB device history:           SYSTEM\CurrentControlSet\Enum\USBSTOR + USB
 # - UserAssist (GUI execution):   NTUSER.DAT\Software\Microsoft\Windows\CurrentVersion\Explorer\UserAssist (ROT13-encoded value names)
-# - ShimCache / AppCompatCache:   SYSTEM\CurrentControlSet\Control\Session Manager\AppCompatCache (program path + last-modified time of binary; size capped at ~1024 entries on Win10/11)
+# - ShimCache / AppCompatCache:   SYSTEM\CurrentControlSet\Control\Session Manager\AppCompatCache (program path + last-modified time of binary; entry count is capped — 1024 on Win10/11 is commonly cited but not documented by Microsoft)
 # - Run keys:                     SOFTWARE\Microsoft\Windows\CurrentVersion\Run, RunOnce; NTUSER.DAT\...\Run
 # - Services:                     SYSTEM\CurrentControlSet\Services
 # - Scheduled tasks (XML):        C:\Windows\System32\Tasks\ + SOFTWARE\Microsoft\Windows NT\CurrentVersion\Schedule\TaskCache\Tree
@@ -779,64 +806,63 @@ RECmd.exe --bn BatchExamples\\RegistryASEPs.reb -d C:\\Evidence\\hives --csv .\\
 
 | Artifact | Location | What it records | Parser |
 |---|---|---|---|
-| **AmCache.hve** | `C:\Windows\AppCompat\Programs\Amcache.hve` | Every executed PE: full path, SHA1, PE header fields, first-execution time, publisher | `AmcacheParser.exe` (EZ Tools); RegRipper `amcache` plugin |
-| **ShimCache (AppCompatCache)** | Registry `SYSTEM\...\AppCompatCache` | Path + last-modified timestamp + execution flag; populated on shutdown | `AppCompatCacheParser.exe` (EZ Tools) |
-| **BAM / DAM** | `SYSTEM\CurrentControlSet\Services\bam\State\UserSettings\<SID>` and `dam\...` | Per-user, per-binary last execution time (FILETIME); BAM = foreground apps, DAM = Desktop Activity Moderator | RegRipper `bam` plugin; raw `reg.exe query` |
-| **PCA (Program Compatibility Assistant)** | `C:\Windows\appcompat\pca\PcaAppLaunchDic.txt`, `PcaGeneralDb0.txt`, `PcaGeneralDb1.txt` (Win11 22H2+) | Tab-separated execution log: full path + first/last execution time + ABI status | manual review; community `PCA Parser` scripts [verify 2026-04-25] |
-| **SRUM (System Resource Usage Monitor)** | `C:\Windows\System32\sru\SRUDB.dat` (ESE database) | Per-process network bytes sent/received, energy, application runtime — hourly buckets, ~30-60 day retention | `srum-dump` (Mark Baggett) or `SRUM-DUMP3`; KAPE module |
+| **AmCache.hve** | `C:\Windows\AppCompat\Programs\Amcache.hve` | PE files inventoried by the application-compatibility engine — presence is not proof of execution, corroborate it: full path, SHA-1, PE header fields, publisher; timestamps are registry key last-write times, not first execution | `AmcacheParser.exe` (EZ Tools); RegRipper `amcache` plugin [verify 2026-10-30] |
+| **ShimCache (AppCompatCache)** | Registry `SYSTEM\...\AppCompatCache` | Path + last-modified timestamp + execution flag; populated on shutdown | `AppCompatCacheParser.exe` (EZ Tools) [verify 2026-10-30] |
+| **BAM / DAM** | `SYSTEM\CurrentControlSet\Services\bam\State\UserSettings\<SID>` and `dam\...` | Per-user, per-binary last execution time (FILETIME); BAM = Background Activity Moderator, DAM = Desktop Activity Moderator; some Win10 builds use `bam\UserSettings\<SID>` without `State` | RegRipper `bam` plugin; raw `reg.exe query` [verify 2026-10-30] |
+| **PCA (Program Compatibility Assistant)** | `C:\Windows\appcompat\pca\PcaAppLaunchDic.txt`, `PcaGeneralDb0.txt`, `PcaGeneralDb1.txt` (Win11 22H2+) | Pipe-delimited text. `PcaAppLaunchDic.txt`: full path + last execution time (UTC), GUI launches only. `PcaGeneralDb0/1.txt`: typed records such as installer failure, blocked driver, abnormal exit (with exit code) | manual review [verify 2026-10-30] |
+| **SRUM (System Resource Usage Monitor)** | `C:\Windows\System32\sru\SRUDB.dat` (ESE database) | Per-process network bytes sent/received, energy, application runtime — hourly buckets; retention ~30 days (tool documentation; Microsoft does not document it) | `SrumECmd.exe` (EZ Tools); `SRUM-DUMP` v3 (Mark Baggett); KAPE module [verify 2026-10-30] |
 | **UserAssist** | `NTUSER.DAT\...\Explorer\UserAssist\{GUID}\Count` | GUI-launched programs and shortcuts: count, focus time, last execution (ROT13 names) | RegRipper `userassist`; `UserAssistView` (NirSoft) |
-| **Prefetch** | `C:\Windows\Prefetch\*.pf` | First/last 8 run timestamps, run count, files referenced, volumes; disabled by default on SSD-only systems prior to Win10 1803 | `PECmd.exe` (EZ Tools) |
-| **JumpLists** | `%AppData%\Microsoft\Windows\Recent\(Custom\|Automatic)Destinations\*.\{customDestinations,automaticDestinations\}-ms` | Recently opened files per application (per AppID) | `JLECmd.exe` (EZ Tools) |
-| **LNK files** | `%AppData%\Microsoft\Windows\Recent\*.lnk`; user Desktop and SendTo | Target path, MAC times, volume serial, MAC address, NetBIOS name of host that created the link | `LECmd.exe` (EZ Tools); ExifTool |
-| **Recycle Bin metadata** | `C:\$Recycle.Bin\<SID>\$I*` (index) and `$R*` (renamed content) | Original filename, original path, deletion timestamp, original size — even after empty if `$R` is recovered from unallocated | `RBCmd.exe` (EZ Tools) |
-| **Windows Event Logs** | `C:\Windows\System32\winevt\Logs\*.evtx` | Security (4624 logon, 4634 logoff, 4688 process create with cmdline), System, Application, PowerShell/Operational (4104 script block), Sysmon (1/3/7/10/11/13) | `EvtxECmd.exe` (EZ Tools); `Get-WinEvent`; Hayabusa for fast triage |
-| **USN Journal ($J)** | `\$Extend\$UsnJrnl:$J` (NTFS ADS) | Filesystem change journal (CREATE/DELETE/RENAME with timestamps); typically days to weeks of history | `MFTECmd.exe --json -f $UsnJrnl --csv .` |
+| **Prefetch** | `C:\Windows\Prefetch\*.pf` | First/last 8 run timestamps, run count, files referenced, volumes. Not always enabled: Windows 7 turned prefetching off on fast SSDs, and on Windows Server it is off by default. Check `EnablePrefetcher` under `HKLM\SYSTEM\CurrentControlSet\Control\Session Manager\Memory Management\PrefetchParameters` before treating an empty Prefetch folder as suspicious | `PECmd.exe` (EZ Tools) [verify 2026-10-30] |
+| **JumpLists** | `%AppData%\Microsoft\Windows\Recent\(Custom\|Automatic)Destinations\*.\{customDestinations,automaticDestinations\}-ms` | Recently opened files per application (per AppID) | `JLECmd.exe` (EZ Tools) [verify 2026-10-30] |
+| **LNK files** | `%AppData%\Microsoft\Windows\Recent\*.lnk`; user Desktop and SendTo | Target path, MAC times, volume serial, MAC address, NetBIOS name of host that created the link | `LECmd.exe` (EZ Tools); ExifTool [verify 2026-10-30] |
+| **Recycle Bin metadata** | `C:\$Recycle.Bin\<SID>\$I*` (index) and `$R*` (renamed content) | Original filename, original path, deletion timestamp, original size — even after empty if `$R` is recovered from unallocated | `RBCmd.exe` (EZ Tools) [verify 2026-10-30] |
+| **Windows Event Logs** | `C:\Windows\System32\winevt\Logs\*.evtx` | Security (4624 logon, 4634 logoff, 4688 process create with cmdline), System, Application, PowerShell/Operational (4104 script block), Sysmon (1/3/7/10/11/13) | `EvtxECmd.exe` (EZ Tools); `Get-WinEvent`; Hayabusa for fast triage [verify 2026-10-30] |
+| **USN Journal ($J)** | `\$Extend\$UsnJrnl:$J` (NTFS ADS) | Filesystem change journal (CREATE/DELETE/RENAME with timestamps); typically days to weeks of history | `MFTECmd.exe -f J.bin -m MFT.bin --csv .\out --csvf usn.csv` (`$J` extracted as `J.bin`; `-m` resolves parent paths) [verify 2026-10-30] |
 | **$LogFile** | NTFS volume root `\$LogFile` | NTFS transaction log; recoverable transactions for very recent activity | `NTFS Log Tracker` |
 
-**KAPE (Kroll Artifact Parser and Extractor)** is the canonical workflow for collecting and parsing this set — `kape.exe --tsource C: --target KapeTriage --tdest .\out --module !EZParser` runs targets (collection) followed by modules (parsing) end-to-end.
+**KAPE (Kroll Artifact Parser and Extractor)** is the canonical workflow for collecting and parsing this set — `kape.exe --tsource C: --target KapeTriage --tdest .\out\targets --module !EZParser --mdest .\out\modules` runs targets (collection) followed by modules (parsing) end-to-end; `--mdest` is required for module output, and `--msource` defaults to `--tdest`. [verify 2026-10-30]
 
 ### macOS Artifacts
 
 **Filesystem & system snapshots:**
-- **APFS local snapshots** — Time Machine writes ~24 h of read-only snapshots even without an external disk; `tmutil listlocalsnapshots /` enumerates them, `mount_apfs -s <snapshot> /System/Volumes/Data /mnt/snap` mounts read-only. Snapshots survive most user-driven deletions.
+- **APFS local snapshots** — only when Back Up Automatically is on, Time Machine keeps hourly local snapshots on the same APFS disk as the files for up to 24 h (or until space is needed); they remain available when the backup disk isn't; `tmutil listlocalsnapshots /` enumerates them, `mount_apfs -s <snapshot> /System/Volumes/Data /mnt/snap` mounts read-only. Snapshots survive most user-driven deletions. [verify 2026-10-30]
 - **`/.fseventsd`** — FSEvents log; per-volume directory of gzipped change records (event type, inode, path). Parsers: **FSEventsParser** (G-C Partners), **mac_apt FSEvents plugin**.
 
 **User activity ("Pattern of Life"):**
-- **`KnowledgeC.db`** — `~/Library/Application Support/Knowledge/knowledgeC.db` (user) and `/private/var/db/CoreDuet/Knowledge/knowledgeC.db` (system). SQLite; tracks application focus, screen on/off, device lock/unlock, Siri suggestions, in-app activity. ~30 days retention.
-- **Biome** — `~/Library/Biome/streams/public/` (macOS 12+/iOS 15+). Replaces parts of KnowledgeC; binary protobuf streams covering app intents, location pings, focus modes, AirDrop. Parse with **APOLLO**, **mac_apt**, or **iLEAPP** (cross-applies on iOS extractions).
+- **`KnowledgeC.db`** — `~/Library/Application Support/Knowledge/knowledgeC.db` (user) and `/private/var/db/CoreDuet/Knowledge/knowledgeC.db` (system). SQLite; tracks application focus, screen on/off, device lock/unlock, Siri suggestions, in-app activity. Retention varies by stream and macOS version (Apple does not document it).
+- **Biome** — `~/Library/Biome/streams/public/` (introduced around macOS 12 per community research; Apple does not document it). Replaces parts of KnowledgeC; binary protobuf streams covering app intents, location pings, focus modes, AirDrop. Parse with **APOLLO**, **mac_apt**, or **iLEAPP** (cross-applies on iOS extractions).
 - **Spotlight** — `/.Spotlight-V100/Store-V2/<UUID>/store.db` indexes file content metadata; survivable artifact for filenames even after deletion.
-- **QuickLook thumbnails** — `~/Library/Application Support/Quicklook/` cached file previews — rich source for files no longer present.
-- **Unified Logs (`.tracev3`)** — `/var/db/diagnostics/` and `/var/db/uuidtext/`. Replaces traditional syslog on macOS 10.12+. Live capture: `log show --predicate 'process == "loginwindow"' --style ndjson --start "2026-04-25 00:00:00"`. Offline parse: **UnifiedLogReader** (mandiant), **macos-UnifiedLogs** (mandiant Rust port), **mac_apt** unifiedlogs plugin.
+- **QuickLook thumbnails** — `/private/var/folders/<xx>/<random>/C/com.apple.QuickLook.thumbnailcache/` (`$TMPDIR/../C/`; `index.sqlite` = paths/names, `thumbnails.data` = bitmaps) — rich source for files no longer present, including files on removable or encrypted volumes. Location per Objective-See research (2018); confirm on newer macOS releases. [verify 2026-10-30]
+- **Unified Logs (`.tracev3`)** — `/var/db/diagnostics/` and `/var/db/uuidtext/`. Replaces traditional syslog on macOS 10.12+. Live capture: `log show --predicate 'process == "loginwindow"' --style ndjson --start "2026-04-25 00:00:00"`. Offline parse: **macos-UnifiedLogs** (Mandiant, Rust), **mac_apt** unifiedlogs plugin; **UnifiedLogReader** (Yogesh Khatri, Python) is no longer maintained per its README. [verify 2026-10-30]
 
 **Persistence & execution:**
 - **LaunchAgents / LaunchDaemons** — `/Library/LaunchAgents`, `/Library/LaunchDaemons`, `~/Library/LaunchAgents`, `/System/Library/LaunchDaemons` (SIP-protected, but malware uses the user-writable paths)
-- **Login Items** — `~/Library/Application Support/com.apple.backgroundtaskmanagementagent/backgrounditems.btm` (modern); `loginwindow.plist` (legacy). The BTM database is the macOS Ventura+ replacement and is the single most important persistence artifact since 2022.
+- **Login Items / Background Task Management** — macOS 13 Ventura+: `/private/var/db/com.apple.backgroundtaskmanagement/BackgroundItems-v*.btm`, which consolidates login items and launch agents/daemons; dump with `sfltool dumpbtm` (Apple) or DumpBTM (Objective-See). Pre-Ventura: `~/Library/Application Support/com.apple.backgroundtaskmanagementagent/backgrounditems.btm` (community-documented path); legacy: `loginwindow.plist`. [verify 2026-10-30]
 - **Configuration profiles** — `/Library/Managed Preferences/`, `/var/db/ConfigurationProfiles/` (MDM enrollment, policy, certs)
 - **TCC database** — `/Library/Application Support/com.apple.TCC/TCC.db` (system) and `~/Library/Application Support/com.apple.TCC/TCC.db` (user); records consent for camera/mic/full-disk-access — useful for spotting malware that escalated to FDA.
 
 **Tools:**
-- **mac_apt** (Yogesh Khatri) — primary cross-artifact parser; outputs SQLite/Excel/CSV
-- **APOLLO** (Sarah Edwards) — Pattern of Life timeline correlator
-- **OSXCollector** (legacy Yelp) — live response collection [verify 2026-04-25]
-- **AutoMacTC** — automated triage collection
-- **iLEAPP** also handles macOS biome/KnowledgeC artifacts
+- **mac_apt** (Yogesh Khatri) — primary cross-artifact parser; outputs SQLite/Excel/CSV [verify 2026-10-30]
+- **APOLLO** (Sarah Edwards) — Pattern of Life timeline correlator [verify 2026-10-30]
+- **OSXCollector** (legacy Yelp; repository archived 2019) — live response collection [verify 2026-10-30]
+- **iLEAPP** parses the iOS/iPadOS equivalents (Biome, KnowledgeC); for macOS use mac_apt or APOLLO [verify 2026-10-30]
 
 ### Linux Artifacts
 
 **Logs:**
-- **systemd-journald** — `/var/log/journal/<machine-id>/system.journal` (binary, indexed). Live: `journalctl --since "2026-04-25 00:00:00" --output=json`. Offline (image): `journalctl -D /mnt/image/var/log/journal --output=json --no-pager`. On systems with persistent journaling disabled, only `/run/log/journal` exists and is lost at reboot — check `Storage=` in `/etc/systemd/journald.conf`.
+- **systemd-journald** — `/var/log/journal/<machine-id>/system.journal` (binary, indexed). Live: `journalctl --since "2026-04-25 00:00:00" --output=json`. Offline (image): `journalctl -D /mnt/image/var/log/journal --output=json --no-pager`. On systems with persistent journaling disabled, only `/run/log/journal` exists and is lost at reboot — check `Storage=` in `/etc/systemd/journald.conf`. [verify 2026-10-30]
 - **auditd / `audit.log`** — `/var/log/audit/audit.log`. Records syscalls, file access, login events when configured. Parse with `ausearch` / `aureport`. Default rule sets are sparse; investigators should look for organisation-specific rule additions.
 - **Traditional syslog** — `/var/log/syslog`, `/var/log/messages`, `/var/log/auth.log`, `/var/log/secure`, `/var/log/wtmp`, `/var/log/btmp`, `/var/log/lastlog` (all standard via `last`, `lastb`, `who /var/log/wtmp`).
 
 **Identity & install fingerprints:**
-- **`/etc/machine-id`** — 32-char hex; persistent host identifier set on first boot. Critical for correlating logs and disk images to a specific install. Don't confuse with `/var/lib/dbus/machine-id` (often a symlink to it).
+- **`/etc/machine-id`** — 32-char hex; persistent host identifier set on first boot. Critical for correlating logs and disk images to a specific install. Don't confuse with `/var/lib/dbus/machine-id` (often a symlink to it). [verify 2026-10-30]
 - **`/etc/hostname`, `/etc/hosts`, `/etc/resolv.conf`** — basic identity / network config
-- **Package install history** — `/var/log/dpkg.log` (Debian/Ubuntu), `/var/log/apt/history.log`, `/var/log/yum.log` or `dnf.log` (RHEL/Fedora), `/var/log/pacman.log` (Arch), `/var/lib/rpm/Packages` (RPM DB)
+- **Package install history** — `/var/log/dpkg.log` (Debian/Ubuntu), `/var/log/apt/history.log`, `/var/log/yum.log` or `dnf.log` (RHEL/Fedora), `/var/log/pacman.log` (Arch); RPM DB `/var/lib/rpm/rpmdb.sqlite` (rpm 4.16+: Fedora 33+, RHEL 9+) or `/var/lib/rpm/Packages` (Berkeley DB, older RHEL/CentOS) [verify 2026-10-30]
 
 **User activity:**
 - **Shell histories** — `~/.bash_history`, `~/.zsh_history`, `~/.local/share/fish/fish_history`. Trivially editable; treat as supporting evidence only.
 - **`~/.viminfo`, `~/.lesshst`, `~/.python_history`** — secondary activity traces frequently overlooked
-- **`/var/log/wtmp`, `utmp`, `btmp`** — login records (binary; use `utmpdump`)
+- **`/var/log/wtmp`, `utmp`, `btmp`** — login records (binary; use `utmpdump`) [verify 2026-10-30]
 - **SSH** — `~/.ssh/authorized_keys`, `~/.ssh/known_hosts` (for host pivoting), `/var/log/auth.log` (sshd events)
 
 **Persistence:**
@@ -848,14 +874,13 @@ RECmd.exe --bn BatchExamples\\RegistryASEPs.reb -d C:\\Evidence\\hives --csv .\\
 - **SUID binaries** — `find / -perm -4000 -type f 2>/dev/null` baseline diff against package manager-shipped expected list
 
 **Filesystem snapshots (recovery & rollback):**
-- **Btrfs** — `btrfs subvolume list /`, `btrfs subvolume snapshot -r <subvol> <name>`. Default on openSUSE (snapper-managed), Fedora 33+ workstation.
-- **ZFS** — `zfs list -t snapshot`. Default on Ubuntu Server with ZFS-on-root; OpenZFS broadly.
+- **Btrfs** — `btrfs subvolume list /`, `btrfs subvolume snapshot -r <subvol> <name>`. Default on openSUSE (snapper-managed), Fedora 33+ workstation. [verify 2026-10-30]
+- **ZFS** — `zfs list -t snapshot`. Optional disk-setup choice in the Ubuntu Desktop installer (not offered in the Server installer UI); OpenZFS broadly. [verify 2026-10-30]
 - **LVM thin snapshots** — `lvs`, `lvdisplay`. Common for VM disk images and backup tooling.
 
 **Tools:**
-- **Linux Forensic Triage Kit** — community scripts collecting the artifact set above
-- **UAC (Unix-like Artifacts Collector)** — vendor-neutral live-response collector
-- **Velociraptor** — modern cross-platform live-response framework with Linux artifacts pack
+- **UAC (Unix-like Artifacts Collector)** — vendor-neutral live-response collector [verify 2026-10-30]
+- **Velociraptor** — modern cross-platform live-response framework with Linux artifacts pack [verify 2026-10-30]
 - **chkrootkit / rkhunter / Lynis** — known-rootkit scans during triage
 
 ### Browser Artifacts
@@ -864,19 +889,19 @@ RECmd.exe --bn BatchExamples\\RegistryASEPs.reb -d C:\\Evidence\\hives --csv .\\
 ```bash
 # History location: AppData\Local\Google\Chrome\User Data\Default\History (SQLite)
 
-# Query with SQLite
+# Query with SQLite [verify 2026-10-30]
 sqlite3 History "SELECT url, title, visit_count, last_visit_time FROM urls ORDER BY last_visit_time DESC LIMIT 100;"
 
-# Downloads
+# Downloads [verify 2026-10-30]
 sqlite3 History "SELECT target_path, start_time, end_time, total_bytes FROM downloads;"
 
-# Using Hindsight (automated parser)
+# Using Hindsight (automated parser) [verify 2026-10-30]
 hindsight.py -i "/path/to/Chrome/Profile" -o /output
 ```
 
 **Firefox:**
 ```bash
-# History: AppData\Roaming\Mozilla\Firefox\Profiles\[profile]\places.sqlite
+# History: AppData\Roaming\Mozilla\Firefox\Profiles\[profile]\places.sqlite [verify 2026-10-30]
 
 sqlite3 places.sqlite "SELECT url, title, visit_count, last_visit_date FROM moz_places ORDER BY last_visit_date DESC LIMIT 100;"
 ```
@@ -894,12 +919,14 @@ sqlite3 places.sqlite "SELECT url, title, visit_count, last_visit_date FROM moz_
 **PST/OST Files (Outlook):**
 ```bash
 # libpst (readpst) — converts PST/OST to MBOX or per-folder structure
-#   -r recursive folder structure   -D include deleted items   -cv per-message verbose output
+#   -r recursive folder structure   -D include deleted items   -cv contacts as vCard [verify 2026-10-30]
 readpst -r -D -cv -o /output file.pst
 
 # pffexport (libpff, libyal) — preferred for forensics; better recovery and metadata preservation
-pffexport -t /output -f all file.pst                    # all message items
-pffexport -m all -t /output -f all file.pst             # include unallocated message recovery
+# -f all = every output format (text + html + rtf); -t is a basename: pffexport appends .export/.orphans/.recovered
+# -m all = allocated + orphan + recovered items [verify 2026-10-30]
+pffexport -t /output/case001 -f all file.pst
+pffexport -m all -t /output/case001-all -f all file.pst
 
 # Outlook OST recovery — Kernel OST Viewer (commercial), SysTools, or libpff pffexport
 ```
@@ -907,11 +934,13 @@ pffexport -m all -t /output -f all file.pst             # include unallocated me
 **MBOX/EML Files:**
 ```bash
 # Per-message extraction
-formail -s procmail < archive.mbox                       # split MBOX into individual messages
+# formail -s pipes each message to a new process and sets $FILENO (000, 001, ...) [verify 2026-10-30]
+formail -ds sh -c 'cat > msg_$FILENO.eml' < archive.mbox   # one .eml per message
 python3 -c "import mailbox; [print(m['Subject']) for m in mailbox.mbox('archive.mbox')]"
 
 # EML parsing (Python email library, mail-parser, or commercial: MailStore, aid4mail)
-python3 -m mailparse parse evidence.eml --json > evidence.json
+# pip install mail-parser (CLI: mailparser) [verify 2026-10-30]
+mailparser -f evidence.eml -j > evidence.json
 ```
 
 **Header Analysis & BEC investigation:**
@@ -933,80 +962,84 @@ grep -iE "^(From|Reply-To|Return-Path|Received|Authentication-Results|Received-S
 - **DMARC** — published in `_dmarc.<domain>` TXT record (`v=DMARC1; p=reject|quarantine|none`). Receiver-side verdict appears in `Authentication-Results` as `dmarc=pass/fail`. A `dmarc=fail` against a domain publishing `p=reject` that nonetheless reached the inbox usually indicates an internal forwarder, allowlist abuse, or look-alike domain.
 - **ARC (Authenticated Received Chain)** — `ARC-Seal:` / `ARC-Message-Signature:` chain preserves auth results across forwarders that would otherwise break SPF. Inspect when messages traverse mailing lists or third-party gateways.
 - **Display-name spoofing** — `From: "CEO Name" <attacker@lookalike.com>`; the display name matches an executive but the address does not. Pull the address out of every `From:` and compare.
-- **Look-alike domains** — punycode (`xn--`) homoglyphs, character substitutions (`rn` for `m`, `0` for `o`), TLD swaps. Run `dnstwist <victim-domain>` to enumerate likely candidates and check against the message domain.
+- **Look-alike domains** — punycode (`xn--`) homoglyphs, character substitutions (`rn` for `m`, `0` for `o`), TLD swaps. Run `dnstwist <victim-domain>` to enumerate likely candidates and check against the message domain. [verify 2026-10-30]
 - **Message-ID structure** — Microsoft 365 IDs end in `.prod.outlook.com` or `.outlook.com`; Google Workspace in `@mail.gmail.com`. A claimed Microsoft sender with a Google Message-ID is suspicious.
 - **X-Originating-IP / Received chain** — first external hop's IP geolocation should be plausible for the claimed sender. Cross-reference with sign-in logs (Entra ID, Workspace) for the impersonated account.
 
 **BEC investigation pivots:**
 1. Pull the M365 UAL or Workspace audit log for the impersonated account around the email's timestamp — look for inbox-rule creation, mailbox-forwarding rule, OAuth grant, MFA failures, sign-ins from new ASNs.
 2. Check `Set-InboxRule` / `New-InboxRule` events and existing forwarding rules — exfil-staging rules often hide messages by moving them to RSS Feeds / Conversation History.
-3. Recover deleted items from the **Recoverable Items** folder (`Get-MailboxFolderStatistics -FolderScope RecoverableItems`); attackers commonly hard-delete the bait reply.
+3. Recover deleted items from the **Recoverable Items** folder (`Get-MailboxFolderStatistics -FolderScope RecoverableItems`); attackers commonly hard-delete the bait reply. [verify 2026-10-30]
 4. Hash and preserve the original `.eml` (or PST export) before any cleanup; record SHA-256 in chain of custody.
 
 ### Memory Analysis
 
-> **Volatility 3 is the default.** Volatility 2 reached end-of-life upstream in 2020 and is no longer accepting plugin or profile contributions; use it only for legacy memory images that pre-date Volatility 3 symbol support. Volatility 3 fetches symbols on demand from the public symbol pack (or `--symbol-dirs <path>` for offline use) and replaces the manual `--profile=` step entirely. Current release: 2.x [verify 2026-04-25].
+> **Volatility 3 is the default.** Volatility 2 was deprecated and its repository archived in May 2025, alongside the Volatility 3 v2.26.0 parity release; use it only for legacy memory images that Volatility 3 cannot handle. Volatility 3 downloads and caches Windows symbols on demand; Linux and macOS symbol tables must be supplied (symbol packs, or built with dwarf2json) via `--symbol-dirs <path>`. There is no `--profile=` step. Current release: v2.28.2 (Sep 2026) [verify 2026-10-30].
 
 **Using Volatility 3 (current):**
 ```bash
-# Install: pipx install volatility3   (CLI entrypoint is `vol`; `vol.py` works on source checkouts)
-# OS / build identification
+# Install: pipx install volatility3   (CLI entrypoint is `vol`; `vol.py` works on source checkouts) [verify 2026-10-30]
+# OS / build identification [verify 2026-10-30]
 vol -f memory.dmp windows.info
-vol -f memory.dmp linux.banner          # Linux equivalent
-vol -f memory.dmp mac.kevents           # macOS plugins are limited compared to Windows
+vol -f memory.dmp banners.Banners       # Linux: identify the kernel banner, then obtain matching ISF symbols
+# macOS analysis support is deprecated as of v2.28.2 (Sep 2026); expect removal [verify 2026-10-30]
+vol -f memory.dmp mac.kevents
 
-# Process tree and command line
+# Process tree and command line [verify 2026-10-30]
 vol -f memory.dmp windows.pslist
 vol -f memory.dmp windows.pstree
 vol -f memory.dmp windows.cmdline
 vol -f memory.dmp windows.psscan        # carve EPROCESS structures (catches hidden/exited)
 
-# Network connections (Windows 7+)
+# Network connections (Windows 7+) [verify 2026-10-30]
 vol -f memory.dmp windows.netscan
 vol -f memory.dmp windows.netstat
 
-# Loaded modules / DLLs
+# Loaded modules / DLLs [verify 2026-10-30]
 vol -f memory.dmp windows.dlllist --pid <PID>
 vol -f memory.dmp windows.modules
 vol -f memory.dmp windows.modscan       # carve module structures
 
-# Dump process memory / executable / DLL
+# Dump process memory / executable / DLL [verify 2026-10-30]
 vol -f memory.dmp windows.memmap --pid <PID> --dump
 vol -f memory.dmp windows.dumpfiles --pid <PID>
 vol -f memory.dmp windows.pslist --dump
 
-# Registry hives loaded in RAM
+# Registry hives loaded in RAM [verify 2026-10-30]
 vol -f memory.dmp windows.registry.hivelist
 vol -f memory.dmp windows.registry.printkey --offset <hive-offset> --key 'Software\Microsoft\Windows\CurrentVersion\Run'
 
-# Code-injection / malicious-region detection
-vol -f memory.dmp windows.malfind                           # RWX private regions, suspicious headers
-vol -f memory.dmp windows.hollowprocesses                   # process hollowing
+# Code-injection / malicious-region detection. Since v2.26.2 the malware plugins live under windows.malware.*;
+# the old names (windows.malfind, windows.hollowprocesses) are deprecated and due for removal. [verify 2026-10-30]
+vol -f memory.dmp windows.malware.malfind                   # RWX private regions, suspicious headers
+vol -f memory.dmp windows.malware.hollowprocesses           # process hollowing
 vol -f memory.dmp windows.ssdt                              # SSDT hooks
 vol -f memory.dmp windows.callbacks                         # kernel callbacks (rootkit indicator)
 
-# Credential material in memory (paired with Mimikatz-style offline parsers)
-vol -f memory.dmp windows.hashdump
-vol -f memory.dmp windows.lsadump
-vol -f memory.dmp windows.cachedump
+# Credential material in memory (paired with Mimikatz-style offline parsers). The old names (windows.hashdump,
+# windows.lsadump, windows.cachedump) are deprecated aliases of windows.registry.*, past their 2026-09-25 removal date. [verify 2026-10-30]
+vol -f memory.dmp windows.registry.hashdump
+vol -f memory.dmp windows.registry.lsadump
+vol -f memory.dmp windows.registry.cachedump
 
-# Linux
+# Linux (linux.check_modules is deprecated in favour of linux.malware.check_modules) [verify 2026-10-30]
 vol -f memory.lime linux.pslist
 vol -f memory.lime linux.bash           # recovers shell history from heap
-vol -f memory.lime linux.check_modules  # rootkit detection
+vol -f memory.lime linux.malware.check_modules   # rootkit detection
 ```
 
-**Using Volatility 2 (legacy / pre-2020 images only):**
+**Using Volatility 2 (archived; legacy images only):**
 ```bash
-# Volatility 2 is unmaintained — only use it when V3 lacks symbols for the target build
+# Volatility 2 is archived and unmaintained — only use it when V3 lacks symbols for the target build
 volatility -f memory.dmp imageinfo
+# Win10x64_19041 exists only on the final master branch (added Dec 2020), not in the 2.6.1 release [verify 2026-10-30]
 volatility -f memory.dmp --profile=Win10x64_19041 pslist
 ```
 
 **Companion tools:**
-- **MemProcFS** ([github.com/ufrisk/MemProcFS](https://github.com/ufrisk/MemProcFS)) — mounts a memory image as a virtual filesystem; complementary to Volatility for fast triage
+- **MemProcFS** ([github.com/ufrisk/MemProcFS](https://github.com/ufrisk/MemProcFS)) — mounts a memory image as a virtual filesystem; complementary to Volatility for fast triage [verify 2026-10-30]
 - **bulk_extractor** — IOC carving (URLs, emails, credit cards) from raw memory or disk
-- **YARA** — run rule sets directly against memory images (`vol -f mem.dmp yarascan.YaraScan --yara-rules malware.yar`)
+- **YARA** — run rule sets directly against memory images: `vol -f mem.dmp yarascan.YaraScan --yara-file malware.yar` (kernel memory); `vol -f mem.dmp windows.vadyarascan --yara-file malware.yar` (per-process memory) [verify 2026-10-30]
 
 ### Malware Analysis (Basic Triage)
 
@@ -1041,10 +1074,10 @@ pe-bear suspicious.exe                   # GUI
 **Where to detonate:** isolated VM with Sysmon + Procmon + Wireshark + INetSim/FakeNet — **never on the analyst workstation, never on the live evidence**. See [[sop-malware-analysis|Malware Analysis SOP]] §2 (sandbox setup) for REMnux/FlareVM build details.
 
 **Online sandbox options** (be aware: uploading a sample makes it public-by-default on most services and can warn the adversary):
-- **CAPEv2** ([github.com/kevoreilly/CAPEv2](https://github.com/kevoreilly/CAPEv2)) — modern, actively maintained Cuckoo fork with config + payload extraction; preferred local sandbox
+- **CAPEv2** ([github.com/kevoreilly/CAPEv2](https://github.com/kevoreilly/CAPEv2)) — modern, actively maintained Cuckoo fork with config + payload extraction; preferred local sandbox [verify 2026-10-30]
 - **ANY.RUN** — interactive cloud sandbox (Pro tier offers private submissions)
 - **Joe Sandbox** — cloud or on-prem; private mode available
-- **Triage (Hatching)** — fast cloud sandbox, free + paid tiers
+- **Triage (Recorded Future, ex-Hatching)** — fast cloud sandbox, free + paid tiers [verify 2026-10-30]
 - **Hybrid Analysis (Falcon Sandbox)** — community + paid
 - **Cuckoo Sandbox** (original) — largely abandoned upstream; CAPE is the active successor
 
@@ -1057,21 +1090,21 @@ Modern attackers actively suppress the artifact set above. Treat the *absence* o
 | Technique | What it breaks | What still survives |
 |---|---|---|
 | **ETW patching** (`EtwEventWrite` prologue → `ret 0xC3`) | Sysmon, EDR, PowerShell ScriptBlockLogging, AMSI events for the patched process | Other processes; kernel callbacks; network captures; memory image of the patched process (the patch itself is visible in RAM) |
-| **AMSI bypass** (patch `AmsiScanBuffer` to return `S_OK` with `AMSI_RESULT_CLEAN=0`, or `E_INVALIDARG`) | AV/EDR script content scanning; `Defender` script telemetry | PowerShell module/transcript logging; ScriptBlock logging if loaded before patch; memory dump |
+| **AMSI bypass** (patch `AmsiScanBuffer` to return `S_OK` with `AMSI_RESULT_CLEAN=0`, or `E_INVALIDARG`) | AV/EDR script content scanning; `Defender` script telemetry | PowerShell module/transcript logging; ScriptBlock logging if loaded before patch; memory dump [verify 2026-10-30] |
 | **Direct syscalls / Hell's Gate / Halo's Gate / Tartarus Gate** | EDR userland hooks on `ntdll.dll` exports | Kernel ETW-Ti (`Microsoft-Windows-Threat-Intelligence`) on PatchGuard-protected systems; memory; network |
-| **PPID spoofing** (`UpdateProcThreadAttribute` → `PROC_THREAD_ATTRIBUTE_PARENT_PROCESS`) | Process-tree heuristics that flag implausible parent-child pairs | Sysmon Event ID 1 logs the *real* creator PID alongside the spoofed parent; ETW-Ti |
-| **Module stomping / DLL hollowing** | Module-name signature heuristics; trusts because module is signed | `.text` section hash mismatch vs. on-disk file; memory image; `pe-sieve` / `hollows_hunter` flag the divergence |
+| **PPID spoofing** (`UpdateProcThreadAttribute` → `PROC_THREAD_ATTRIBUTE_PARENT_PROCESS`) | Process-tree heuristics that flag implausible parent-child pairs | Sysmon Event ID 1 records the *spoofed* parent. The real creator shows in ETW `Microsoft-Windows-Kernel-Process` process-start events (the emitting process ≠ `ParentProcessID`); ETW-Ti [verify 2026-10-30] |
+| **Module stomping / DLL hollowing** | Module-name signature heuristics; trusts because module is signed | `.text` section hash mismatch vs. on-disk file; memory image; `pe-sieve` / `hollows_hunter` flag the divergence [verify 2026-10-30] |
 | **Timestomping** (`SetFileTime`, `$STANDARD_INFORMATION` rewrite) | Filesystem MAC-time timelines | `$FILE_NAME` MFT attribute (a second timestamp set, often missed by attackers); USN journal; AmCache; ShimCache; PCA |
-| **Log clearing** (Event Log, journald, audit.log truncation) | The cleared log itself | Backup forwarders (SIEM, syslog server); Event ID 1102 (Security log cleared) survives in subsequent log; carved log fragments from unallocated; memory; network |
+| **Log clearing** (Event Log, journald, audit.log truncation) | The cleared log itself | Backup forwarders (SIEM, syslog server); Event ID 1102 (Security log cleared) survives in subsequent log; carved log fragments from unallocated; memory; network [verify 2026-10-30] |
 | **Recycle Bin / shadow copy deletion** (`vssadmin delete shadows`) | VSS-based file recovery | NTFS journal, USN; backups outside the host |
-| **Living-off-the-land** (`certutil`, `bitsadmin`, `mshta`, `rundll32`, `regsvr32`, `wmic`) | Signature-based AV; defender heuristics that whitelist signed Microsoft binaries | Command-line logging (4688 + ProcessCreationIncludeCmdLine), Sysmon Event ID 1, PCA, AmCache |
+| **Living-off-the-land** (`certutil`, `bitsadmin`, `mshta`, `rundll32`, `regsvr32`, `wmic`) | Signature-based AV; defender heuristics that whitelist signed Microsoft binaries | Command-line logging (4688 + "Include command line in process creation events" policy), Sysmon Event ID 1, PCA, AmCache [verify 2026-10-30] |
 
 **Investigative implication:** when the obvious artifact is missing, look one layer down — `$FILE_NAME` over `$STANDARD_INFORMATION`, AmCache over Prefetch, USN journal over Recycle Bin, Sysmon Event ID 1 over Security 4688, network captures over endpoint telemetry, memory images over disk.
 
 ### Keyword Searching
 
 **Using Autopsy:**
-```
+```text
 Tools → Keyword Search
 - Add keyword lists (financial terms, PII, company confidential)
 - Regular expressions for patterns (SSN, credit cards, email)
@@ -1112,7 +1145,7 @@ grep -rE "\b[0-9]{4}[- ]?[0-9]{4}[- ]?[0-9]{4}[- ]?[0-9]{4}\b" /mnt/analysis/
 - Incident summary
 
 **3. Evidence Inventory**
-```
+```text
 Evidence ID | Description | Collection Date | Custodian | Hash (SHA-256)
 CASE-001    | Dell Laptop | 2025-10-05 UTC  | J. Smith  | abc123...
 CASE-002    | USB Drive   | 2025-10-05 UTC  | J. Smith  | def456...
@@ -1121,7 +1154,7 @@ CASE-002    | USB Drive   | 2025-10-05 UTC  | J. Smith  | def456...
 **4. Methodology**
 - Forensic tools used (name, version, vendor)
 - Analysis procedures followed
-- Standards/frameworks referenced (NIST SP 800-86, ISO 27037)
+- Standards/frameworks referenced (NIST SP 800-86, ISO 27037) [verify 2026-10-30]
 - Assumptions and limitations
 
 **5. Detailed Findings**
@@ -1144,10 +1177,10 @@ CASE-002    | USB Drive   | 2025-10-05 UTC  | J. Smith  | def456...
 > - Email addresses: `@` → `[@]` (e.g., `attacker[@]evil[.]com`)
 > - File paths and registry keys do not need defanging.
 >
-> Quick refanging for analyst use (do not include in deliverables): `sed -e 's/hxxp/http/g; s/\[\.\]/./g; s/\[@\]/@/g'`. Re-fanging utilities in CyberChef ("Defang URL" / "Refang URL" recipes) cover edge cases.
+> Quick refanging for analyst use (do not include in deliverables): `sed -e 's/hxxp/http/g; s/\[\.\]/./g; s/\[@\]/@/g'`. CyberChef's "Defang URL" / "Defang IP Addresses" / "Fang URL" operations cover edge cases. [verify 2026-10-30]
 
 **6. Timeline of Events**
-```
+```text
 2025-10-01 09:15 UTC | User logged in (Event ID 4624)
 2025-10-01 14:32 UTC | USB device connected (Registry)
 2025-10-01 14:35 UTC | File copied to USB (USN Journal)
@@ -1178,10 +1211,10 @@ CASE-002    | USB Drive   | 2025-10-05 UTC  | J. Smith  | def456...
 ## 6. Evidence Storage & Retention
 
 **Secure Storage Requirements:**
-```
+```text
 Physical Security:
 - Locked evidence room with access control
-- Climate-controlled (15-25°C, 30-50% humidity)
+- Climate-controlled (stable temperature and humidity per media-manufacturer specs and your accreditation requirements)
 - Fire suppression system
 - Video surveillance with retention
 
@@ -1195,7 +1228,7 @@ Digital Security:
 **Retention Schedule:**
 - **Active Investigation**: Secure evidence room, immediate access
 - **Post-Investigation (Pending Action)**: Retain per legal hold requirements
-- **Closed Cases**: Follow organizational policy (typically 3-7 years)
+- **Closed Cases**: Follow the organizational / regulator retention schedule (varies by jurisdiction and offence type; cite it in the case file)
 - **Legal Proceedings**: Retain until final adjudication + appeal period
 - **Secure Disposal**: Sanitize per NIST SP 800-88r2 (clear, purge or destroy, matched to the media type; multi-pass overwrite is not needed and DoD 5220.22-M pass counts are obsolete), with a certificate of sanitization [verify 2026-10-29]
 
@@ -1206,60 +1239,60 @@ Digital Security:
 | Tool | Purpose | Platform | Link |
 |------|---------|----------|------|
 | **Acquisition — disk** |
-| FTK Imager | Disk imaging, memory capture | Windows | [exterro.com/ftk-imager](https://www.exterro.com/ftk-imager) (formerly AccessData) |
-| dc3dd | Forensic dd with built-in hashing | Linux | [sourceforge.net/projects/dc3dd](https://sourceforge.net/projects/dc3dd/) |
-| Guymager | Disk imaging (GUI) | Linux | `apt install guymager` |
-| ewfacquire (libewf) | E01/EWF imaging with hash verification | Multi | [github.com/libyal/libewf](https://github.com/libyal/libewf) |
+| FTK Imager | Disk imaging, memory capture | Windows | [exterro.com/digital-forensics-software/ftk-imager](https://www.exterro.com/digital-forensics-software/ftk-imager) (free; formerly AccessData) [verify 2026-10-30] |
+| dc3dd | Forensic dd with built-in hashing | Linux | [sourceforge.net/projects/dc3dd](https://sourceforge.net/projects/dc3dd/) [verify 2026-10-30] |
+| Guymager | Disk imaging (GUI) | Linux | `apt install guymager` [verify 2026-10-30] |
+| ewfacquire (libewf) | E01/EWF imaging with hash verification | Multi | [github.com/libyal/libewf](https://github.com/libyal/libewf) [verify 2026-10-30] |
 | **Acquisition — memory** |
-| AVML | Linux RAM acquisition (static, no kmod) | Linux | [github.com/microsoft/avml](https://github.com/microsoft/avml) |
-| LiME | Linux Memory Extractor (kernel module) | Linux | [github.com/504ensicsLabs/LiME](https://github.com/504ensicsLabs/LiME) |
-| WinPmem / DumpIt / Magnet RAM Capture | Windows RAM acquisition | Windows | [github.com/Velocidex/WinPmem](https://github.com/Velocidex/WinPmem) |
-| Volexity Surge Collect Pro | Cross-platform commercial RAM capture (incl. Apple Silicon) | Multi | [volexity.com](https://www.volexity.com) [verify 2026-04-25] |
+| AVML | Linux RAM acquisition (static, no kmod) | Linux | [github.com/microsoft/avml](https://github.com/microsoft/avml) [verify 2026-10-30] |
+| LiME | Linux Memory Extractor (kernel module) | Linux | [github.com/jtsylve/LiME](https://github.com/jtsylve/LiME) [verify 2026-10-30] |
+| WinPmem / Magnet DumpIt for Windows / Magnet RAM Capture | Windows RAM acquisition (DumpIt: free, x86/x64/ARM64; RAM Capture: last release v1.20, Jul 2019 — legacy) | Windows | [github.com/Velocidex/WinPmem](https://github.com/Velocidex/WinPmem) [verify 2026-10-30] |
+| Volexity Surge Collect | Commercial RAM capture — vendor advertises Windows/Linux/macOS; Apple silicon support not stated, confirm with the vendor | Multi | [volexity.com/products-overview/surge](https://www.volexity.com/products-overview/surge/) [verify 2026-10-30] |
 | **Live response & triage** |
-| KAPE | Targeted artifact collection + parsing | Windows | [kape.gerardalattanzio.com](https://www.kroll.com/en/services/cyber/incident-response-litigation-support/kroll-artifact-parser-extractor-kape) |
-| Velociraptor | Cross-platform live response & hunting | Multi | [docs.velociraptor.app](https://docs.velociraptor.app/) |
-| UAC | Unix-like artifacts collector | Linux/macOS/AIX/Solaris | [github.com/tclahr/uac](https://github.com/tclahr/uac) |
+| KAPE | Targeted artifact collection + parsing | Windows | [kroll.com/kape](https://www.kroll.com/kape) (Kroll; free licence covers internal business use only per the [EULA](https://www.kroll.com/en/kape-license-agreement), paid enterprise licence otherwise) [verify 2026-10-30] |
+| Velociraptor | Cross-platform live response & hunting | Multi | [docs.velociraptor.app](https://docs.velociraptor.app/) [verify 2026-10-30] |
+| UAC | Unix-like artifacts collector | Linux/macOS/*BSD/AIX/Solaris/ESXi | [github.com/tclahr/uac](https://github.com/tclahr/uac) [verify 2026-10-30] |
 | **Analysis** |
-| Autopsy / Sleuth Kit | Digital forensics platform + CLI | Multi | [sleuthkit.org](https://www.sleuthkit.org) |
-| X-Ways Forensics | Commercial forensics suite | Windows | [x-ways.net](https://www.x-ways.net) |
-| EZ Tools (MFTECmd, EvtxECmd, RECmd, AmcacheParser, AppCompatCacheParser, JLECmd, LECmd, RBCmd, PECmd) | Targeted artifact parsers | Windows / .NET | [ericzimmerman.github.io](https://ericzimmerman.github.io) |
-| MemProcFS | Mount memory image as filesystem | Multi | [github.com/ufrisk/MemProcFS](https://github.com/ufrisk/MemProcFS) |
+| Autopsy / Sleuth Kit | Digital forensics platform + CLI | Multi | [sleuthkit.org](https://www.sleuthkit.org) [verify 2026-10-30] |
+| X-Ways Forensics | Commercial forensics suite | Windows | [x-ways.net](https://www.x-ways.net) [verify 2026-10-30] |
+| EZ Tools (MFTECmd, EvtxECmd, RECmd, AmcacheParser, AppCompatCacheParser, JLECmd, LECmd, RBCmd, PECmd) | Targeted artifact parsers | Windows / .NET | [ericzimmerman.github.io](https://ericzimmerman.github.io) [verify 2026-10-30] |
+| MemProcFS | Mount memory image as filesystem | Multi | [github.com/ufrisk/MemProcFS](https://github.com/ufrisk/MemProcFS) [verify 2026-10-30] |
 | **Memory** |
-| Volatility 3 | Memory analysis (current) | Multi | [github.com/volatilityfoundation/volatility3](https://github.com/volatilityfoundation/volatility3) |
-| Volatility 2 | Memory analysis (legacy, EOL 2020) | Multi | [github.com/volatilityfoundation/volatility](https://github.com/volatilityfoundation/volatility) |
-| Rekall | Memory forensics (unmaintained since 2017) | Multi | [github.com/google/rekall](https://github.com/google/rekall) |
+| Volatility 3 | Memory analysis (current) | Multi | [github.com/volatilityfoundation/volatility3](https://github.com/volatilityfoundation/volatility3) [verify 2026-10-30] |
+| Volatility 2 | Memory analysis (legacy; deprecated and repo archived May 2025 at the Volatility 3 parity release; last tag 2.6.1, Dec 2018) | Multi | [github.com/volatilityfoundation/volatility](https://github.com/volatilityfoundation/volatility) [verify 2026-10-30] |
+| Rekall | Memory forensics (unmaintained since 2017) | Multi | [github.com/google/rekall](https://github.com/google/rekall) [verify 2026-10-30] |
 | **Registry** |
-| RegRipper3.0 | Windows Registry parser | Multi | [github.com/keydet89/RegRipper3.0](https://github.com/keydet89/RegRipper3.0) |
-| Registry Explorer / RECmd | Registry viewer (GUI/CLI) | Windows | [ericzimmerman.github.io](https://ericzimmerman.github.io) |
+| RegRipper3.0 | Windows Registry parser | Multi | [github.com/keydet89/RegRipper3.0](https://github.com/keydet89/RegRipper3.0) [verify 2026-10-30] |
+| Registry Explorer / RECmd | Registry viewer (GUI/CLI) | Windows | [ericzimmerman.github.io](https://ericzimmerman.github.io) [verify 2026-10-30] |
 | **Event logs** |
-| Hayabusa | Sigma-driven EVTX timeline | Multi | [github.com/Yamato-Security/hayabusa](https://github.com/Yamato-Security/hayabusa) |
-| Chainsaw | Fast EVTX hunting with Sigma | Multi | [github.com/WithSecureLabs/chainsaw](https://github.com/WithSecureLabs/chainsaw) |
+| Hayabusa | Sigma-driven EVTX timeline | Multi | [github.com/Yamato-Security/hayabusa](https://github.com/Yamato-Security/hayabusa) [verify 2026-10-30] |
+| Chainsaw | Fast EVTX hunting with Sigma | Multi | [github.com/WithSecureOpenSource/chainsaw](https://github.com/WithSecureOpenSource/chainsaw) [verify 2026-10-30] |
 | **Timeline** |
-| log2timeline / Plaso | Super timeline creation | Multi | [github.com/log2timeline/plaso](https://github.com/log2timeline/plaso) |
-| Timesketch | Timeline analysis platform | Multi | [github.com/google/timesketch](https://github.com/google/timesketch) |
+| log2timeline / Plaso | Super timeline creation | Multi | [github.com/log2timeline/plaso](https://github.com/log2timeline/plaso) [verify 2026-10-30] |
+| Timesketch | Timeline analysis platform | Multi | [github.com/google/timesketch](https://github.com/google/timesketch) [verify 2026-10-30] |
 | **Mobile / iOS / Android** |
-| Cellebrite UFED / Inseyets | Mobile extraction (LE-grade) | Windows | [cellebrite.com](https://www.cellebrite.com) |
-| Magnet AXIOM | Mobile / computer / cloud forensics | Windows | [magnetforensics.com](https://www.magnetforensics.com) |
-| MSAB XRY | LE-grade mobile extraction | Windows | [msab.com](https://www.msab.com) |
-| Oxygen Forensic Detective | Broad app coverage incl. messengers | Windows | [oxygenforensics.com](https://www.oxygenforensics.com) |
-| iLEAPP / ALEAPP | Open-source iOS / Android artifact parser | Multi (Python) | [github.com/abrignoni/iLEAPP](https://github.com/abrignoni/iLEAPP) |
-| MVT | Spyware / IOC scan for mobile | Multi (Python) | [mvt.re](https://mvt.re) |
+| Cellebrite UFED / Inseyets | Mobile extraction (LE-grade) | Windows | [cellebrite.com](https://www.cellebrite.com) [verify 2026-10-30] |
+| Magnet AXIOM | Mobile / computer / cloud forensics | Windows | [magnetforensics.com](https://www.magnetforensics.com) [verify 2026-10-30] |
+| MSAB XRY | LE-grade mobile extraction | Windows | [msab.com](https://www.msab.com) [verify 2026-10-30] |
+| Oxygen Forensic Detective | Broad app coverage incl. messengers | Windows | [oxygenforensics.com](https://www.oxygenforensics.com) [verify 2026-10-30] |
+| iLEAPP / ALEAPP | Open-source iOS / Android artifact parser | Multi (Python) | [github.com/abrignoni/iLEAPP](https://github.com/abrignoni/iLEAPP) [verify 2026-10-30] |
+| MVT | Spyware / IOC scan for mobile | Multi (Python) | [mvt.re](https://mvt.re) [verify 2026-10-30] |
 | **macOS** |
-| mac_apt | macOS / iOS artifact parser | Multi (Python) | [github.com/ydkhatri/mac_apt](https://github.com/ydkhatri/mac_apt) |
-| APOLLO | Apple Pattern of Life timeline | Multi (Python) | [github.com/mac4n6/APOLLO](https://github.com/mac4n6/APOLLO) |
-| UnifiedLogReader / macos-UnifiedLogs | Parse `.tracev3` unified logs offline | Multi | [github.com/mandiant/macos-UnifiedLogs](https://github.com/mandiant/macos-UnifiedLogs) |
+| mac_apt | macOS / iOS artifact parser | Multi (Python) | [github.com/ydkhatri/mac_apt](https://github.com/ydkhatri/mac_apt) [verify 2026-10-30] |
+| APOLLO | Apple Pattern of Life timeline | Multi (Python) | [github.com/mac4n6/APOLLO](https://github.com/mac4n6/APOLLO) [verify 2026-10-30] |
+| macos-UnifiedLogs | Parse `.tracev3` unified logs offline | Multi | [github.com/mandiant/macos-UnifiedLogs](https://github.com/mandiant/macos-UnifiedLogs) [verify 2026-10-30] |
 | **Network** |
-| Wireshark | Packet analysis | Multi | [wireshark.org](https://www.wireshark.org) |
-| NetworkMiner | PCAP analysis (file/credential carving) | Multi | [netresec.com](https://www.netresec.com) |
-| Zeek | Network metadata + protocol logs | Multi | [zeek.org](https://zeek.org) |
+| Wireshark | Packet analysis | Multi | [wireshark.org](https://www.wireshark.org) [verify 2026-10-30] |
+| NetworkMiner | PCAP analysis (file/credential carving) | Windows (Linux via Mono) | [netresec.com](https://www.netresec.com) [verify 2026-10-30] |
+| Zeek | Network metadata + protocol logs | Multi | [zeek.org](https://zeek.org) [verify 2026-10-30] |
 | **Cloud** |
-| AWS CLI / Athena | CloudTrail / S3 audit pull and SQL query | Multi | [aws.amazon.com/cli](https://aws.amazon.com/cli/) |
-| Azure CLI / Microsoft Graph PowerShell | Activity Log, Entra ID, M365 UAL | Multi | [learn.microsoft.com/cli/azure](https://learn.microsoft.com/cli/azure/) |
-| gcloud / Workspace Reports API | GCP audit + Workspace audit | Multi | [cloud.google.com/sdk](https://cloud.google.com/sdk) |
+| AWS CLI / Athena | CloudTrail / S3 audit pull and SQL query | Multi | [aws.amazon.com/cli](https://aws.amazon.com/cli/) [verify 2026-10-30] |
+| Azure CLI / Microsoft Graph PowerShell | Activity Log, Entra ID, M365 UAL | Multi | [learn.microsoft.com/cli/azure](https://learn.microsoft.com/cli/azure/) [verify 2026-10-30] |
+| gcloud / Workspace Reports API | GCP audit + Workspace audit | Multi | [cloud.google.com/sdk](https://cloud.google.com/sdk) [verify 2026-10-30] |
 | **Process / system** |
-| System Informer | Process / handle / module inspection (formerly Process Hacker) | Windows | [github.com/winsiderss/systeminformer](https://github.com/winsiderss/systeminformer) |
-| Process Monitor / Process Explorer | Live procmon / process tree | Windows | [Sysinternals](https://learn.microsoft.com/sysinternals/) |
-| Sysmon | Endpoint event telemetry | Windows | [Sysinternals](https://learn.microsoft.com/sysinternals/downloads/sysmon) |
+| System Informer | Process / handle / module inspection (formerly Process Hacker) | Windows | [github.com/winsiderss/systeminformer](https://github.com/winsiderss/systeminformer) [verify 2026-10-30] |
+| Process Monitor / Process Explorer | Live procmon / process tree | Windows | [Sysinternals](https://learn.microsoft.com/sysinternals/) [verify 2026-10-30] |
+| Sysmon | Endpoint event telemetry | Windows | [Sysinternals](https://learn.microsoft.com/sysinternals/downloads/sysmon) [verify 2026-10-30] |
 
 ---
 
@@ -1267,16 +1300,16 @@ Digital Security:
 
 ### Admissibility (Court Standards)
 
-**Daubert Standard (US Federal):**
-- [ ] Methodology is scientifically valid
-- [ ] Technique has been peer reviewed
-- [ ] Known error rate is acceptable
-- [ ] Methodology is generally accepted in field
+**Admissibility (US Federal — FRE 702 as amended 1 Dec 2023, applying *Daubert*):**
+- [ ] Proponent can show the court, more likely than not, that (a) the expert's knowledge will help the trier of fact, (b) the testimony is based on sufficient facts or data, (c) it is the product of reliable principles and methods, and (d) the opinion reflects a reliable application of those principles and methods to the facts of the case (FRE 702(a)–(d)) [verify 2026-10-30]
+- [ ] *Daubert* reliability factors documented: whether the technique can be (and has been) tested; peer review and publication; known or potential rate of error and the existence and maintenance of standards controlling the technique's operation; general acceptance in the field [verify 2026-10-30]
+- [ ] No overstated certainty: no "absolute / 100 % certainty" or "reasonable degree of scientific certainty" claims for subjective methods; give an error-rate estimate where one exists (FRE 702, 2023 Committee Note) [verify 2026-10-30]
+- [ ] Digital evidence authenticated under FRE 901(a); hash-verified copies (FRE 902(14)) and system-generated records (FRE 902(13)) can be self-authenticated by a qualified person's certification, with notice under FRE 902(11) [verify 2026-10-30]
 
 **Chain of Custody Requirements:**
 - Continuous accountability from collection → court
 - Documentation of every transfer
-- Ability to demonstrate evidence integrity (hashes)
+- Ability to demonstrate evidence integrity (hashes) [verify 2026-10-30]
 - Explanation of any gaps or anomalies
 
 **Expert Witness Preparation:**
@@ -1288,17 +1321,18 @@ Digital Security:
 ### Standards & Certifications
 
 **Industry Standards:**
-- **NIST SP 800-86**: Guide to Integrating Forensic Techniques into Incident Response
-- **ISO/IEC 27037**: Guidelines for identification, collection, and preservation
-- **ACPO Good Practice Guide**: UK digital evidence principles
-- **SWGDE**: Scientific Working Group on Digital Evidence
+- **NIST SP 800-86**: Guide to Integrating Forensic Techniques into Incident Response [verify 2026-10-30]
+- **ISO/IEC 27037:2012**: Guidelines for identification, collection, acquisition and preservation of digital evidence [verify 2026-10-30]
+- **UK — Forensic Science Regulator Code of Practice v2** (statutory under the Forensic Science Regulator Act 2021, England & Wales; in force 2 Oct 2025, replacing v1 of 2 Oct 2023): FSA DIG 100 (data capture, processing and analysis from digital storage devices) requires accreditation to ISO/IEC 17025:2017, assessed by UKAS — [gov.uk](https://www.gov.uk/government/publications/forensic-science-activities-statutory-code-of-practice-version-2) [verify 2026-10-30]
+- **ACPO Good Practice Guide for Digital Evidence** v5 (Oct 2011, published Mar 2012): the four UK digital-evidence principles; non-statutory, historical context [verify 2026-10-30]
+- **SWGDE**: Scientific Working Group on Digital Evidence [verify 2026-10-30]
 
 **Professional Certifications:**
-- **GCFE**: GIAC Certified Forensic Examiner
-- **EnCE**: EnCase Certified Examiner
-- **CFCE**: Certified Forensic Computer Examiner
-- **CCE**: Certified Computer Examiner (ISFCE)
-- **CHFI**: Computer Hacking Forensic Investigator
+- **GCFE**: GIAC Certified Forensic Examiner [verify 2026-10-30]
+- **EnCE**: EnCase Certified Examiner [verify 2026-10-30]
+- **CFCE**: Certified Forensic Computer Examiner [verify 2026-10-30]
+- **CCE**: Certified Computer Examiner (ISFCE) [verify 2026-10-30]
+- **CHFI**: Computer Hacking Forensic Investigator [verify 2026-10-30]
 
 ---
 
@@ -1334,7 +1368,7 @@ Digital Security:
 **Evidence Collection:**
 - [ ] Use write blockers
 - [ ] Create forensic images
-- [ ] Generate SHA-256 hash (primary); MD5/SHA-1 secondary for legacy NSRL/AV lookups only
+- [ ] Generate SHA-256 hash (primary; current NSRL RDSv3 carries SHA-256, SHA-1 and MD5); MD5/SHA-1 secondary, for legacy RDS 2.x text sets, AV/threat-intel lookups and older case files [verify 2026-10-30]
 - [ ] Verify image integrity
 - [ ] Label and seal evidence
 - [ ] Store securely
@@ -1382,5 +1416,5 @@ Digital Security:
 ---
 
 **Version:** 2.0
-**Last Updated:** 2026-10-29
+**Last Updated:** 2026-10-30
 **Review Frequency:** Quarterly (cloud, mobile-vendor, and Volatility ecosystems rot fastest)

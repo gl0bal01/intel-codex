@@ -1,5 +1,5 @@
 ---
-generated: 2026-10-29
+generated: 2026-10-30
 generator: tools/build-vault-state.sh
 ---
 
@@ -48,7 +48,7 @@ generator: tools/build-vault-state.sh
 - `sop-cloud-forensics` — Cloud Forensics SOP (updated 2026-04-27)
 - `sop-cryptography-analysis` — Cryptography Analysis SOP (updated 2026-04-25)
 - `sop-email-bec-forensics` — Email & BEC Forensics SOP (updated 2026-10-29)
-- `sop-forensics-investigation` — Digital Forensics Investigation SOP (updated 2026-10-29)
+- `sop-forensics-investigation` — Digital Forensics Investigation SOP (updated 2026-10-30)
 - `sop-hash-generation-methods` — Hash Generation Methods for Evidence Integrity (updated 2026-04-26)
 - `sop-malware-analysis` — Malware Analysis SOP (updated 2026-10-18)
 - `sop-reverse-engineering` — Reverse Engineering (updated 2026-09-20)
