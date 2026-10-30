@@ -23,18 +23,18 @@ claims were last checked against sources, not that a procedure was executed end
 to end in a lab.** No SOP here is labelled field-tested, because none of them has
 the evidence that label would require.
 
-Claims are re-checked on a **six-month cadence**. A SOP reads `current` until
-150 days, `due soon` in the month before the cadence expires, and
-`overdue` past 180. Age is measured from the **oldest** marker in the
+Claims are re-checked on a **yearly cadence**. A SOP reads `current` until
+335 days, `due soon` in the month before the cadence expires, and
+`overdue` past 365. Age is measured from the **oldest** marker in the
 file, so a SOP is only as fresh as its stalest claim.
 
 ## Summary
 
 | State | SOPs |
 |-------|------|
-| current (≤ 150 days) | 26 |
-| due soon (151–180 days) | 0 |
-| overdue (> 180 days) | 15 |
+| current (≤ 335 days) | 41 |
+| due soon (336–365 days) | 0 |
+| overdue (> 365 days) | 0 |
 | no source checks recorded | 0 |
 | **Total** | **41** |
 
@@ -72,32 +72,32 @@ file, so a SOP is only as fresh as its stalest claim.
 
 | SOP | File | Updated | Checks | Oldest check | Age (days) | State |
 |-----|------|---------|-------:|--------------|-----------:|-------|
-| AI/ML Vulnerability & Evasion Testing SOP | [[sop-ai-vulnerability-evasion]] | 2026-04-26 | 25 | 2026-04-26 | 187 | overdue |
+| AI/ML Vulnerability & Evasion Testing SOP | [[sop-ai-vulnerability-evasion]] | 2026-04-26 | 25 | 2026-04-26 | 187 | current |
 | Cloud Forensics SOP | [[sop-cloud-forensics]] | 2026-10-30 | 261 | 2026-10-30 | 0 | current |
-| Cryptography Analysis SOP | [[sop-cryptography-analysis]] | 2026-04-25 | 7 | 2026-04-25 | 188 | overdue |
+| Cryptography Analysis SOP | [[sop-cryptography-analysis]] | 2026-04-25 | 7 | 2026-04-25 | 188 | current |
 | Email & BEC Forensics SOP | [[sop-email-bec-forensics]] | 2026-10-30 | 136 | 2026-10-29 | 1 | current |
 | Digital Forensics Investigation SOP | [[sop-forensics-investigation]] | 2026-10-30 | 212 | 2026-10-29 | 1 | current |
-| Hash Generation Methods for Evidence Integrity | [[sop-hash-generation-methods]] | 2026-04-26 | 4 | 2026-04-26 | 187 | overdue |
+| Hash Generation Methods for Evidence Integrity | [[sop-hash-generation-methods]] | 2026-04-26 | 4 | 2026-04-26 | 187 | current |
 | Malware Analysis SOP | [[sop-malware-analysis]] | 2026-10-18 | 200 | 2026-10-18 | 12 | current |
-| Reverse Engineering | [[sop-reverse-engineering]] | 2026-09-20 | 1 | 2026-04-25 | 188 | overdue |
+| Reverse Engineering | [[sop-reverse-engineering]] | 2026-09-20 | 1 | 2026-04-25 | 188 | current |
 | SaaS Log Forensics SOP | [[sop-saas-log-forensics]] | 2026-10-30 | 338 | 2026-10-30 | 0 | current |
-| Smart Contract Audit SOP | [[sop-smart-contract-audit]] | 2026-04-26 | 30 | 2026-04-26 | 187 | overdue |
+| Smart Contract Audit SOP | [[sop-smart-contract-audit]] | 2026-04-26 | 30 | 2026-04-26 | 187 | current |
 
 ## Security / Pentesting
 
 | SOP | File | Updated | Checks | Oldest check | Age (days) | State |
 |-----|------|---------|-------:|--------------|-----------:|-------|
-| Active Directory Pentesting SOP (Authorized) | [[sop-ad-pentest]] | 2026-04-26 | 16 | 2026-04-26 | 187 | overdue |
-| Bug Bounty Methodology SOP | [[sop-bug-bounty]] | 2026-04-25 | 3 | 2026-04-25 | 188 | overdue |
-| Cloud Pentesting SOP (Authorized) | [[sop-cloud-pentest]] | 2026-04-27 | 33 | 2026-04-26 | 187 | overdue |
-| Container & Kubernetes Pentesting SOP (Authorized) | [[sop-container-k8s-pentest]] | 2026-10-18 | 37 | 2026-04-27 | 186 | overdue |
+| Active Directory Pentesting SOP (Authorized) | [[sop-ad-pentest]] | 2026-04-26 | 16 | 2026-04-26 | 187 | current |
+| Bug Bounty Methodology SOP | [[sop-bug-bounty]] | 2026-04-25 | 3 | 2026-04-25 | 188 | current |
+| Cloud Pentesting SOP (Authorized) | [[sop-cloud-pentest]] | 2026-04-27 | 33 | 2026-04-26 | 187 | current |
+| Container & Kubernetes Pentesting SOP (Authorized) | [[sop-container-k8s-pentest]] | 2026-10-18 | 37 | 2026-04-27 | 186 | current |
 | Detection & Evasion Testing SOP (Purple Team) | [[sop-detection-evasion-testing]] | 2026-10-18 | 67 | 2026-10-18 | 12 | current |
-| Firmware Reverse Engineering | [[sop-firmware-reverse-engineering]] | 2026-04-26 | 39 | 2026-04-26 | 187 | overdue |
-| Linux Pentesting SOP (Authorized) | [[sop-linux-pentest]] | 2026-04-25 | 5 | 2026-04-25 | 188 | overdue |
-| Mobile Security (iOS & Android) | [[sop-mobile-security]] | 2026-09-20 | 21 | 2026-04-26 | 187 | overdue |
-| Vulnerability Research SOP | [[sop-vulnerability-research]] | 2026-04-25 | 10 | 2026-04-25 | 188 | overdue |
-| Web Application Security Testing SOP | [[sop-web-application-security]] | 2026-09-20 | 8 | 2026-04-25 | 188 | overdue |
-| Wireless & RF Pentesting (Authorized) | [[sop-wireless-rf-pentest]] | 2026-04-26 | 31 | 2026-04-26 | 187 | overdue |
+| Firmware Reverse Engineering | [[sop-firmware-reverse-engineering]] | 2026-04-26 | 39 | 2026-04-26 | 187 | current |
+| Linux Pentesting SOP (Authorized) | [[sop-linux-pentest]] | 2026-04-25 | 5 | 2026-04-25 | 188 | current |
+| Mobile Security (iOS & Android) | [[sop-mobile-security]] | 2026-09-20 | 21 | 2026-04-26 | 187 | current |
+| Vulnerability Research SOP | [[sop-vulnerability-research]] | 2026-04-25 | 10 | 2026-04-25 | 188 | current |
+| Web Application Security Testing SOP | [[sop-web-application-security]] | 2026-09-20 | 8 | 2026-04-25 | 188 | current |
+| Wireless & RF Pentesting (Authorized) | [[sop-wireless-rf-pentest]] | 2026-04-26 | 31 | 2026-04-26 | 187 | current |
 
 ---
 

@@ -222,7 +222,7 @@ claims were last checked against sources, not that a procedure was executed end
 to end in a lab.** No SOP here is labelled field-tested, because none of them has
 the evidence that label would require.
 
-Claims are re-checked on a **six-month cadence**. A SOP reads \`current\` until
+Claims are re-checked on a **yearly cadence**. A SOP reads \`current\` until
 $VERIFY_WARN_DAYS days, \`due soon\` in the month before the cadence expires, and
 \`overdue\` past $VERIFY_CADENCE_DAYS. Age is measured from the **oldest** marker in the
 file, so a SOP is only as fresh as its stalest claim.

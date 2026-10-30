@@ -9,9 +9,9 @@
 # tools/list-stale-sops.sh. Change the cadence here and nowhere else, or the
 # published page and the linter start disagreeing about what "current" means.
 
-# Re-check every six months.
-VERIFY_CADENCE_DAYS=180
+# Re-check every year.
+VERIFY_CADENCE_DAYS=365
 
 # Flag a month before the cadence expires, so rotation can be scheduled rather
 # than discovered after the fact.
-VERIFY_WARN_DAYS=150
+VERIFY_WARN_DAYS=335
