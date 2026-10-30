@@ -32,9 +32,9 @@ file, so a SOP is only as fresh as its stalest claim.
 
 | State | SOPs |
 |-------|------|
-| current (≤ 150 days) | 24 |
+| current (≤ 150 days) | 25 |
 | due soon (151–180 days) | 0 |
-| overdue (> 180 days) | 17 |
+| overdue (> 180 days) | 16 |
 | no source checks recorded | 0 |
 | **Total** | **41** |
 
@@ -80,7 +80,7 @@ file, so a SOP is only as fresh as its stalest claim.
 | Hash Generation Methods for Evidence Integrity | [[sop-hash-generation-methods]] | 2026-04-26 | 4 | 2026-04-26 | 187 | overdue |
 | Malware Analysis SOP | [[sop-malware-analysis]] | 2026-10-18 | 200 | 2026-10-18 | 12 | current |
 | Reverse Engineering | [[sop-reverse-engineering]] | 2026-09-20 | 1 | 2026-04-25 | 188 | overdue |
-| SaaS Log Forensics SOP | [[sop-saas-log-forensics]] | 2026-04-27 | 76 | 2026-04-27 | 186 | overdue |
+| SaaS Log Forensics SOP | [[sop-saas-log-forensics]] | 2026-10-30 | 338 | 2026-10-30 | 0 | current |
 | Smart Contract Audit SOP | [[sop-smart-contract-audit]] | 2026-04-26 | 30 | 2026-04-26 | 187 | overdue |
 
 ## Security / Pentesting

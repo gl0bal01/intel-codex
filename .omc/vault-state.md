@@ -52,7 +52,7 @@ generator: tools/build-vault-state.sh
 - `sop-hash-generation-methods` — Hash Generation Methods for Evidence Integrity (updated 2026-04-26)
 - `sop-malware-analysis` — Malware Analysis SOP (updated 2026-10-18)
 - `sop-reverse-engineering` — Reverse Engineering (updated 2026-09-20)
-- `sop-saas-log-forensics` — SaaS Log Forensics SOP (updated 2026-04-27)
+- `sop-saas-log-forensics` — SaaS Log Forensics SOP (updated 2026-10-30)
 - `sop-smart-contract-audit` — Smart Contract Audit SOP (updated 2026-04-26)
 
 ### Security/Pentesting (11 SOPs)
