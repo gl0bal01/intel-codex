@@ -10,7 +10,7 @@ tags:
   - evidence
   - chain-of-custody
   - cryptography
-updated: 2026-04-26
+updated: 2026-10-30
 template_version: 2026-04-26
 ---
 
@@ -34,7 +34,7 @@ template_version: 2026-04-26
 
 ## Overview
 
-**Purpose:** Hash values provide cryptographic fingerprints of digital evidence, ensuring integrity, authenticity, and non-repudiation throughout the investigation lifecycle. Any modification to the file will result in a completely different hash value, making tampering immediately detectable.
+**Purpose:** Hash values provide cryptographic fingerprints of digital evidence, ensuring integrity throughout the investigation lifecycle. Authenticity and non-repudiation additionally need a digital signature over the hash manifest, because a bare hash binds the data to no person or key (NIST glossary, "non-repudiation", from FIPS 186-5) [verify 2026-10-30]. Any modification to the file will result in a completely different hash value, making tampering immediately detectable.
 
 **Use Cases:**
 - Evidence acquisition and chain of custody verification
@@ -51,15 +51,16 @@ template_version: 2026-04-26
 
 **Basic hashing:**
 ```cmd
-# SHA-256 (Recommended for forensics)
+REM cmd.exe has no # comments; REM marks a comment line [verify 2026-10-30]
+REM SHA-256 (Recommended for forensics)
 certutil -hashfile "evidence.bin" SHA256
 
-# Output:
-# SHA256 hash of evidence.bin:
-# a1b2c3d4e5f6789012345678901234567890123456789012345678901234567890
-# CertUtil: -hashfile command completed successfully.
+REM Output:
+REM SHA256 hash of evidence.bin:
+REM a1b2c3d4e5f6789012345678901234567890123456789012345678901234567890
+REM CertUtil: -hashfile command completed successfully.
 
-# Multiple algorithms at once (batch script)
+REM Multiple algorithms at once (batch script)
 @echo off
 echo Hashing: %1
 certutil -hashfile "%1" MD5 | findstr /v "hash CertUtil"
@@ -67,16 +68,17 @@ certutil -hashfile "%1" SHA1 | findstr /v "hash CertUtil"
 certutil -hashfile "%1" SHA256 | findstr /v "hash CertUtil"
 certutil -hashfile "%1" SHA512 | findstr /v "hash CertUtil"
 
-# Save to file with timestamp
+REM Save to file with timestamp
 certutil -hashfile "evidence.bin" SHA256 > "%DATE:/=-%_%TIME::=-%_evidence_hash.txt"
 ```
 
 **Batch processing multiple files:**
 ```cmd
-# Hash all files in directory
+REM Interactive prompt form: inside a .bat/.cmd file write %%f instead of %f [verify 2026-10-30]
+REM Hash all files in directory
 for %f in (C:\Evidence\*) do @certutil -hashfile "%f" SHA256 | findstr /v "hash CertUtil" >> evidence_hashes.txt
 
-# With filenames
+REM With filenames
 for %f in (C:\Evidence\*) do @echo %f && certutil -hashfile "%f" SHA256 | findstr /v "hash CertUtil"
 ```
 
@@ -114,7 +116,7 @@ Get-ChildItem -Path "C:\Evidence" -Recurse -File |
 Get-ChildItem -Path "C:\Evidence" -Recurse -File | ForEach-Object {
     $hash = Get-FileHash -Path $_.FullName -Algorithm SHA256
     [PSCustomObject]@{
-        Timestamp = Get-Date -Format "yyyy-MM-dd HH:mm:ss"
+        Timestamp = (Get-Date).ToUniversalTime().ToString('u')
         Filename = $_.Name
         Path = $_.FullName
         Size = $_.Length
@@ -141,7 +143,7 @@ if ($currentHash -eq $knownHash) {
 ```bash
 # SHA-256 (Recommended)
 sha256sum evidence.bin
-# Output: a1b2c3d4e5f6... evidence.bin
+# Output: a1b2c3d4e5f6...  evidence.bin   (hash, two spaces, filename: the format sha256sum -c reads) [verify 2026-10-30]
 
 # MD5
 md5sum evidence.bin
@@ -151,6 +153,10 @@ sha1sum evidence.bin
 
 # SHA-512
 sha512sum evidence.bin
+
+# BLAKE2b (b2sum, coreutils >= 8.26); cksum -a (coreutils >= 9.0) takes sysv, bsd, crc, md5, sha1, sha224-sha512, blake2b or sm3 (9.4) and prints BSD-tagged output [verify 2026-10-30]
+b2sum evidence.bin
+cksum -a sha256 evidence.bin
 
 # Multiple algorithms
 echo "MD5:    $(md5sum evidence.bin | awk '{print $1}')"
@@ -164,23 +170,25 @@ echo "SHA256: $(sha256sum evidence.bin | awk '{print $1}')"
 find /evidence -type f -exec sha256sum {} \; > evidence_hashes.txt
 
 # With formatted output (stat syntax differs: BSD/macOS uses -f, GNU/Linux uses -c)
+# Hash via stdin: given a filename containing a backslash or newline, *sum prefixes the hash with "\" [verify 2026-10-30]
 find /evidence -type f -print0 | while IFS= read -r -d '' file; do
     echo "File: $file"
-    echo "SHA256: $(sha256sum "$file" | awk '{print $1}')"
+    echo "SHA256: $(sha256sum < "$file" | awk '{print $1}')"
     echo "Size: $(stat -c%s "$file" 2>/dev/null || stat -f%z "$file") bytes"
     echo "Modified: $(stat -c%y "$file" 2>/dev/null || stat -f%Sm "$file")"
     echo "---"
 done > evidence_manifest.txt
 
-# Create checksums file for verification
-sha256sum /evidence/* > SHA256SUMS
+# Create checksums file for verification (find recurses and passes only files; /evidence/* skips dotfiles and nested files and passes directory names, which sha256sum rejects)
+find /evidence -type f -exec sha256sum {} + > SHA256SUMS
 
 # Verify integrity later
 sha256sum -c SHA256SUMS
 # Output:
-# evidence1.bin: OK
-# evidence2.bin: OK
-# evidence3.bin: FAILED
+# /evidence/evidence1.bin: OK
+# /evidence/evidence2.bin: OK
+# /evidence/evidence3.bin: FAILED
+# sha256sum: WARNING: 1 computed checksum did NOT match   (exit status 1) [verify 2026-10-30]
 ```
 
 **Advanced verification workflow:**
@@ -198,28 +206,31 @@ echo "Analyst: $ANALYST" >> "$OUTPUT_FILE"
 echo "========================================" >> "$OUTPUT_FILE"
 echo "" >> "$OUTPUT_FILE"
 
-find "$EVIDENCE_DIR" -type f | while read -r file; do
+# Hash via stdin: given a filename containing a backslash or newline, *sum prefixes the hash with "\"
+find "$EVIDENCE_DIR" -type f -print0 | while IFS= read -r -d '' file; do
     echo "File: $file" >> "$OUTPUT_FILE"
     echo "Size: $(stat -f%z "$file" 2>/dev/null || stat -c%s "$file") bytes" >> "$OUTPUT_FILE"
     echo "Modified: $(stat -f%Sm "$file" 2>/dev/null || stat -c%y "$file")" >> "$OUTPUT_FILE"
-    echo "MD5:    $(md5sum "$file" | awk '{print $1}')" >> "$OUTPUT_FILE"
-    echo "SHA256: $(sha256sum "$file" | awk '{print $1}')" >> "$OUTPUT_FILE"
+    echo "MD5:    $(md5sum < "$file" | awk '{print $1}')" >> "$OUTPUT_FILE"
+    echo "SHA256: $(sha256sum < "$file" | awk '{print $1}')" >> "$OUTPUT_FILE"
     echo "---" >> "$OUTPUT_FILE"
 done
 
-# Sign the manifest
+# Hash the manifest and record the value in the custody log; a hash is not a signature,
+# so sign the manifest with a detached GPG signature (Best Practice Summary, §10)
 sha256sum "$OUTPUT_FILE"
 ```
 
 ### macOS - Specific Commands
 
 ```bash
-# macOS uses different stat syntax
+# macOS native hashing tools
 md5 evidence.bin
 shasum -a 256 evidence.bin
 shasum -a 512 evidence.bin
 
-# Or use coreutils versions (if installed via Homebrew)
+# macOS 15 and later also ship md5sum / sha1sum / sha256sum / sha512sum as variants of md5(1) [verify 2026-10-30]
+# Or install GNU coreutils via Homebrew (always available g-prefixed)
 brew install coreutils
 gmd5sum evidence.bin
 gsha256sum evidence.bin
@@ -237,24 +248,30 @@ gsha256sum evidence.bin
 3. Right-click evidence item → Verify Drive/Image
 4. Tool automatically calculates MD5 and SHA1
 5. Results displayed in Verify Results window
-6. Export verification log: File → Export Verification Results
+6. Record the computed and verified hash values in the collection log
 ```
 
+Exterro's FTK Imager pages (current free release 8.3.1, Windows only) list MD5 and SHA-1 as its hash functions, with no SHA-256; compute SHA-256 separately with the §1 tools [verify 2026-10-30].
+
 **Command line (FTK Imager CLI):**
+
+The CLI is the legacy AccessData FTK Imager v3.1.1 CLI (2012). Exterro's current FTK Imager page does not offer a command-line edition, so confirm you have a copy before relying on it. Its usage text lists `--verify`, `--list-drives` and `--no-sha1`, and no SHA-256 option [verify 2026-10-30].
+
 ```cmd
-# Windows
+REM Windows: verify an existing image (MD5 + SHA-1)
 ftkimager.exe --verify "E:\evidence.dd"
 
-# Generate hash report
+REM List drives, then image and verify (MD5 + SHA-1; --no-sha1 skips SHA-1)
 ftkimager.exe --list-drives > drives.txt
-ftkimager.exe "\\.\PhysicalDrive1" "E:\image.dd" --verify --sha256
+ftkimager.exe "\\.\PhysicalDrive1" "E:\image" --verify
+REM The CLI appends the image-type extension to E:\image; add --e01 for E01 output
 ```
 
 ### md5deep / hashdeep
 
 ```bash
-# Install (Linux)
-sudo apt install md5deep
+# Install (Debian/Ubuntu: the package is hashdeep; it also installs md5deep, sha1deep, sha256deep) [verify 2026-10-30]
+sudo apt install hashdeep
 
 # Calculate SHA-256 recursively
 hashdeep -r -c sha256 /evidence > evidence_hashes.txt
@@ -265,17 +282,25 @@ hashdeep -r -c sha256 -a -k evidence_hashes.txt /evidence
 # Multiple algorithms
 hashdeep -r -c md5,sha1,sha256 /evidence > multi_hash.txt
 
-# Match known malware hashes
-hashdeep -M /path/to/malware_hashes.txt -r /suspect_files
+# Match known malware hashes: -M takes no argument; the known set goes in -k [verify 2026-10-30]
+# hashdeep -k only reads hashdeep-format files (e.g. output of hashdeep -c sha256)
+hashdeep -r -M -k /path/to/malware_hashes.txt /suspect_files
+
+# For a sha256sum-style list (hash, space, filename), use the md5deep-family matcher
+sha256deep -r -m /path/to/malware_hashes.txt /suspect_files
 ```
 
 ### Autopsy / Sleuth Kit
 
 ```bash
-# Calculate hash using Sleuth Kit
-img_stat -h evidence.dd
+# img_stat computes no hash: it prints image metadata and, for E01, the MD5 stored at acquisition [verify 2026-10-30]
+# (other TSK tools do hash, e.g. tsk_loaddb -h computes per-file hashes)
+img_stat evidence.E01
 
-# Or md5sum equivalent
+# Hash the media data of any image TSK can read (raw or E01) by streaming it [verify 2026-10-30]
+img_cat evidence.E01 | sha256sum
+
+# Hash a raw image with the standard tools
 md5sum evidence.dd
 
 # For disk images, use specialized tools
@@ -286,15 +311,17 @@ ewfverify image.E01  # Verify EnCase/EWF images
 
 ## 3. Third-Party Tools
 
-### HashTab (Windows - GUI)
+### OpenHashTab (Windows - GUI)
+
+HashTab (Implbits) is discontinued: hashtab.io no longer resolves and implbits.com is a parked domain, so do not install it from mirrors [verify 2026-10-30].
+OpenHashTab is a maintained open-source shell extension that fills the same role (release 3.1.1, July 2025) [verify 2026-10-30].
 
 ```
-1. Download: https://hashtab.io/
-2. Right-click any file → Properties
-3. "File Hashes" tab appears
-4. Select algorithms: MD5, SHA-1, SHA-256
-5. Compare hash against known value
-6. Copy hash to clipboard
+1. Download: https://github.com/namazso/OpenHashTab/releases/latest
+2. Right-click any file → Properties → OpenHashTab's hash tab
+3. Select algorithms (MD5, SHA-1, SHA-256, SHA-3, BLAKE3, among others)
+4. Check against a checksum file (*sum output, SFV or corz .hash) placed next to the file
+5. Export hashes to a *sum-format file or copy them to the clipboard
 ```
 
 ### HashMyFiles (Windows - Portable)
@@ -302,10 +329,12 @@ ewfverify image.E01  # Verify EnCase/EWF images
 ```
 1. Download from NirSoft: https://www.nirsoft.net/utils/hash_my_files.html
 2. Drag-and-drop files/folders
-3. Select hash algorithms (MD5/SHA1/SHA256/CRC32)
+3. Select hash algorithms (MD5, SHA1, CRC32, SHA-256, SHA-384, SHA-512)
 4. File → Save Selected Items (Ctrl+S)
-5. Export to CSV/TXT/HTML for documentation
+5. Export to TXT/HTML/XML/CSV for documentation (/stext, /shtml, /sxml, /scomma on the command line)
 ```
+
+HashMyFiles' algorithm list and save formats are from NirSoft's v2.52 page [verify 2026-10-30].
 
 ### GtkHash (Linux - GUI)
 
@@ -316,18 +345,19 @@ sudo apt install gtkhash
 # Launch
 gtkhash
 
-# Or command line
-gtkhash-cli -a md5,sha1,sha256 evidence.bin
+# GtkHash ships no CLI binary; script with sha256sum / b2sum (§1) instead [verify 2026-10-30]
 ```
 
 ### RapidCRC Unicode (Windows)
 
+rapidcrc.net no longer resolves; the maintained fork is RapidCRC Unicode 0.3.42 (August 2026) from ov2.eu [verify 2026-10-30].
+
 ```
-1. Download: https://www.rapidcrc.net/
+1. Download: https://www.ov2.eu/programs/rapidcrc-unicode (source: https://github.com/OV2/RapidCRC-Unicode)
 2. Drag files to RapidCRC window
-3. Right-click → Create SFV/MD5 file
-4. Saves .sfv or .md5 checksum file
-5. Later: Drag .sfv file to verify integrity
+3. Create a checksum file from the main window or the shell-extension context menu
+4. Saves .sfv, .md5, .sha1, .sha256 or .sha512 checksum files (prefer .sha256 for evidence)
+5. Later: Drag the checksum file to RapidCRC to verify integrity
 ```
 
 ---
@@ -339,14 +369,16 @@ gtkhash-cli -a md5,sha1,sha256 evidence.bin
 | Algorithm | Output Length | Standard | Security Status | Speed | Use Case |
 |-----------|---------------|----------|-----------------|-------|----------|
 | **MD5**   | 128-bit (32 hex) | RFC 1321 (1992) | ❌ Broken — practical collisions (Wang et al. 2004) | Fast | Legacy compatibility / known-bad hash sets only |
-| **SHA-1** | 160-bit (40 hex) | RFC 3174 / FIPS 180-4 | ❌ Broken — SHAttered collision (2017); NIST formally retired Dec 2022, full withdrawal by Dec 2030 [verify 2026-04-26] | Fast | Legacy systems, NSRL/VirusTotal lookups |
+| **SHA-1** | 160-bit (40 hex) | RFC 3174 / FIPS 180-4 | ❌ Broken — SHAttered collision (2017), chosen-prefix collision "SHA-1 is a Shambles" (2020); NIST transition announced 2022-12-15, completes 2030-12-31 [verify 2026-10-30] | Fast | Legacy systems and older hash sets (NSRL RDSv3 and VirusTotal also take SHA-256) |
 | **SHA-256** | 256-bit (64 hex) | NIST FIPS 180-4 / RFC 6234 | ✅ Secure (~2^128 collision resistance via birthday bound) | Medium | **Recommended primary for forensics** |
-| **SHA-512** | 512-bit (128 hex) | NIST FIPS 180-4 / RFC 6234 | ✅ Secure; faster than SHA-256 on 64-bit hardware | Medium-Fast | High-assurance / long-term archival |
+| **SHA-512** | 512-bit (128 hex) | NIST FIPS 180-4 / RFC 6234 | ✅ Secure; speed relative to SHA-256 depends on CPU extensions (e.g., SHA-NI) | Medium | High-assurance / long-term archival |
 | **SHA-3 (SHA3-256/384/512)** | 256/384/512-bit | NIST FIPS 202 (2015) | ✅ Secure (Keccak sponge — different construction from SHA-2) | Medium | Redundancy when paired with SHA-2; future-proofing |
 | **SHAKE128 / SHAKE256** | Variable (XOF) | NIST FIPS 202 | ✅ Secure | Medium | Variable-length output (e.g., SLH-DSA signature internals) |
 | **BLAKE2 (b2sum)** | 256/512-bit | RFC 7693 | ✅ Secure; faster than SHA-256 in software | Fast | Performance-sensitive integrity (used in Argon2, WireGuard) |
-| **BLAKE3 (b3sum)** | 256-bit (extensible) | No NIST FIPS [inferred — not court-grade as primary] | ✅ Secure; parallelizable, ~5–10× faster than SHA-256 on multi-core | Very Fast | Performance-critical integrity; **pair with SHA-256, do not use as sole primary** |
+| **BLAKE3 (b3sum)** | 256-bit (extensible) | No NIST FIPS [inferred — not court-grade as primary] | ✅ Secure; parallelizable (`b3sum` is multithreaded) | Very Fast | Performance-critical integrity; **pair with SHA-256, do not use as sole primary** |
 | **CRC32** | 32-bit | ISO/IEC 13239 / Ethernet | ❌ Not cryptographic | Very Fast | Error detection only — **never** for evidence |
+
+Speed labels are rough and relative. The ranking depends on the CPU, because SHA extensions such as SHA-NI change it, so benchmark on the acquisition host (`openssl speed -evp sha256`, `openssl speed -evp sha512`) before choosing on speed. For BLAKE3, upstream reports multithreaded `b3sum` as an order of magnitude faster than `sha256sum` on typical desktop hardware (BLAKE3 README) [verify 2026-10-30].
 
 ### Current Best Practices
 
@@ -359,13 +391,13 @@ SHA-256 — Recommended for all new evidence (NIST FIPS 180-4 baseline)
 - NIST approved (FIPS 180-4); also specified in RFC 6234.
 - No known practical pre-image or collision attacks.
 - Widely supported across forensic tools and OS-native utilities.
-- Court admissible under Daubert/Frye [inferred — admissibility ultimately depends on jurisdiction and expert qualification, not algorithm choice alone].
+- Admissibility: in US federal courts, expert testimony is tested under FRE 702 (amended 2023-12-01; Daubert); state courts apply their own rules, and some still use Frye. Hash-verified copies can be self-authenticating under FRE 902(14) ("authenticated by a process of digital identification", with a qualified person's certification; 902(13) covers system-generated records). In England & Wales, the Forensic Science Regulator's statutory Code of Practice v2 (in force 2 October 2025) applies. Admissibility still depends on jurisdiction and documentation, not on the algorithm alone [verify 2026-10-30].
 - 256-bit output → birthday-bound collision resistance ≈ 2^128 operations (preimage ≈ 2^256). Adequate against foreseeable classical attacks.
 
 **When to use SHA-512:**
 - Long-term archival (slower hash deprecation cycle).
-- 64-bit hosts where SHA-512 throughput exceeds SHA-256.
-- Compliance regimes that mandate ≥384-bit hash output (e.g., CNSA 2.0 / CMMC / FedRAMP High [verify 2026-04-26 — exact CNSA 2.0 hash mandate]).
+- Hosts where SHA-512 measures faster than SHA-256 (CPU-dependent; benchmark with `openssl speed` first).
+- Compliance regimes that require SHA-384 or SHA-512, e.g., NSA's CNSA 2.0 suite for US national security systems, which lists SHA-384 and SHA-512 (per draft-becker-cnsa2-tls-profile, an IETF Internet-Draft co-authored by NSA's Center for Cybersecurity Standards; work in progress) [verify 2026-10-30].
 
 **When SHA-3 (FIPS 202) is appropriate:**
 - Defensive redundancy against an unforeseen SHA-2 weakness — pair SHA-256 + SHA3-256 on critical evidence.
@@ -373,34 +405,38 @@ SHA-256 — Recommended for all new evidence (NIST FIPS 180-4 baseline)
 
 **When MD5 is acceptable:**
 - ⚠️ **ONLY** for deduplication in controlled environments.
-- ⚠️ **ONLY** when comparing against legacy databases (NSRL legacy MD5 sets, VirusTotal MD5 search).
+- ⚠️ **ONLY** when a legacy tool or hash set offers nothing stronger (NSRL RDSv3 carries SHA-256 and VirusTotal accepts it; MD5 remains for older sets and tools) [verify 2026-10-30].
 - ⚠️ **NEVER** as sole integrity verification in court.
 - ⚠️ **ALWAYS** pair with SHA-256 when recorded.
 
 **SHA-1 status (2022 retirement):**
-- NIST announced SHA-1 retirement on **2022-12-15**; full withdrawal target **2030-12-31** [verify 2026-04-26 — see NIST IR 8413 / FIPS 180-4 update notice].
-- Acceptable only for backward-compatibility lookups (NSRL legacy, git commit IDs, VirusTotal). Pair with SHA-256.
-- See SHAttered (2017) for the practical collision proof.
+- NIST announced the SHA-1 transition on **2022-12-15**; the transition completes **2030-12-31**. Before then NIST plans FIPS 180-5 (removing SHA-1; not yet published) and a revised SP 800-131A (Rev. 3 initial public draft 2024-10-21; not final as of 2026-10-30) [verify 2026-10-30].
+- Acceptable only for backward-compatibility lookups (older hash sets and tools, git commit IDs). Pair with SHA-256.
+- See SHAttered (2017) for the first practical collision and "SHA-1 is a Shambles" (2020) for the chosen-prefix collision.
 
 ### HMAC and Keyed Hashing
 
 For tamper-evident logs where the verifier holds a secret key, use **HMAC-SHA256** (NIST FIPS 198-1) rather than a bare hash:
 
 ```bash
-# Linux/macOS
+# Linux/macOS (the key is visible in the process list while this runs; use a single-user analysis host)
 openssl dgst -sha256 -hmac "$SECRET_KEY" evidence.bin
-
-# Windows (PowerShell)
-$hmac = [System.Security.Cryptography.HMACSHA256]::new([Text.Encoding]::UTF8.GetBytes($env:SECRET_KEY))
-[BitConverter]::ToString($hmac.ComputeHash([IO.File]::ReadAllBytes("evidence.bin"))).Replace("-","").ToLower()
 ```
 
-HMAC is **not** a substitute for evidence hashing (chain-of-custody hashes must be reproducible by anyone holding the artefact); it is for log/manifest authenticity where unauthorized modification by an attacker who reads the log must be detectable. See NIST SP 800-107 Rev. 1 for guidance on approved hash applications.
+```powershell
+# Windows (PowerShell): stream the file (ReadAllBytes fails above 2 GB) via ComputeHash(Stream) [verify 2026-10-30]
+# .NET resolves relative paths against the process directory, not Set-Location, so pass an absolute path
+$hmac = [System.Security.Cryptography.HMACSHA256]::new([Text.Encoding]::UTF8.GetBytes($env:SECRET_KEY))
+$fs = [IO.File]::OpenRead((Resolve-Path -LiteralPath "evidence.bin").ProviderPath)
+try { [BitConverter]::ToString($hmac.ComputeHash($fs)).Replace("-","").ToLower() } finally { $fs.Dispose() }
+```
+
+HMAC is **not** a substitute for evidence hashing (chain-of-custody hashes must be reproducible by anyone holding the artefact); it is for log/manifest authenticity where unauthorized modification by an attacker who reads the log must be detectable. See NIST SP 800-107 Rev. 1 for guidance on approved hash applications; on 2022-12-20 NIST announced its decision to withdraw it (CSRC still lists it as final) and moved the supplementary material to the CSRC Hash Functions page [verify 2026-10-30].
 
 ### Quantum-era considerations
 
 - **Grover's algorithm** halves effective hash bit-strength against a quantum adversary: SHA-256 retains ≈ 2^128 preimage security, still adequate.
-- **No PQ migration urgency for hashing** (unlike signatures: NIST FIPS 203 ML-KEM, FIPS 204 ML-DSA, FIPS 205 SLH-DSA, all finalized 2024-08). The hash function inside SLH-DSA is SHA-256 / SHAKE256 — confirms forensic continuity for evidence hashing into the PQ era.
+- **No PQ migration urgency for hashing** (unlike signatures: NIST FIPS 203 ML-KEM, FIPS 204 ML-DSA, FIPS 205 SLH-DSA, all finalized 2024-08). SLH-DSA is built on SHA-256/SHA-512 (SHA2 parameter sets) or SHAKE256 (SHAKE parameter sets) [verify 2026-10-30], which confirms forensic continuity for evidence hashing into the PQ era.
 
 ### Out-of-scope hashing families (this SOP is cryptographic-only)
 
@@ -410,7 +446,7 @@ HMAC is **not** a substitute for evidence hashing (chain-of-custody hashes must 
 
 ### Collision Attack Examples
 
-**MD5 collision (2004):**
+**MD5 collision (illustrative; practical collisions since Wang et al. 2004, meaningful chosen-prefix pairs via HashClash):** [verify 2026-10-30]
 ```
 # Two different files with identical MD5 hash
 File1: "Hello World\n" + malicious_code
@@ -424,6 +460,8 @@ MD5(File1) == MD5(File2)  # Same hash, different content!
 https://shattered.io/
 # Proof that SHA-1 is no longer secure
 ```
+
+**SHA-1 chosen-prefix collision (SHA-1 is a Shambles, 2020):** https://sha-mbles.github.io/ shows collisions with attacker-chosen prefixes (demonstrated on PGP/GnuPG keys), the practically relevant break [verify 2026-10-30].
 
 ---
 
@@ -441,11 +479,17 @@ Write-Host "SHA256: $($hash.Hash)"
 ```
 
 ```bash
-# Linux - Calculate hash during copy with tee
-dd if=/dev/sdb of=/evidence/disk.dd bs=512 conv=noerror,sync | tee >(sha256sum > /evidence/disk_SHA256.txt)
+# Linux - Calculate hash during copy: dd writes to stdout (no of=), tee writes the image
+# (with of= set, dd sends nothing down the pipe and you would hash empty input) [verify 2026-10-30]
+# Without pipefail a failed dd exits 0 and records the empty-input hash e3b0c442... [verify 2026-10-30]
+set -o pipefail
+dd if=/dev/sdb bs=512 conv=noerror,sync | tee /evidence/disk.dd | sha256sum > /evidence/disk_SHA256.txt
+# dc3dd, dcfldd and ewfacquire hash during acquisition without the pipe (§6, §11)
 
-# Or after copy
-sha256sum /evidence/disk.dd | tee /evidence/disk_SHA256.txt
+# Verify the written image; the digest must match the acquisition hash above
+sha256sum /evidence/disk.dd | tee /evidence/disk_SHA256_verify.txt
+# Sizes must match (blockdev --getsize64 prints the device size in bytes)
+blockdev --getsize64 /dev/sdb; stat -c%s /evidence/disk.dd
 ```
 
 **2. Chain of Custody Documentation (T+5 minutes)**
@@ -486,7 +530,8 @@ $knownHash = (Get-Content $knownHashFile).Trim()
 $currentHash = (Get-FileHash -Path $evidencePath -Algorithm SHA256).Hash
 
 $result = @{
-    Timestamp = Get-Date -Format "yyyy-MM-dd HH:mm:ss UTC"
+    # 'u' is culture-invariant (e.g. 2026-10-30 21:30:00Z); convert to UTC first, because 'u' does not convert [verify 2026-10-30]
+    Timestamp = (Get-Date).ToUniversalTime().ToString('u')
     Analyst = $env:USERNAME
     FilePath = $evidencePath
     KnownHash = $knownHash
@@ -540,12 +585,13 @@ fi
 ### Disk Image Verification
 
 ```bash
-# Create disk image with verification
-dc3dd if=/dev/sdb of=evidence.dd hash=sha256 hash=md5 hashlog=evidence_hashes.txt
+# Create disk image with verification (the hash-log option is hlog=; there is no hashlog=) [verify 2026-10-30]
+dc3dd if=/dev/sdb of=evidence.dd hash=sha256 hash=md5 hlog=evidence_hashes.txt
 
-# Verify disk image later
-dc3dd if=evidence.dd hash=sha256 hashlog=verification.txt
-diff evidence_hashes.txt verification.txt
+# Verify disk image later (of=/dev/null: without of=, dc3dd writes the image to stdout)
+dc3dd if=evidence.dd of=/dev/null hash=sha256 hlog=verification.txt
+# Compare the digest lines, not whole logs (logs include timestamps and the command line)
+grep '(sha256)' evidence_hashes.txt verification.txt
 ```
 
 ### Network Transfer Integrity
@@ -595,14 +641,13 @@ unix2dos document.txt  # Convert to Windows
 
 **2. Filesystem Metadata vs Content**
 ```bash
-# Some tools hash metadata + content, others hash content only
-# File hash will differ if metadata is included
-
-# Content-only hash (most common)
+# Standard hashing tools (sha256sum, md5deep/hashdeep, Get-FileHash) hash content only;
+# timestamps, permissions and other filesystem metadata are not part of the digest
 sha256sum file.bin
 
-# Metadata + content hash
-# Use specialized tools like md5deep with -l flag
+# md5deep/hashdeep -l only switches output to relative paths [verify 2026-10-30]
+# Record metadata separately in the manifest
+stat file.bin
 ```
 
 **3. File Locking**
@@ -621,10 +666,9 @@ handle.exe evidence.bin
 # Hash follows symlink (hashes target file)
 sha256sum /path/to/symlink  # Hashes target
 
-# Hash the symlink itself
-sha256sum -L /path/to/symlink  # Some versions support -L flag
+# sha256sum has no option to hash the link itself (no -L flag) [verify 2026-10-30]
 
-# Best practice: Resolve symlinks first
+# Best practice: Resolve symlinks first and log the readlink -f output in the manifest
 readlink -f /path/to/symlink
 sha256sum /actual/target/path
 ```
@@ -633,19 +677,17 @@ sha256sum /actual/target/path
 
 **Parallel hashing (multiple files):**
 ```bash
-# GNU parallel (fastest for many files)
-find /evidence -type f | parallel -j 8 sha256sum {} > all_hashes.txt
+# GNU parallel (fastest for many files); -0 reads the NUL-delimited -print0 list, safe for any filename [verify 2026-10-30]
+find /evidence -type f -print0 | parallel -0 -j 8 sha256sum {} > all_hashes.txt
 
-# Or xargs
-find /evidence -type f | xargs -P 8 -I {} sha256sum {}
+# Or xargs (NUL-delimited, safe for spaces and newlines in names) [verify 2026-10-30]
+find /evidence -type f -print0 | xargs -0 -P 8 -n 1 sha256sum
 ```
 
 **Large file optimization:**
 ```bash
-# Use buffered I/O for large files
-dd if=large_image.dd bs=1M | sha256sum
-
-# Or specialized tools
+# sha256sum already streams large files (§6); piping through dd adds nothing [verify 2026-10-30]
+# For directory trees, use the hashdeep suite
 sha256deep -r /evidence  # Optimized for forensics
 ```
 
@@ -667,7 +709,7 @@ sha256deep -r /evidence  # Optimized for forensics
 - **Calculated By:** John Doe (Analyst ID: A123)
 - **Algorithm:** SHA-256
 - **Hash Value:** a1b2c3d4e5f6789012345678901234567890123456789012345678901234567890
-- **Tool:** FTK Imager 4.7.1.2
+- **Tool:** sha256sum (GNU coreutils 9.4)
 - **Signature:** [Digital signature or initials]
 
 ## Verification Record
@@ -709,7 +751,8 @@ $hash = Get-FileHash -Path $EvidencePath -Algorithm SHA256
 
 # Log entry
 $entry = [PSCustomObject]@{
-    Timestamp = Get-Date -Format "yyyy-MM-dd HH:mm:ss UTC"
+    # 'u' is culture-invariant (e.g. 2026-10-30 21:30:00Z); convert to UTC first, because 'u' does not convert [verify 2026-10-30]
+    Timestamp = (Get-Date).ToUniversalTime().ToString('u')
     CaseNumber = $CaseNumber
     FilePath = $EvidencePath
     SHA256 = $hash.Hash
@@ -731,24 +774,26 @@ Write-Host "Hash logged: $($hash.Hash)"
 
 ```bash
 # Calculate hash during Autopsy ingest
-# Autopsy automatically calculates MD5 for all files
+# Autopsy's Hash Lookup ingest module calculates MD5 and SHA-256 for the files it processes
+# (SHA-256 is not used for hash-set matching) [verify 2026-10-30]
 
 # Query Autopsy database for file hashes
-sqlite3 autopsy.db "SELECT name, md5 FROM tsk_files WHERE md5 IS NOT NULL;"
+sqlite3 autopsy.db "SELECT name, md5, sha256 FROM tsk_files WHERE md5 IS NOT NULL;"
 
 # Export hash list
-sqlite3 -csv autopsy.db "SELECT md5, name FROM tsk_files;" > autopsy_hashes.csv
+sqlite3 -csv autopsy.db "SELECT md5, sha256, name FROM tsk_files;" > autopsy_hashes.csv
+
+# Hash sets import as md5sum/md5deep text, Autopsy .idx/.kdb, EnCase .hash or HashKeeper .hsh;
+# NSRL is offered in the .idx format [verify 2026-10-30]
 ```
 
 ### EnCase / FTK Integration
 
 ```
-# EnCase automatically calculates MD5 and SHA-1 during evidence processing
-# Access via Evidence > File Properties > Hash
-
-# Export hash report:
-# EnCase: View > Hash Analysis > Export
-# FTK: File > Export > Hash List
+# EnCase and FTK compute file hashes during evidence processing.
+# Menu paths for viewing and exporting hashes vary by version and are not publicly
+# documented: follow the vendor manual for your release and record the tool
+# version in the custody log [verify 2026-10-30]
 ```
 
 ### Volatility (Memory Forensics)
@@ -757,8 +802,11 @@ sqlite3 -csv autopsy.db "SELECT md5, name FROM tsk_files;" > autopsy_hashes.csv
 # Hash memory dump
 sha256sum memory.dmp > memory_SHA256.txt
 
-# Volatility automatically verifies integrity if hash stored in profile
-vol.py -f memory.dmp --profile=Win10x64 pslist
+# Volatility does not check dump integrity for you; Volatility 2 (vol.py --profile) is archived [verify 2026-10-30]
+vol -f memory.dmp windows.pslist
+
+# Re-hash after analysis and compare
+sha256sum -c memory_SHA256.txt
 ```
 
 ---
@@ -769,13 +817,15 @@ vol.py -f memory.dmp --profile=Win10x64 pslist
 |------|----------|------|----------|------|
 | certutil | Windows | Built-in | Quick hashing | Built-in |
 | Get-FileHash | Windows | Built-in | PowerShell automation | Built-in |
-| sha256sum | Linux/Mac | Built-in | Command-line hashing | Built-in |
+| sha256sum / shasum -a 256 | Linux / macOS | Built-in | Command-line hashing | Built-in |
 | md5deep/hashdeep | Cross-platform | CLI | Recursive hashing, audit | [GitHub](https://github.com/jessek/hashdeep) |
-| HashTab | Windows | GUI | Right-click integration | [hashtab.io](https://hashtab.io) |
+| OpenHashTab | Windows | GUI | Right-click integration (replaces discontinued HashTab) | [GitHub](https://github.com/namazso/OpenHashTab) |
 | HashMyFiles | Windows | GUI | Batch processing | [NirSoft](https://www.nirsoft.net/utils/hash_my_files.html) |
-| FTK Imager | Windows | GUI/CLI | Forensic imaging + hash | [Exterro](https://www.exterro.com/ftk-imager) |
-| GtkHash | Linux | GUI | GTK-based hashing | [gtkhash](https://github.com/tristanheaven/gtkhash) |
-| RapidCRC | Windows | GUI | SFV/MD5 checksum files | [rapidcrc.net](https://www.rapidcrc.net) |
+| FTK Imager | Windows | GUI (legacy CLI) | Forensic imaging + hash (MD5/SHA-1) | [Exterro](https://www.exterro.com/digital-forensics-software/ftk-imager) |
+| GtkHash | Linux | GUI | GTK-based hashing | [gtkhash](https://github.com/gtkhash/gtkhash) |
+| RapidCRC Unicode | Windows | GUI | SFV/MD5/SHA checksum files | [ov2.eu](https://www.ov2.eu/programs/rapidcrc-unicode) |
+
+Links and tool status checked 2026-10-30: hashtab.io and rapidcrc.net no longer resolve, Exterro moved the FTK Imager page, and GtkHash moved to the gtkhash organisation [verify 2026-10-30].
 
 ---
 
@@ -785,7 +835,7 @@ vol.py -f memory.dmp --profile=Win10x64 pslist
 - ✅ Verify hash before and after every transfer or movement (hash-on-acquisition / hash-after-transport).
 - ✅ Log all verifications in chain of custody with analyst, timestamp (UTC), and tool version.
 - ✅ For critical evidence, pair algorithms with **different constructions** (SHA-256 + SHA3-256, or SHA-256 + BLAKE2/3) so a single-family weakness does not invalidate both.
-- ✅ Sign manifests (GPG-detached or age) and consider RFC 3161 / OpenTimestamps anchoring for non-repudiation.
+- ✅ Sign manifests (GPG detached signature, minisign, or `ssh-keygen -Y sign`; age only encrypts and cannot sign) [verify 2026-10-30] and consider RFC 3161 / OpenTimestamps anchoring for non-repudiation.
 - ❌ Never rely on MD5 or SHA-1 alone for court evidence.
 - ❌ Never use BLAKE3 as the sole forensic primary (no NIST FIPS standardization yet) [inferred].
 - ❌ Never skip hash verification before analysis.
@@ -801,10 +851,10 @@ vol.py -f memory.dmp --profile=Win10x64 pslist
   - SHA-3 standard (Keccak): SHA3-224/256/384/512, SHAKE128, SHAKE256.
 - **NIST FIPS 198-1** — [nvlpubs.nist.gov/nistpubs/FIPS/NIST.FIPS.198-1.pdf](https://nvlpubs.nist.gov/nistpubs/FIPS/NIST.FIPS.198-1.pdf)
   - HMAC (keyed-hash message authentication code).
-- **NIST SP 800-107 Rev. 1** — [csrc.nist.gov/publications/detail/sp/800-107/rev-1/final](https://csrc.nist.gov/publications/detail/sp/800-107/rev-1/final)
-  - Recommendation for Applications Using Approved Hash Algorithms.
-- **NIST SHA-1 retirement notice** — [csrc.nist.gov/news/2022/nist-retires-sha-1-cryptographic-algorithm](https://csrc.nist.gov/news/2022/nist-retires-sha-1-cryptographic-algorithm)
-  - 2022-12-15 announcement; full withdrawal target 2030-12-31 [verify 2026-04-26].
+- **NIST SP 800-107 Rev. 1** — [csrc.nist.gov/pubs/sp/800/107/r1/final](https://csrc.nist.gov/pubs/sp/800/107/r1/final)
+  - Recommendation for Applications Using Approved Hash Algorithms. Decision to withdraw it announced 2022-12-20 (CSRC still lists it as final); supplementary material moved to the CSRC Hash Functions page [verify 2026-10-30].
+- **NIST SHA-1 transition notice** — [csrc.nist.gov/news/2022/nist-transitioning-away-from-sha-1-for-all-apps](https://csrc.nist.gov/news/2022/nist-transitioning-away-from-sha-1-for-all-apps)
+  - 2022-12-15 announcement; transition completes 2030-12-31; FIPS 180-5 and SP 800-131A Rev. 3 still pending [verify 2026-10-30].
 - **NIST Hash Functions Portal** — [csrc.nist.gov/projects/hash-functions](https://csrc.nist.gov/projects/hash-functions)
   - Cryptographic hash function projects and research.
 - **RFC 1321 (MD5)** — [datatracker.ietf.org/doc/html/rfc1321](https://datatracker.ietf.org/doc/html/rfc1321)
@@ -816,20 +866,20 @@ vol.py -f memory.dmp --profile=Win10x64 pslist
 - **RFC 7693 (BLAKE2)** — [datatracker.ietf.org/doc/html/rfc7693](https://datatracker.ietf.org/doc/html/rfc7693)
   - BLAKE2b / BLAKE2s / BLAKE2x cryptographic hash and MAC.
 - **BLAKE3 specification** — [github.com/BLAKE3-team/BLAKE3-specs](https://github.com/BLAKE3-team/BLAKE3-specs)
-  - Whitepaper (2020); no NIST FIPS standardization [verify 2026-04-26].
+  - Whitepaper (2020); no NIST FIPS standardization as of 2026-10 (not listed on the CSRC Hash Functions page) [verify 2026-10-30].
 - **RFC 3161 (Time-Stamp Protocol)** — [datatracker.ietf.org/doc/html/rfc3161](https://datatracker.ietf.org/doc/html/rfc3161)
   - PKI timestamping for non-repudiable hash anchoring.
 - **OpenTimestamps** — [opentimestamps.org](https://opentimestamps.org/)
   - Bitcoin-anchored timestamping for hash manifests.
 
 ### Digital Forensics Standards
-- **NIST SP 800-86** - [csrc.nist.gov/publications/detail/sp/800-86/final](https://csrc.nist.gov/publications/detail/sp/800-86/final)
+- **NIST SP 800-86** - [csrc.nist.gov/pubs/sp/800/86/final](https://csrc.nist.gov/pubs/sp/800/86/final)
   - Guide to Integrating Forensic Techniques into Incident Response
 - **ISO/IEC 27037:2012** - [iso.org](https://www.iso.org/standard/44381.html)
   - Guidelines for identification, collection, acquisition, and preservation of digital evidence
 - **Scientific Working Group on Digital Evidence (SWGDE)** - [swgde.org](https://www.swgde.org/)
   - Best practices for digital evidence handling
-- **National Institute of Justice (NIJ)** - [nij.ojp.gov/topics/forensics/digital-evidence](https://nij.ojp.gov/topics/forensics/digital-evidence)
+- **National Institute of Justice (NIJ)** - [nij.ojp.gov/topics/forensics/digital-multimedia-evidence](https://nij.ojp.gov/topics/forensics/digital-multimedia-evidence)
   - Digital evidence best practices
 
 ### Hash Collision Research
@@ -847,27 +897,30 @@ vol.py -f memory.dmp --profile=Win10x64 pslist
   - Cross-platform, forensically sound
 - **HashMyFiles (NirSoft)** - [nirsoft.net/utils/hash_my_files.html](https://www.nirsoft.net/utils/hash_my_files.html)
   - Portable Windows hash calculator
-- **GtkHash** - [github.com/tristanheaven/gtkhash](https://github.com/tristanheaven/gtkhash)
+- **GtkHash** - [github.com/gtkhash/gtkhash](https://github.com/gtkhash/gtkhash)
   - Linux GTK-based hash calculator
 
 ### Forensic Imaging Tools (with Hash Verification)
-- **FTK Imager** — [exterro.com/ftk-imager](https://www.exterro.com/ftk-imager)
+- **FTK Imager** — [exterro.com/digital-forensics-software/ftk-imager](https://www.exterro.com/digital-forensics-software/ftk-imager)
   - Free forensic imaging tool with automatic hash verification.
-  - Supports MD5, SHA-1, SHA-256.
+  - Exterro documents MD5 and SHA-1 only (no SHA-256); compute SHA-256 with the §1 tools [verify 2026-10-30].
 - **dc3dd** — [sourceforge.net/projects/dc3dd](https://sourceforge.net/projects/dc3dd/)
-  - Enhanced dd with hashing on-the-fly. Historically maintained by DoD Cyber Crime Center; upstream activity has slowed [verify 2026-04-26]. Modern preference is `ewfacquire` for E01 / `dcfldd` legacy / `dc3dd` for raw with on-the-fly hash.
+  - Enhanced dd with on-the-fly hashing, originally from the DoD Cyber Crime Center; upstream 7.3.1 (2023) is packaged in Debian. `dcfldd` is maintained again (v1.9.3, 2025). Use `ewfacquire` for E01/Ex01 and `dc3dd`/`dcfldd` for raw images with on-the-fly hashes. The 7.3.1 package reports itself as 7.2.646 in `--version` and in its hash logs, so record the version the binary prints, plus the package version (e.g. `dpkg -s dc3dd`) [verify 2026-10-30].
 - **Guymager** — [guymager.sourceforge.io](https://guymager.sourceforge.io/)
   - Linux forensic imager with MD5/SHA verification.
 - **ewfacquire (libewf)** — [github.com/libyal/libewf](https://github.com/libyal/libewf)
-  - Expert Witness Format (E01/Ex01) imaging with embedded SHA-256 hash verification.
+  - Expert Witness Format (E01/Ex01) imaging; the E01 container embeds MD5, plus SHA-1 when `-d sha1` is given, but never SHA-256. Add `-d sha256` and `-l <log>` so a SHA-256 is computed during acquisition and written to the log for the custody record, and recompute it later with `ewfverify -d sha256 image.E01` [verify 2026-10-30].
 
 ### Online Hash Lookup Services
 - **VirusTotal** - [virustotal.com](https://www.virustotal.com/)
   - Malware hash lookup (MD5, SHA1, SHA256)
   - Submit samples or search by hash
-- **NSRL (National Software Reference Library)** - [nsrl.nist.gov](https://www.nsrl.nist.gov/)
+- **NSRL (National Software Reference Library)** - [nist.gov/…/national-software-reference-library-nsrl](https://www.nist.gov/itl/csd/secure-systems-and-applications/national-software-reference-library-nsrl)
   - Reference hash database of known software
   - Filter out known-good files from forensic analysis
+  - RDSv3 (SQLite) carries SHA-256, SHA-1 and MD5; the RDS 2.x text format is discontinued [verify 2026-10-30]
+- **CIRCL hashlookup** - [hashlookup.circl.lu](https://hashlookup.circl.lu/)
+  - Public known-file lookup API that includes an NSRL RDS import from 2023 (its /info endpoint reports nsrl-version 2023.09.2); MD5, SHA-1 and SHA-256 lookups [verify 2026-10-30]
 - **MalwareBazaar** - [bazaar.abuse.ch](https://bazaar.abuse.ch/)
   - Malware sample hash database
   - Community-driven malware intelligence
@@ -888,11 +941,8 @@ vol.py -f memory.dmp --profile=Win10x64 pslist
 
 ### Automation Scripts & Tools
 - **PowerForensics** - [github.com/Invoke-IR/PowerForensics](https://github.com/Invoke-IR/PowerForensics)
-  - PowerShell framework for forensic analysis
-  - Includes hash verification modules
-- **Forensic Toolkit Scripts** - Various GitHub repositories
-  - Automated evidence hashing workflows
-- **Ansible Forensic Playbooks** - Automated evidence collection with hash verification
+  - PowerShell raw-disk/NTFS forensic framework (last repository activity 2023)
+  - No dedicated hash-verification cmdlets; pair with `Get-FileHash` [verify 2026-10-30]
 
 ---
 
@@ -900,12 +950,12 @@ vol.py -f memory.dmp --profile=Win10x64 pslist
 
 Hash generation is a methodology, not an authorization. The SOP focuses on technical correctness; jurisdictional rules, evidence handling authority, and disclosure obligations are governed elsewhere in the vault.
 
-> **Authorized environments only.** See [[sop-legal-ethics|Legal & Ethics]] for canonical jurisdictional framing (CFAA, CMA, EU evidence directives, GDPR Art. 6/9), and [[sop-collection-log|Collection Log]] for the chain-of-custody rules into which hash records are integrated.
+> **Authorized environments only.** See [[sop-legal-ethics|Legal & Ethics]] for canonical jurisdictional framing (CFAA, CMA, EU e-Evidence Regulation 2023/1543, applicable from 2026-08-18, and Directive 2023/1544, GDPR Art. 6/9) [verify 2026-10-30], and [[sop-collection-log|Collection Log]] for the chain-of-custody rules into which hash records are integrated.
 
 Hashing-specific guardrails:
 
-- **Hash a copy, not the original.** When acquiring from a live system, hash the working image, not the suspect medium directly (avoid altering MAC times). Use a write-blocker for physical evidence.
-- **Record tool + version.** A SHA-256 value is reproducible only if the algorithm and reader are unambiguous. Record `sha256sum --version`, `Get-FileHash -Algorithm SHA256` (PowerShell version), or `certutil -?` build alongside the hash.
+- **Hash through a write-blocker, verify the copy.** For physical media, compute the acquisition hash of the source behind a hardware write-blocker and the verification hash of the image; both go in the log. On a live, mounted system, hash the acquired copy, because reading a mounted filesystem can update access times [verify 2026-10-30].
+- **Record tool + version.** A SHA-256 value is reproducible only if the algorithm and reader are unambiguous. Record `sha256sum --version`, `$PSVersionTable.PSVersion` (PowerShell), or the Windows build from `ver` (certutil ships with the OS) alongside the hash [verify 2026-10-30].
 - **Two-analyst attestation.** Critical evidence should be hashed by the acquiring analyst and re-hashed by an independent verifier; both hashes go into the chain of custody.
 - **Disclosure.** Hash manifests are part of the evidence package. See [[../../Investigations/Techniques/sop-reporting-packaging-disclosure|Reporting, Packaging & Disclosure]].
 
@@ -923,7 +973,7 @@ Hashing-specific guardrails:
 - [[sop-malware-analysis|Malware Analysis]] — hash-based sample identification and deduplication
 - [[sop-cryptography-analysis|Cryptography Analysis]] — algorithm security analysis (length-extension, collision, hashcat modes)
 - [[sop-reverse-engineering|Reverse Engineering]] — file integrity during binary analysis
-- [[sop-forensics-investigation|Forensics Investigation]] — evidence acquisition (basename link; file lives in Security/Analysis/)
+- [[sop-forensics-investigation|Forensics Investigation]] — evidence acquisition
 
 **Pentesting & Security:**
 - [[../Pentesting/sop-detection-evasion-testing|Detection Evasion Testing]] — hash-based malware detection bypass techniques
@@ -931,5 +981,5 @@ Hashing-specific guardrails:
 ---
 
 **Version:** 1.1
-**Last Updated:** 2026-04-26
+**Last Updated:** 2026-10-30
 **Review Frequency:** Annual (slow-rot anchor SOP — algorithm-standards horizon is multi-year)

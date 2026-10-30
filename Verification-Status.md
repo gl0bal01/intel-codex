@@ -77,7 +77,7 @@ file, so a SOP is only as fresh as its stalest claim.
 | Cryptography Analysis SOP | [[sop-cryptography-analysis]] | 2026-04-25 | 7 | 2026-04-25 | 188 | current |
 | Email & BEC Forensics SOP | [[sop-email-bec-forensics]] | 2026-10-30 | 136 | 2026-10-29 | 1 | current |
 | Digital Forensics Investigation SOP | [[sop-forensics-investigation]] | 2026-10-30 | 212 | 2026-10-29 | 1 | current |
-| Hash Generation Methods for Evidence Integrity | [[sop-hash-generation-methods]] | 2026-04-26 | 4 | 2026-04-26 | 187 | current |
+| Hash Generation Methods for Evidence Integrity | [[sop-hash-generation-methods]] | 2026-10-30 | 58 | 2026-10-30 | 0 | current |
 | Malware Analysis SOP | [[sop-malware-analysis]] | 2026-10-18 | 200 | 2026-10-18 | 12 | current |
 | Reverse Engineering | [[sop-reverse-engineering]] | 2026-09-20 | 1 | 2026-04-25 | 188 | current |
 | SaaS Log Forensics SOP | [[sop-saas-log-forensics]] | 2026-10-30 | 338 | 2026-10-30 | 0 | current |
