@@ -1,7 +1,7 @@
 ---
 type: sop
 title: Email & BEC Forensics SOP
-description: "Scenario-centric Business Email Compromise forensics: email header forensics (Received-chain reconstruction, Authentication-Results parsing), SPF / DKIM / DMARC / ARC mechanics, lookalike-domain and brand-impersonation detection (IDN homograph, typosquatting, dnstwist patterns, CT-log monitoring), Microsoft 365 Get-MessageTrace and Google Workspace Email Log Search, secure-email-gateway forensics (Mimecast / Proofpoint / Barracuda envelope-vs-header), phishing-kit static analysis (defensive — kit acquisition, telltale strings, AiTM detection), wire-recall pathway (SWIFT MT103 / Fedwire / SEPA recall mechanics, Financial Fraud Kill Chain, FBI IC3 reporting, FinCEN SAR triggers, beneficiary-bank coordination), and BEC scenario taxonomy (CEO fraud, vendor-invoice fraud, payroll-redirect, attorney-impersonation, real-estate / closing-funds, gift-card scam)."
+description: "Scenario-centric Business Email Compromise forensics: email header forensics (Received-chain reconstruction, Authentication-Results parsing), SPF / DKIM / DMARC / ARC mechanics, lookalike-domain and brand-impersonation detection (IDN homograph, typosquatting, dnstwist patterns, CT-log monitoring), Microsoft 365 Get-MessageTraceV2 and Google Workspace Email Log Search, secure-email-gateway forensics (Mimecast / Proofpoint / Barracuda envelope-vs-header), phishing-kit static analysis (defensive — kit acquisition, telltale strings, AiTM detection), wire-recall pathway (SWIFT ISO 20022 pacs.008 / camt.056, Fedwire / SEPA recall mechanics, Financial Fraud Kill Chain, FBI IC3 reporting, FinCEN SAR triggers, beneficiary-bank coordination), and BEC scenario taxonomy (CEO fraud, vendor-invoice fraud, payroll-redirect, attorney-impersonation, real-estate / closing-funds, gift-card scam)."
 tags:
   - sop
   - email-forensics
@@ -15,7 +15,7 @@ tags:
   - phishing-kit
   - wire-recall
 created: 2026-04-27
-updated: 2026-10-29
+updated: 2026-10-30
 template_version: 2026-09-20
 ---
 
@@ -91,24 +91,24 @@ This SOP is **scenario-centric**. The SaaS-tenant audit-log surface (Microsoft 3
 - **DMARC forensics** — policy evaluation (`p=none` / `p=quarantine` / `p=reject`), alignment (`adkim=r` / `adkim=s` / `aspf=r` / `aspf=s`, SPF aligned-with-`From`, DKIM aligned-with-`From`), aggregate (`rua`) and forensic (`ruf`) report parsing, `sp=` sub-domain policy, `pct=` percentage rollout, `fo=` failure-reporting options.
 - **DMARC reporting infrastructure** — `rua` / `ruf` consumer setup (in-house parser, dmarcian, Valimail, Postmark DMARC, MXToolbox, Cloudflare DMARC Management, EasyDMARC), aggregation patterns, daily / weekly cadence, and analyst-report shapes.
 - **ARC forensics** — `ARC-Authentication-Results`, `ARC-Message-Signature`, `ARC-Seal` chain reconstruction, ARC-instance numbering (`i=`), validation across mailing-list / forwarder hops, and the indirect-mail-flow problem ARC solves (mailing lists, vacation auto-forwards, Microsoft 365 transport rules) for chain-of-custody verification of authentication results.
-- **Lookalike-domain detection** — IDN homograph (Punycode `xn--` representation, mixed-script, confusable-Unicode TR39), typosquatting (Levenshtein distance, keyboard-adjacency, character-substitution / -insertion / -deletion / -transposition), brand-confusable Unicode, registered-domain monitoring (Certificate Transparency log monitoring, dnstwist patterns, urlinsane, urlcrazy, DomainTools / Iris / RiskIQ / Group-IB visibility), TLD-substitution patterns (`.com` → `.co` / `.cm` / `.com.<cctld>`).
-- **M365 / Workspace message tracing** — `Get-MessageTrace` / `Get-MessageTraceDetail` (last 10 days online, 90 days via historical search) and `Get-MessageTraceV2` migration timeline, `Search-MessageTrackingLog` (on-prem Exchange), Workspace **Email Log Search** (Admin console → Reporting → Email Log Search), Gmail BigQuery export message-level event surface, mailbox-side context cross-link to [[sop-saas-log-forensics|SaaS Log Forensics]] for inbox-rule and mailbox-audit forensics.
-- **Secure-email-gateway forensics** — Mimecast Audits / Hold-Queue / Tracker, Proofpoint Smart Search / Threat Insight, Microsoft Defender for Office 365 Threat Explorer, Cisco Secure Email (formerly Ironport ESA) message tracking, Barracuda Email Security Gateway / ESS message logs, Sophos Email Appliance message search, recipient-side envelope-vs-header forensics.
+- **Lookalike-domain detection** — IDN homograph (Punycode `xn--` representation, mixed-script, confusable-Unicode TR39), typosquatting (Levenshtein distance, keyboard-adjacency, character-substitution / -insertion / -deletion / -transposition), brand-confusable Unicode, registered-domain monitoring (Certificate Transparency log monitoring, dnstwist patterns, urlinsane, urlcrazy, DomainTools / Iris / threat intelligence in the Microsoft Defender portal (formerly Defender TI, ex-RiskIQ) / Group-IB visibility) [verify 2026-10-30], TLD-substitution patterns (`.com` → `.co` / `.cm` / `.com.<cctld>`).
+- **M365 / Workspace message tracing** — `Get-MessageTraceV2` / `Get-MessageTraceDetailV2` (last 90 days, max 10 days per query; legacy `Get-MessageTrace` / `Get-MessageTraceDetail` cover 10 days and are "replaced by the Get-MessageTraceV2 cmdlet and will eventually be deprecated" per Microsoft) [verify 2026-10-30], `Start-HistoricalSearch` for report-driven pulls, `Get-MessageTrackingLog` (on-prem Exchange), Workspace **Email Log Search** (Admin console → Reporting → Email Log Search), Gmail BigQuery export message-level event surface, mailbox-side context cross-link to [[sop-saas-log-forensics|SaaS Log Forensics]] for inbox-rule and mailbox-audit forensics.
+- **Secure-email-gateway forensics** — Mimecast Audits / Hold-Queue / Tracker, Proofpoint Smart Search / Threat Insight, Microsoft Defender for Office 365 Threat Explorer, Cisco Secure Email (formerly Ironport ESA) message tracking, Barracuda Email Gateway Defense / Email Security Gateway message logs, Sophos Central Email message search (the on-prem Sophos Email Appliance is end of life), recipient-side envelope-vs-header forensics.
 - **Phishing-kit analysis (defensive)** — kit acquisition (open directory, archive download, takedown-coordinated copy), static analysis hooks (PHP / JavaScript / Python kit decomposition, hand-off to [[sop-malware-analysis|Malware Analysis]] for deeper RE), telltale strings (kit-author signatures, hardcoded exfil endpoints, anti-analyst checks), evilginx / modlishka / muraena adversary-in-the-middle (AiTM) detection signatures, infrastructure indicators (Cloudflare Tunnel, ngrok, serverless-host abuse, residential-proxy egress).
-- **Wire-recall pathway** — SWIFT MT103 / Fedwire / SEPA / FedNow / SWIFT GPI recall mechanics, FBI IC3 reporting workflow and Financial Fraud Kill Chain (FFKC), FinCEN SAR-filing triggers, FinCEN Rapid Response Program coordination, beneficiary-bank coordination, correspondent-banking layer (cross-link to [[../../Investigations/Techniques/sop-financial-aml-osint|Financial & AML OSINT]] — do not duplicate banking-pivot tradecraft), 24-hour / 48-hour / 72-hour recovery windows.
+- **Wire-recall pathway** — SWIFT (ISO 20022 pacs.008; camt.056 cancellation) / Fedwire / SEPA / FedNow / SWIFT gpi (UETR) recall mechanics, FBI IC3 reporting workflow and Financial Fraud Kill Chain (FFKC), FinCEN SAR-filing triggers, FinCEN Rapid Response Program coordination, beneficiary-bank coordination, correspondent-banking layer (cross-link to [[../../Investigations/Techniques/sop-financial-aml-osint|Financial & AML OSINT]] — do not duplicate banking-pivot tradecraft), 24-hour / 48-hour / 72-hour recovery windows.
 - **BEC scenario taxonomy** — CEO-fraud / wire-fraud, vendor-invoice fraud (VIF), payroll-redirect, attorney-impersonation, real-estate / closing-funds fraud, gift-card scam, account-compromise lateral, and the cryptocurrency-payout BEC variant (where the scenario reconstruction lives here; on-chain trace hands off to [[../../Investigations/Techniques/sop-blockchain-investigation|Blockchain Investigation]]).
 - **BEC monetary-recovery timeline** — 24h / 48h / 72h windows, wire-recall vs ACH-recall vs check-recall mechanics, fraud-claim-to-bank, IC3 within 72 hours of the wire, insurance-carrier notification, and the policy-coverage interaction with social-engineering vs computer-fraud riders.
 
 ### Hard exclusions (out of scope)
 
 - **IaaS / cloud-provider control plane.** AWS CloudTrail, Azure Activity Log + Resource Logs, GCP Cloud Audit Logs, IAM forensics on cloud resources, container / Kubernetes runtime, and snapshot preservation all live in [[sop-cloud-forensics|Cloud Forensics]]. When a BEC pivots into stolen cloud credentials and the attacker acts on cloud resources, the email side stays here; the cloud-resource action routes to [[sop-cloud-forensics|Cloud Forensics]].
-- **SaaS-tenant identity / collaboration audit (the mailbox-compromise side of a BEC).** Microsoft 365 Unified Audit Log, mailbox audit log (`Search-MailboxAuditLog`), inbox-rule forensics (`Get-InboxRule`, UAL `New-InboxRule` / `Set-InboxRule` / `Remove-InboxRule`), OAuth-app token-persistence forensics, `oauth2PermissionGrants` enumeration, Workspace Admin SDK Reports API, Okta System Log, Slack Audit Logs, Salesforce Setup Audit Trail, GitHub audit and the cross-tenant collaboration surface all live in [[sop-saas-log-forensics|SaaS Log Forensics]]. **Per the buildout-plan scope contract for the forensics trio: the OAuth-consent BEC variant lives in #8.** This SOP references the carve-in but does not duplicate the §10 OAuth Consent-Grant Abuse Forensics methodology; when the BEC pattern is "attacker tricks user into granting an OAuth app permission to read mailbox," that is #8's surface. The header-spoofing BEC, lookalike-domain BEC, and pure-social-engineering BEC variants live here.
-- **Mailbox-rule / mailbox-audit forensics.** When the BEC pivots into mailbox compromise (credential phishing → adversary-in-the-middle session-token capture → mailbox-rule auto-forward → wire diversion), the mailbox-side reconstruction is owned by [[sop-saas-log-forensics|SaaS Log Forensics]] §4.5–§4.6. This SOP covers what the inbound and outbound *messages* looked like; the mailbox-audit log of who-accessed-what is #8's surface.
+- **SaaS-tenant identity / collaboration audit (the mailbox-compromise side of a BEC).** Microsoft 365 Unified Audit Log, mailbox audit log (`Search-UnifiedAuditLog -RecordType ExchangeItem` / `ExchangeItemGroup` / `ExchangeItemAggregated` — `MailItemsAccessed` lands in `ExchangeItemAggregated`; Microsoft says `Search-MailboxAuditLog` "will be deprecated in the cloud-based service"; `Search-UnifiedAuditLog` returns 100 records by default, so for more set `$sid = "case-$([guid]::NewGuid())"` once per record type, then run `do { $page = Search-UnifiedAuditLog ... -SessionId $sid -SessionCommand ReturnLargeSet -ResultSize 5000; $page } while ($page)` — a new SessionId restarts at the first block, so never generate it inside the loop; max 50,000 per session) [verify 2026-10-30], inbox-rule forensics (`Get-InboxRule`, UAL `New-InboxRule` / `Set-InboxRule` / `Remove-InboxRule`), OAuth-app token-persistence forensics, `oauth2PermissionGrants` enumeration, Workspace Admin SDK Reports API, Okta System Log, Slack Audit Logs, Salesforce Setup Audit Trail, GitHub audit and the cross-tenant collaboration surface all live in [[sop-saas-log-forensics|SaaS Log Forensics]]. **The OAuth-consent BEC variant lives in [[sop-saas-log-forensics|SaaS Log Forensics]].** This SOP references the carve-in but does not duplicate that SOP's §10 OAuth Consent-Grant Abuse Forensics methodology; when the BEC pattern is "attacker tricks user into granting an OAuth app permission to read mailbox," that is SaaS Log Forensics' surface. The header-spoofing BEC, lookalike-domain BEC, and pure-social-engineering BEC variants live here.
+- **Mailbox-rule / mailbox-audit forensics.** When the BEC pivots into mailbox compromise (credential phishing → adversary-in-the-middle session-token capture → mailbox-rule auto-forward → wire diversion), the mailbox-side reconstruction is owned by [[sop-saas-log-forensics|SaaS Log Forensics]] §4.5–§4.6. This SOP covers what the inbound and outbound *messages* looked like; the mailbox-audit log of who-accessed-what is SaaS Log Forensics' surface.
 - **General malware analysis of attachments.** When a BEC incident includes a malicious attachment (Office macro dropper, ISO / IMG container, HTA, LNK, OneNote with embedded payload), this SOP covers the email-as-vector framing — header pivot, gateway disposition, recipient-side delivery — and hands off the binary / document analysis itself to [[sop-malware-analysis|Malware Analysis]] §3 (Rapid Triage), §4 (Behavior), §6.2 (Office / Macro), §6.3 (PDF), §6.4 (Script Analysis), §6.5 (Archive), §6.7 (HTA), §6.8 (Disk Image / ISO). Phishing-kit *analysis* is in scope here per §12 below; deep static / dynamic RE of harvested kits routes to [[sop-malware-analysis|Malware Analysis]] / [[sop-reverse-engineering|Reverse Engineering]].
 - **Smart-contract / on-chain forensics.** When a BEC payout is in BTC / USDT / USDC / ETH or another on-chain rail (the cryptocurrency-payout BEC variant is increasingly common), the scenario reconstruction (which message, which lookalike domain, which payout instruction, which wallet address surfaced in the message body) lives here; the on-chain trace once funds are deposited routes to [[../../Investigations/Techniques/sop-blockchain-investigation|Blockchain Investigation]]. Mixer / privacy-pool laundering downstream routes to [[../../Investigations/Techniques/sop-mixer-tracing|Mixer & Privacy-Pool Tracing]]. Smart-contract code review (when the payout funnels through a contract) routes to [[sop-smart-contract-audit|Smart Contract Audit]].
-- **Fiat AML / SAR-filing / banking-pivot tradecraft.** [[../../Investigations/Techniques/sop-financial-aml-osint|Financial & AML OSINT]] is the canonical SOP for SAR-filing decision criteria, the structuring / smurfing / shell-company / UBO investigative patterns, and the broader correspondent-banking / SWIFT-network tradecraft. This SOP covers wire-recall *operations* (the mechanics of getting money back; the IC3 / FFKC / SWIFT GPI Stop and Recall path) and routes the *intelligence* / *typology* / *AML-analyst* layer to [[../../Investigations/Techniques/sop-financial-aml-osint|Financial & AML OSINT]].
+- **Fiat AML / SAR-filing / banking-pivot tradecraft.** [[../../Investigations/Techniques/sop-financial-aml-osint|Financial & AML OSINT]] is the canonical SOP for SAR-filing decision criteria, the structuring / smurfing / shell-company / UBO investigative patterns, and the broader correspondent-banking / SWIFT-network tradecraft. This SOP covers wire-recall *operations* (the mechanics of getting money back; the IC3 / FFKC / SWIFT camt.056 cancellation path) and routes the *intelligence* / *typology* / *AML-analyst* layer to [[../../Investigations/Techniques/sop-financial-aml-osint|Financial & AML OSINT]].
 - **General host / disk / memory forensics.** Disk imaging, memory acquisition, MFT / USN / Prefetch / Amcache / ShimCache / registry-hive parsing, Volatility 3, and timeline construction live in [[sop-forensics-investigation|Digital Forensics Investigation]] (parent template). When a BEC investigation produces a recovered laptop (a victim user device, an authorized seizure of an adversary endpoint, a phishing-kit operator's host), the host-forensics side routes to the parent template; this SOP terminates at "the email and the financial pathway."
-- **Offensive phishing / red-team email tradecraft.** Pre-engagement target enumeration, payload crafting, lure design, evasion of secure-email-gateways, sender-reputation warm-up, and click-rate / credential-harvest operations are red-team / social-engineering disciplines. Currently no Intel Codex SOP owns offensive phishing — it remains a `CLAUDE.md` "Gaps" candidate. Forensic readers benefit from understanding the offensive playbook as the threat model but should not derive offensive instructions from this SOP. Phishing-kit *analysis* (decomposing a recovered kit defensively) is explicitly in scope; phishing-kit *operation* is not.
+- **Offensive phishing / red-team email tradecraft.** Pre-engagement target enumeration, payload crafting, lure design, evasion of secure-email-gateways, sender-reputation warm-up, and click-rate / credential-harvest operations are red-team / social-engineering disciplines. Currently no Intel Codex SOP owns offensive phishing. Forensic readers benefit from understanding the offensive playbook as the threat model but should not derive offensive instructions from this SOP. Phishing-kit *analysis* (decomposing a recovered kit defensively) is explicitly in scope; phishing-kit *operation* is not.
 - **Sensitive-crime hard-stops.** CSAM in attachments / linked content; trafficking-pattern indicators in BEC-adjacent extortion / sextortion mail; threat-to-life findings — all hard-stop to [[../../Investigations/Techniques/sop-sensitive-crime-intake-escalation|Sensitive-Crime Intake & Escalation]]. Treat as URL / file-hash / timestamp only; **do not preserve content**; provider-LE process is the route. Same posture as the darkweb, cloud-forensics, and SaaS-log-forensics SOPs.
 
 ### Engagement types covered
@@ -129,9 +129,9 @@ This SOP is **scenario-centric**. The SaaS-tenant audit-log surface (Microsoft 3
 - [ ] **Written engagement letter or internal IR activation** identifying the affected mailbox(es), domain(s), tenant(s), the time window of interest, and the scope of authorized actions (read-only message-trace pull? mailbox export? domain DNS-record query? SEG-log retrieval? wire-recall operation in the customer's name? IC3 referral? FinCEN SAR participation?). State-changing actions (mailbox-rule disablement, sender block, domain take-down request, wire-recall) are billable, durable, and visible in audit logs of the systems they touch — written scope matters.
 - [ ] **Tenant-administrator authorization** for the message-trace / SEG-log / mailbox-export surfaces. Use a dedicated investigator admin account / app-registration / API token per engagement — not a re-used personal identity — and rotate at engagement end. M365: dedicated cloud-only Global Reader + eDiscovery Manager + Compliance Search role; Workspace: dedicated investigator admin with Reports / Vault / Email Log Search; Mimecast / Proofpoint / Defender / Barracuda: dedicated read-only console role per engagement.
 - [ ] **Sender-domain-owner authorization where the sender is the customer's own.** When the BEC was a *spoofed* CEO of customer A targeting an employee of customer A, the customer authorizes investigation. When the spoofed sender is a *third party's* domain (a vendor whose identity was impersonated to attack a customer), notification of the third party is a downstream disclosure obligation; pre-engagement check that this is on the disclosure plan.
-- [ ] **Provider legal process where the customer cannot authorize collection on their own.** For cross-tenant evidence (the attacker's tenant is on the same provider; the recipient organization is not the customer; the upstream MTA is a third-party SEG) the provider's law-enforcement portal is the route. Microsoft, Google, Mimecast, Proofpoint, Cloudflare, AWS SES, SendGrid, Mailgun, and most major SEGs publish LE-cooperation paths and require subpoena / warrant / MLAT / preservation letter depending on data type and jurisdiction [verify 2026-04-27].
+- [ ] **Provider legal process where the customer cannot authorize collection on their own.** For cross-tenant evidence (the attacker's tenant is on the same provider; the recipient organization is not the customer; the upstream MTA is a third-party SEG) the provider's law-enforcement portal is the route. Microsoft, Google, Proofpoint, Cloudflare, AWS (SES), Twilio (SendGrid) and Sinch (Mailgun) publish law-enforcement / legal-process guidance; the required instrument (subpoena / warrant / MLAT / preservation letter) depends on data type and jurisdiction [verify 2026-10-30].
 - [ ] **Cross-border data residency review.** EU-data-subject mail content (GDPR), healthcare (HIPAA), card data (PCI), and government tenants all carry residency / sovereignty constraints. Verify under counsel before exporting message content to investigator storage outside the source region — see [[sop-legal-ethics|Legal & Ethics]] for Schrems II / DPF / SCCs framing.
-- [ ] **Disclosure pathway agreed.** Notification clocks are jurisdiction- and sector-specific — GDPR Art. 33 (72h to supervisory authority), GDPR Art. 34 (high-risk-to-data-subject notice), HIPAA Breach Notification Rule (60-day), state breach-notification laws (US), SEC cyber-disclosure rule for material incidents at registrants, NYDFS Part 500, NIS2 (EU), DORA (EU financial). Wire fraud also triggers FinCEN SAR considerations for the customer's bank under the Bank Secrecy Act and 31 CFR 1020.320 [verify 2026-04-27]; the customer's financial institution has independent SAR obligations the investigation should not impede.
+- [ ] **Disclosure pathway agreed.** Notification clocks are jurisdiction- and sector-specific — GDPR Art. 33 (72h to supervisory authority), GDPR Art. 34 (high-risk-to-data-subject notice), HIPAA Breach Notification Rule (60-day), state breach-notification laws (US), SEC cyber-disclosure rule for material incidents at registrants, NYDFS Part 500, NIS2 (EU), DORA (EU financial). Wire fraud also triggers FinCEN SAR considerations for the customer's bank under the Bank Secrecy Act and 31 CFR 1020.320 [verify 2026-10-30]; the customer's financial institution has independent SAR obligations the investigation should not impede.
 - [ ] **IC3 / FFKC pre-positioning.** When the engagement begins inside the 72-hour wire-recall window, the IC3 referral and Financial Fraud Kill Chain (FFKC) request are time-critical. Pre-engagement: the customer has the wire confirmation, the originating-bank fraud team, and beneficiary-bank details ready; the investigator coordinates the timeline rather than owning the customer's banking relationship. See §13 below.
 - [ ] **Insurance-carrier notification.** Cyber and crime policies have notification clocks (often 24-72 hours from discovery, sometimes "immediate"); failure to notify can void coverage. Confirm carrier and policy before any state-changing action that might affect the claim — under counsel.
 - [ ] **OAuth-app inventory baseline.** When the engagement involves any mailbox-compromise pivot (most non-trivial BEC), an OAuth-app inventory is established before any state-changing action — multi-tenant apps consented in the tenant, app-only permissions, refresh tokens active. Per [[sop-saas-log-forensics|SaaS Log Forensics]] §2, the baseline is: M365 `Get-MgServicePrincipal` / `Get-MgOauth2PermissionGrant`; Workspace App Access Control + connected-apps export; Salesforce Connected Apps Usage; GitHub org-level OAuth + PAT inventory.
@@ -139,11 +139,11 @@ This SOP is **scenario-centric**. The SaaS-tenant audit-log surface (Microsoft 3
 ### Lab Environment Requirements
 
 - **Dedicated investigator tenant or analyst seat** in each SaaS / SEG surface, separate from the affected tenant. Header dumps, message exports, and analysis derivatives land here, never back into the affected tenant. The investigator's M365 / Workspace / Mimecast / Proofpoint identity is engagement-scoped, not their personal cloud identity.
-- **Investigator workstation** disk-encrypted, isolated from production, no auto-sync of artifacts to corporate storage, dedicated browser profiles or container tabs per tenant. PowerShell 7+ for Exchange Online; `gcloud` + `gam7` for Workspace; `dnstwist`, `dnsx`, `mxtoolbox`-CLI-equivalents (`ldnstool`, `dig`), `swaks` for SMTP testing in a sandbox lane only (never against production with real targets), `email-deliverability` / `parsedmarc` for DMARC-report parsing.
+- **Investigator workstation** disk-encrypted, isolated from production, no auto-sync of artifacts to corporate storage, dedicated browser profiles or container tabs per tenant. PowerShell 7+ for Exchange Online; `gcloud` + GAM7 (installs as `gam`) for Workspace; `dnstwist`, `dnsx`, `mxtoolbox`-CLI-equivalents (`dig`, `drill` from ldns), `swaks` for SMTP testing in a sandbox lane only (never against production with real targets), `parsedmarc` for DMARC-report parsing [verify 2026-10-30].
 - **Encrypted-at-rest investigator storage.** Exported message bodies and attachments may contain customer-confidential material, third-party PII, or LE-sensitive evidence; encrypted with engagement-specific keys; access-controlled.
-- **Time-sync discipline.** All analysis systems running NTP / chrony to a known source; time-zone normalized to UTC end-to-end; investigator note timestamps use ISO 8601 / RFC 3339 with explicit `Z` suffix per [[../../Investigations/Techniques/sop-collection-log|Collection Log]]. Email systems report event times with mixed precision and time-zone hints — Received-header `;` clauses use RFC 2822 date format with offset; Microsoft `MessageTrace` is UTC; Workspace Email Log Search exports UTC; Mimecast `received_date` is UTC; Proofpoint Smart Search is UTC; recipient mail-client display rendering localizes silently. Capture authoritative-source timestamps, not display-rendered ones.
-- **API-throttling awareness.** Production tenants under stress will rate-limit aggressive forensic queries. Exchange Online `Get-MessageTrace` is paged; `Get-MessageTraceDetail` is per-message; the new Reporting API for message-trace has different throttle behavior [verify 2026-04-27]. Workspace Reports API has per-customer quotas. Mimecast, Proofpoint, and Defender have console-driven retrieval that masks API limits; bulk pulls require API tokens.
-- **Read-only by default.** Investigator tokens / roles should not include sender-block, mailbox-rule disablement, message-purge (Defender Threat Explorer's "Soft Delete," "Move to Junk," "Move to Inbox," "Hard Delete" actions), or domain-take-down permissions unless explicitly authorized. The forensic record is more defensible when state-changing actions are gated behind a separate, narrowly-scoped account.
+- **Time-sync discipline.** All analysis systems running NTP / chrony to a known source; time-zone normalized to UTC end-to-end; investigator note timestamps use ISO 8601 / RFC 3339 with explicit `Z` suffix per [[../../Investigations/Techniques/sop-collection-log|Collection Log]]. Email systems report event times with mixed precision and time-zone hints — Received-header `;` clauses use the RFC 5322 §3.3 date-time format with numeric offset; Microsoft `MessageTrace` is UTC; Workspace Email Log Search exports UTC; Mimecast `received_date` is UTC; Proofpoint Smart Search is UTC; recipient mail-client display rendering localizes silently. Capture authoritative-source timestamps, not display-rendered ones.
+- **API-throttling awareness.** Production tenants under stress will rate-limit aggressive forensic queries. Exchange Online message trace (`Get-MessageTraceV2` / `Get-MessageTraceDetailV2`) accepts at most 100 query requests per tenant in a 5-minute running window; message-trace support in the legacy Reporting Web Service began deprecating on 8 April 2026 and is replaced by the Microsoft Graph message-trace API — script against Graph [verify 2026-10-30]. Workspace Reports API has per-customer quotas. Mimecast, Proofpoint, and Defender have console-driven retrieval that masks API limits; bulk pulls require API tokens.
+- **Read-only by default.** Investigator tokens / roles should not include sender-block, mailbox-rule disablement, message-purge (Defender Threat Explorer's "Move to junk folder," "Move to inbox," "Move to deleted items," "Soft delete," "Hard delete" actions), or domain-take-down permissions unless explicitly authorized. The forensic record is more defensible when state-changing actions are gated behind a separate, narrowly-scoped account.
 
 ### Disclosure-Ready Posture
 
@@ -175,7 +175,7 @@ The FBI IC3 BEC working definition covers a family of scenarios. Investigators b
 | **CEO fraud / wire fraud** | Spoofed executive directs employee to wire funds urgently | Wire transfer to attacker-controlled bank account | `From:` lookalike / display-name spoof; `Reply-To:` to free-mail; SPF / DKIM may pass on a separate sender domain | IC3 + FFKC; recall via originating bank within 24-72h |
 | **Vendor-invoice fraud (VIF)** | Spoofed or compromised vendor sends "updated banking details" before a real invoice falls due | Wire / ACH to redirected beneficiary | `From:` spoofed vendor or compromised vendor mailbox; thread-hijack into legitimate prior conversation | IC3 + bank coordination; vendor's own IR engaged in parallel |
 | **Account-compromise lateral** | Attacker compromises mailbox A and uses it to spoof internal targets, contacts, customers | Mail-hijack with attacker reading inbound replies | Authentic SPF / DKIM / DMARC because mail is from a legitimate compromised mailbox; mailbox-rule + reply-redirect persistence | Mailbox-side reconstruction routes to [[sop-saas-log-forensics|SaaS Log Forensics]]; this SOP covers the outbound-message footprint |
-| **Payroll redirect** | Spoofed or compromised employee asks HR / payroll to update direct-deposit account | ACH to attacker-controlled account | `From:` spoofed or compromised employee; HR portal misuse downstream | ACH return / reversal; coordinate with bank within 5 banking days for unauthorized debit (Reg E) [verify 2026-04-27] |
+| **Payroll redirect** | Spoofed or compromised employee asks HR / payroll to update direct-deposit account | ACH to attacker-controlled account | `From:` spoofed or compromised employee; HR portal misuse downstream | The employer originated an ACH credit, so ask the originating bank at once to request a recall / reversal (with a Hold Harmless Letter or Letter of Indemnity) and file with IC3; the unauthorized-debit return windows (R10 / R29) do not cover a credit the victim sent [verify 2026-10-30] |
 | **Attorney impersonation** | Spoofed law firm or M&A counsel directs urgent confidential wire | Wire transfer; pretext invokes confidentiality to suppress verification | `From:` lookalike firm domain; legitimate-looking signature block; pressure to bypass verification policy | IC3 + bank; civil discovery subpoenas downstream |
 | **Real-estate / closing-funds fraud** | Spoofed title agent or closing attorney redirects buyer's down-payment / closing funds | Wire transfer at closing | Lookalike title-agent domain; thread-hijack into legitimate closing chain; well-rehearsed timing | IC3 + bank; ALTA escrow procedures; FBI Real Estate Wire Fraud guidance |
 | **Gift-card scam (BEC-adjacent)** | Spoofed executive directs urgent gift-card purchase for "client appreciation" / "team lunch" | Apple / Google Play / Amazon gift-card codes sent back | Free-mail `From:` or display-name spoof; mobile-text follow-up common | Generally unrecoverable; reporting to retailer fraud teams; pattern attribution |
@@ -185,21 +185,21 @@ The scenarios overlap and chain. A vendor-invoice-fraud often follows a successf
 
 ### 3.3 The Financial Fraud Kill Chain (FFKC)
 
-The FBI IC3 Financial Fraud Kill Chain is a coordination mechanism that activates when the customer's fraudulent wire meets specific criteria — historically, the wire was **at least USD 50,000** and was transmitted via **SWIFT MT103 within the previous 72 hours** to a beneficiary outside the United States [verify 2026-04-27 — IC3-published threshold may have evolved, including FFKC expansion to FedNow / SEPA / domestic ACH where applicable; verify against current IC3 guidance before relying on the threshold or transit-network requirement]. The coordination invokes the FBI legal attaché in the destination jurisdiction, the foreign financial-intelligence unit (FIU), and the beneficiary bank. Recovery rates depend heavily on speed of activation.
+The FBI IC3 Financial Fraud Kill Chain is a coordination mechanism, run by the IC3 Recovery Asset Team, for freezing funds from fraudulent transfers. IC3 publishes no dollar threshold: "Regardless of the amount lost, file a complaint with www.ic3.gov as soon as possible" (IC3 PSA, 11 September 2024). Speed is the criterion that matters — FinCEN is "most likely to be able to interdict or recover funds when fraudulently induced wire transfers are reported to law enforcement within 72 hours of the transaction" (FinCEN Rapid Response Program fact sheet, April 2026). The older USD 50,000 / SWIFT MT103 / 72-hour / international-beneficiary eligibility list is historical and unpublished; never use it as a reason to skip a filing [verify 2026-10-30]. For international transfers the coordination invokes the FBI legal attaché in the destination jurisdiction, the foreign financial-intelligence unit (FIU), and the beneficiary bank. Recovery rates depend heavily on speed of activation.
 
-The investigator does not own the FFKC request — that is the customer's bank, often coordinated through the customer's legal counsel and the FBI field office. The investigator's role is to *enable* the activation: produce the BEC reconstruction (the email; the lookalike domain; the social-engineering chain) that the FBI and the bank will reference, and produce the wire-confirmation cross-walk (the customer's wire reference, the SWIFT GPI Unique End-to-End Transaction Reference (UETR), the originating-bank reference, the beneficiary-bank reference, the beneficiary account / IBAN).
+The investigator does not own the FFKC request — the IC3 Recovery Asset Team initiates it from an IC3 complaint filed by the customer or the customer's bank, often coordinated through the customer's legal counsel and the FBI field office. The investigator's role is to *enable* the activation: produce the BEC reconstruction (the email; the lookalike domain; the social-engineering chain) that the FBI and the bank will reference, and produce the wire-confirmation cross-walk (the customer's wire reference, the SWIFT GPI Unique End-to-End Transaction Reference (UETR), the originating-bank reference, the beneficiary-bank reference, the beneficiary account / IBAN).
 
 ### 3.4 Monetary-Recovery Timeline
 
 | Window from wire-send | What is feasible | Action |
 |---|---|---|
-| **0-4 hours** | Wire may still be in originating-bank or correspondent-bank queue | Customer's bank requests recall; SWIFT MT192 (Request for Cancellation) issued; FedNow has its own cancel path |
+| **0-4 hours** | Wire may still be in originating-bank or correspondent-bank queue | Customer's bank requests recall; SWIFT cancellation request (camt.056) issued; FedNow has its own cancel path; customer files at IC3 immediately (no dollar threshold) |
 | **4-24 hours** | Wire is at beneficiary bank but funds may be unwithdrawn / on hold | Beneficiary bank receives recall; if funds untouched, freeze and return are the most likely outcome |
-| **24-72 hours** | Funds typically dispersed onward to secondary accounts / ATM withdrawal / FX conversion | IC3 referral + FFKC activation (at the threshold); FBI legal attaché engages destination FIU; civil restraining order in destination jurisdiction may be possible |
+| **24-72 hours** | Funds typically dispersed onward to secondary accounts / ATM withdrawal / FX conversion | IC3 RAT / FFKC follow-up; FBI legal attaché engages destination FIU; civil restraining order in destination jurisdiction may be possible |
 | **72h - 30 days** | Funds gone; investigation pivots to civil action and AML / SAR-driven typology trace | Civil discovery; SAR-driven correlation; partial recovery via destination-bank cooperation possible |
 | **>30 days** | Recovery is uncommon | Insurance claim; tax loss; LE referral pursued primarily for prosecution / disruption |
 
-ACH recall is shorter and more rigid than wire — the originating financial institution can return an unauthorized debit within 60 days under Reg E, but only if the consumer disputes; for B2B ACH the window is much shorter, generally 24 hours [verify 2026-04-27]. Check fraud has its own UCC-3 and UCC-4 framework. Cryptocurrency payouts are not recallable; the equivalent recovery operation is *seizure-at-CEX* via the destination centralized exchange's compliance team, downstream of the on-chain trace per [[../../Investigations/Techniques/sop-blockchain-investigation|Blockchain Investigation]].
+ACH recall is shorter and more rigid than wire — the receiving (account-holder's) bank can return an unauthorized debit to a consumer account within 60 days (Nacha R10; Reg E 60-day dispute window), but only if the consumer disputes; for non-consumer (B2B) accounts the unauthorized-debit return (R29) window is 2 banking days under the Nacha Operating Rules [verify 2026-10-30]. An ACH credit the victim originated (payroll redirect, vendor payment) is not an unauthorized debit; the originating bank requests a recall / reversal instead (§13.6). Check fraud is governed by UCC Articles 3 (Negotiable Instruments) and 4 (Bank Deposits and Collections). Cryptocurrency payouts are not recallable; the equivalent recovery operation is *seizure-at-CEX* via the destination centralized exchange's compliance team, downstream of the on-chain trace per [[../../Investigations/Techniques/sop-blockchain-investigation|Blockchain Investigation]].
 
 ### 3.5 Email-Authentication Posture as a Forensic Tell
 
@@ -240,7 +240,7 @@ Hop graph reconstruction:
 
 1. **Bottom-most `Received:`** — the originating MTA's first record. Capture the `from` field (claimed sender hostname), the `helo-or-ehlo-name` (also claimed), the bracketed source IP (the receiver's observation — the most reliable origin field), the `id` (queue ID at the receiving MTA — useful for cross-walking the receiver's logs), and the `;`-delimited timestamp.
 2. **Walk upward** — at each hop, the source IP of the incoming connection should equal the destination of the previous hop. Gaps (a receiver claims to have received from IP X but no prior hop terminated at X) suggest header injection or a missing hop.
-3. **Geo-cross-walk source IPs** — `whois`, `mtr`, `bgp.he.net`, `peeringdb.com`, MaxMind, IPinfo, RIPE NCC, ARIN, LACNIC, AFRINIC, APNIC. Residential-proxy ASNs (Luminati / Bright Data, Smartproxy, Oxylabs, NetNut, IPRoyal — verify current vendor names [verify 2026-04-27]), bulk-mailer ASNs (SendGrid AS11377, Mailgun AS31034, Mailchimp AS22214, Amazon SES AS16509, etc. [verify 2026-04-27]), and commodity-host ASNs (Hetzner AS24940, OVH AS16276, DigitalOcean AS14061, Vultr AS20473, Contabo AS51167 — verify) are pattern signals; not every sender from these ASNs is malicious, but BEC operators concentrate there.
+3. **Geo-cross-walk source IPs** — `whois`, `mtr`, `bgp.he.net`, `peeringdb.com`, MaxMind, IPinfo, RIPE NCC, ARIN, LACNIC, AFRINIC, APNIC. Residential-proxy vendors (Bright Data (ex-Luminati), Decodo (ex-Smartproxy), Oxylabs, NetNut, IPRoyal), bulk-mailer ASNs (SendGrid AS11377, Mailgun AS396479, Amazon SES on AS16509, etc.), and commodity-host ASNs (Hetzner AS24940, OVH AS16276, DigitalOcean AS14061, Vultr AS20473, Contabo AS51167) are pattern signals — confirm the current holder on bgp.he.net or RIPEstat at investigation time [verify 2026-10-30]; not every sender from these ASNs is malicious, but BEC operators concentrate there.
 4. **Hop-time anomalies** — adjacent `Received:` headers have monotonically increasing timestamps within sane bounds (seconds, sometimes minutes for queued mail). Out-of-order or far-apart timestamps suggest header forgery, mailing-list batching, or an MTA queue.
 
 ### 4.3 The `Authentication-Results` Header
@@ -260,8 +260,8 @@ Fields to extract:
 
 - **`spf=`** — `pass` / `fail` / `softfail` / `neutral` / `none` / `temperror` / `permerror`. The `smtp.mailfrom` (or `smtp.helo` for null sender) records the identity SPF was evaluated against.
 - **`dkim=`** — per-signature result; multi-signature messages produce multiple `dkim=` lines. The `header.d=` records the signing domain; `header.s=` records the selector; `header.i=` records the agent / user identifier.
-- **`dmarc=`** — `pass` / `fail` / `bestguesspass` (some receivers) / `none`. The `action=` records the DMARC policy applied (`none` / `quarantine` / `reject`); `header.from=` records the `From`-domain DMARC was evaluated for.
-- **`compauth=`** — Microsoft's composite authentication result; `pass` / `softpass` / `fail` / `none`; `reason=` carries the numeric code (100=pass, 1nn=quarantined, 2nn=quarantined, 3nn=blocked). [verify 2026-04-27 — Microsoft's `compauth` reason-code table evolves]
+- **`dmarc=`** — `pass` / `fail` / `bestguesspass` (some receivers) / `none`. In Microsoft 365 the `action=` records what the spam filter did with the DMARC result — `none`, `oreject`, `pct.quarantine` / `pct.reject` (DMARC failed but the message was delivered because the policy's `pct` was below 100), `permerror`, `temperror` [verify 2026-10-30]; `header.from=` records the `From`-domain DMARC was evaluated for.
+- **`compauth=`** — Microsoft's composite authentication result; `pass` / `softpass` / `fail` / `none`; `reason=` carries a three-digit code: `000` explicit fail (DMARC fail with `p=quarantine` / `p=reject`), `001` / `6xx` implicit fail, `002` org policy prohibits spoofing for that sender/domain pair, `010` DMARC fail with `p=quarantine` / `p=reject` on an accepted domain, `1xx` / `7xx` pass, `2xx` softpass, `3xx` not checked, `4xx` / `9xx` bypassed, `501` / `502` DMARC not enforced (valid NDR) — see Microsoft's compauth reason-code table [verify 2026-10-30].
 - **`arc=`** — when ARC-aware MTAs participated; `pass` / `fail` / `none` records the ARC chain validation.
 
 ### 4.4 Microsoft 365 `X-` Headers Cheat-Sheet
@@ -270,15 +270,15 @@ Microsoft 365 / Exchange Online Protection adds a family of `X-MS-` and `X-Micro
 
 | Header | Forensic value |
 |---|---|
-| `X-Forefront-Antispam-Report` | `CIP=` source IP, `CTRY=` country, `LANG=` body language, `SCL=` spam confidence (1-9), `SFV=` spam filter verdict (`SPM`, `BLK`, `SKQ`, `NSPM`, `SKB`, `SKI`, `SKN`, `SKS`, `SFE` — verify 2026-04-27 against current EOP documentation), `IPV=` IP-reputation verdict, `H=`/`HELO=` HELO string, `PTR=` reverse-DNS |
-| `X-Microsoft-Antispam` | `BCL=` bulk-confidence level, `PCL=` phishing-confidence level, additional verdict codes |
+| `X-Forefront-Antispam-Report` | `CIP=` source IP, `CTRY=` country, `LANG=` body language, `SCL=` spam confidence (-1, 0-9; no longer determines the cloud verdict — read `CAT=` and `DIR=` instead), `SFV=` spam filter verdict (`SPM`, `BLK`, `SKA`, `SKQ`, `NSPM`, `SKB`, `SKI`, `SKN`, `SKS`, `SFE`) [verify 2026-10-30], `IPV=` IP-reputation verdict, `H=`/`HELO=` HELO string, `PTR=` reverse-DNS |
+| `X-Microsoft-Antispam` | `BCL=` bulk complaint level — the only documented field; Microsoft says the other fields are for its anti-spam team's diagnostics [verify 2026-10-30] |
 | `X-Microsoft-Antispam-Mailbox-Delivery` | Per-mailbox delivery decision; junk-folder routing |
-| `X-MS-Exchange-Organization-AuthAs` | `Anonymous` / `Internal` / `Partner` — tells you whether the message was treated as inbound, intra-org, or partner |
+| `X-MS-Exchange-Organization-AuthAs` | For hybrid mail-flow triage Microsoft says to focus on two values: `Anonymous` (unauthenticated / external) vs `Internal` (authenticated in some way: an Exchange Online or on-premises mailbox, or a connector treated as internal) [verify 2026-10-30] |
 | `X-MS-Exchange-Organization-AuthSource` | The receiving server identity |
 | `X-MS-Exchange-Organization-MessageDirectionality` | `Originating` (outbound) vs `Incoming` (inbound) |
 | `X-MS-Exchange-Organization-Network-Message-Id` | The Microsoft NetworkMessageId — this is the cross-walk key into Defender Threat Explorer and Get-MessageTrace |
 
-Workspace adds `X-Google-Smtp-Source`, `X-Received` (Google variant), and Gmail-specific `X-Gm-Message-State` / `X-Gm-Spam` / `X-Gm-Phishy` indicators in some surfaces. SEG vendors layer their own — Mimecast adds `X-Mimecast-`-prefixed fields, Proofpoint adds `X-Proofpoint-`-prefixed, Barracuda adds `X-Barracuda-`-prefixed; treat each as an additional disposition data-point but evaluate the trusted `Authentication-Results:` first.
+Workspace adds `X-Google-Smtp-Source`, `X-Received` (Google variant), and the Gmail-specific `X-Gm-Message-State`; these are undocumented internal fields, so treat any `X-Gm-*` verdict as unofficial and use Email Log Search for the authoritative Gmail disposition. SEG vendors layer their own — Mimecast adds `X-Mimecast-`-prefixed fields, Proofpoint adds `X-Proofpoint-`-prefixed, Barracuda adds `X-Barracuda-`-prefixed; treat each as an additional disposition data-point but evaluate the trusted `Authentication-Results:` first.
 
 ### 4.5 IP-Geolocation Cross-Walk
 
@@ -294,9 +294,9 @@ dig -x 198.51.100.10 +short
 # BGP / ASN — bgp.he.net is convenient; CLI alternatives:
 whois -h whois.cymru.com " -v 198.51.100.10"
 
-# Commercial geolocation (require API keys)
+# Commercial geolocation (require API keys; MaxMind web services use geoip.maxmind.com) [verify 2026-10-30]
 curl -s "https://ipinfo.io/198.51.100.10?token=$IPINFO_TOKEN" | jq
-curl -s "https://api.maxmind.com/geoip/v2.1/insights/198.51.100.10" \
+curl -s "https://geoip.maxmind.com/geoip/v2.1/insights/198.51.100.10" \
   -u "$MAXMIND_USER:$MAXMIND_LICENSE" | jq
 ```
 
@@ -304,10 +304,10 @@ Geolocation is approximate and is most reliable at the **country / ASN** level; 
 
 ### 4.6 BIMI / VMC
 
-Brand Indicators for Message Identification (BIMI, RFC 9690 [verify 2026-04-27]) lets a brand publish a logo at `default._bimi.<domain>` whose display in the recipient mail client is conditioned on DMARC-pass with `p=quarantine` or `p=reject` and (for major implementers Gmail and Apple Mail) a Verified Mark Certificate (VMC) issued by an Authorized Mark Authority (AMA). Forensic uses:
+Brand Indicators for Message Identification (BIMI — no RFC; IETF Internet-Draft `draft-brand-indicators-for-message-identification`) lets a brand publish a logo at `default._bimi.<domain>` whose display in the recipient mail client is conditioned on DMARC-pass with `p=quarantine` or `p=reject` and (for major implementers Gmail and Apple Mail) a Verified Mark Certificate (VMC) — Gmail also accepts a Common Mark Certificate (CMC) — issued by a Mark Verifying Authority (MVA) [verify 2026-10-30]. Forensic uses:
 
 - **Sender-side** — the existence of a published BIMI record and a valid VMC indicates a brand that has invested in mail-authentication and is unlikely to be the legitimate sender of an SPF-fail / DKIM-fail message; an alleged-sender brand whose BIMI is *not* configured can still be impersonated.
-- **Recipient-side** — when the recipient client renders a brand logo, the message was DMARC-aligned and the logo was VMC-validated (Gmail / Apple Mail) at the time of rendering. This is provenance evidence; capture the logo and the BIMI / VMC records at investigation time, since they can change.
+- **Recipient-side** — when the recipient client renders a brand logo, the message was DMARC-aligned and the logo was VMC-validated (Gmail, Apple Mail) or CMC-validated (Gmail) at the time of rendering. This is provenance evidence; capture the logo and the BIMI / VMC records at investigation time, since they can change.
 
 ```bash
 # Inspect a domain's BIMI record
@@ -320,7 +320,7 @@ curl -sL https://example.com/vmc.pem | openssl x509 -text -noout
 
 ### 4.7 Header-Capture Discipline
 
-- **Capture `.eml` / RFC 822 source, never rendered HTML.** Outlook desktop "Save As" → `.msg` is acceptable but proprietary; export to `.eml` from Outlook on the web (Forward → Three-dot menu → View → View message source → Save) or via `Get-MessageTrace` / Graph API for archival. Workspace: **Show Original** in Gmail UI, then **Download Original**.
+- **Capture `.eml` / RFC 5322 source, never rendered HTML.** Outlook desktop "Save As" → `.msg` is acceptable but proprietary; for archival, pull the MIME source as `.eml` via Microsoft Graph `GET /users/{id}/messages/{id}/$value`. In Outlook on the web, More actions → View → View message details shows the full header block. `Get-MessageTrace` returns trace metadata, not message content [verify 2026-10-30]. Workspace: **Show Original** in Gmail UI, then **Download Original**.
 - **Hash at capture.** SHA-256 of the `.eml` file at the moment of export.
 - **Preserve the trusted `Authentication-Results:` line.** When forwarding to an investigator (a bad practice — forwarding strips and rewrites authentication) is unavoidable, accompany the forwarded copy with a screenshot of the trusted `Authentication-Results:` and include a header-only export.
 - **Store as evidence-grade.** Per [[../../Investigations/Techniques/sop-collection-log|Collection Log]] §4 evidence-packaging discipline; per-engagement encrypted archive, manifest with hashes.
@@ -342,7 +342,7 @@ Mechanism precedence (left-to-right, RFC 7208 §5):
 | Mechanism | Meaning |
 |---|---|
 | `all` | Match all (terminal — typically last with `-all` or `~all` qualifier) |
-| `include:<domain>` | Recursively expand `<domain>`'s SPF; pass / fail / temperror cascades; counts toward 10-DNS-lookup limit |
+| `include:<domain>` | Recursive evaluation of `<domain>`'s SPF; only a `pass` there makes the mechanism match — `fail` / `softfail` / `neutral` mean "no match" and evaluation continues; `temperror` propagates, `permerror` / `none` become `permerror` (RFC 7208 §5.2) [verify 2026-10-30]; counts toward 10-DNS-lookup limit |
 | `a` / `a:<domain>` | Match A / AAAA records of this domain or named domain |
 | `mx` / `mx:<domain>` | Match MX hosts of this domain or named domain |
 | `ip4:<cidr>` / `ip6:<cidr>` | Match IPv4 / IPv6 CIDR |
@@ -358,7 +358,7 @@ Qualifier prefixes: `+` (pass, default if absent), `-` (fail), `~` (softfail), `
 | Outcome | Meaning | Forensic interpretation |
 |---|---|---|
 | `Pass` | Sender IP matched a permitting mechanism | Sender IP is in the published list — legitimate sender, hijacked included service, or a broad SPF (e.g., `+all`) |
-| `Fail` | Sender IP matched a `-` mechanism (typically `-all`) | Domain owner explicitly rejects this sender; receiver SHOULD reject |
+| `Fail` | Sender IP matched a `-` mechanism (typically `-all`) | Domain owner explicitly rejects this sender; disposition is the receiver's local policy (RFC 7208 §8.4) — many receivers only mark the message unless DMARC enforces [verify 2026-10-30] |
 | `SoftFail` | Sender IP matched a `~` mechanism (typically `~all`) | Domain owner is in DMARC monitoring rollout — message likely accepted but flagged |
 | `Neutral` | Sender IP matched a `?` mechanism | Domain owner has no opinion — equivalent to None for evaluation purposes |
 | `None` | No SPF record published | Domain owner has no SPF — no authorization signal |
@@ -384,14 +384,11 @@ The forensic implication: in the `Authentication-Results:` header, `spf=pass smt
 dig example.com TXT +short | grep "v=spf1"
 
 # Recursively expand and count lookups (Python scripty / dedicated tool)
-# spfcheck.py / pyspf
+# pyspf (RFC 7208 result codes; returns 'permerror' when the 10-lookup limit is exceeded)
 python3 -c "import spf; print(spf.check2(i='198.51.100.10', s='user@example.com', h='mta.example.com'))"
 
-# CLI tools
-spf-tools-perl spfquery -ip 198.51.100.10 -sender user@example.com -helo mta.example.com
-
-# 10-lookup-limit check
-# https://github.com/jsumners/spf-record (or similar) — verify 2026-04-27
+# CLI tools: spfquery (Debian/Ubuntu package spf-tools-perl; the binary is spfquery.mail-spf-perl, linked as spfquery via update-alternatives) [verify 2026-10-30]
+spfquery --scope mfrom --id user@example.com --ip 198.51.100.10 --helo-id mta.example.com
 ```
 
 ### 5.6 SPF Forensic Patterns
@@ -425,7 +422,7 @@ DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=example.com; s=mail2024;
 Tags:
 
 - **`v=`** — version (always `1`).
-- **`a=`** — algorithm: `rsa-sha256` (most common), `rsa-sha1` (deprecated, RFC 8301), `ed25519-sha256` (RFC 8463 — verify deployment maturity 2026-04-27).
+- **`a=`** — algorithm: `rsa-sha256` (most common), `rsa-sha1` (deprecated, RFC 8301), `ed25519-sha256` (RFC 8463) [verify 2026-10-30].
 - **`c=`** — canonicalization: `<header>/<body>`. Header canonicalization: `simple` (preserve as-is) or `relaxed` (lower-case header names, collapse whitespace). Body canonicalization: `simple` (preserve trailing whitespace, normalize empty-line ending) or `relaxed` (collapse runs of whitespace, ignore trailing).
 - **`d=`** — signing domain. The DKIM key is published under this domain.
 - **`s=`** — selector. Combines with `d=` to form the DNS lookup `<s>._domainkey.<d>`.
@@ -448,18 +445,19 @@ dig mail2024._domainkey.example.com TXT +short
 dig mail2024._domainkey.example.com TXT +short | tr -d '"' | tr -d ' '
 ```
 
-Selector rotation is a defensive practice; an absent selector under a domain that recently sent DKIM-signed mail under it is normal (key was rotated and old selector retired). For forensics, capture the selector record at investigation time *and* attempt historical resolution via passive DNS (DomainTools, SecurityTrails, RiskIQ — verify 2026-04-27) when the message is older than the current selector deployment.
+Selector rotation is a defensive practice; an absent selector under a domain that recently sent DKIM-signed mail under it is normal (key was rotated and old selector retired). For forensics, capture the selector record at investigation time *and* attempt historical resolution via passive DNS (DomainTools, SecurityTrails, threat intelligence in the Microsoft Defender portal (formerly Defender TI / RiskIQ PassiveTotal)) [verify 2026-10-30] when the message is older than the current selector deployment.
 
 ### 6.3 Key Strength
 
 | Key length | RFC 8301 / current guidance | Forensic interpretation |
 |---|---|---|
-| RSA-512 / 768 / 1024 | Insecure; RFC 8301 deprecates RSA-1024 | Domain has weak DKIM; signatures may be forgeable by capable attackers |
+| RSA-512 / 768 | Verifiers MUST NOT treat as valid (RFC 8301 §3.2) | Signature is invalid at any compliant receiver |
+| RSA-1024 | RFC 8301 floor (signers MUST use ≥1024, SHOULD use ≥2048) [verify 2026-10-30] | Weak but valid; posture signal only |
 | RSA-2048 | Current minimum baseline | Standard posture |
 | RSA-4096 | Hardened | Secure but expensive |
-| Ed25519 | RFC 8463 — modern | Adoption is mixed; receiver support varies [verify 2026-04-27] |
+| Ed25519 | RFC 8463 — modern | Adoption is mixed; receiver support varies |
 
-A signing-domain that uses RSA-1024 is forensically interesting — sophisticated attackers are documented in academic literature [verify 2026-04-27] to have factored 1024-bit RSA DKIM keys; though the practical-attack threshold is contested, the posture itself signals immature mail-auth.
+A signing-domain that uses RSA-1024 is forensically interesting as a posture signal, not as evidence of forgery: no properly generated 1024-bit RSA modulus has been publicly factored (the general-purpose record is RSA-250, 829 bits, reported in eprint.iacr.org/2020/697), but 1024-bit keys from flawed generators have been broken (shared primes, factorable.net; Infineon ROCA, crocs.fi.muni.cz/public/papers/rsa_ccs17), and 1024 sits below the RFC 8301 SHOULD-2048 guidance and signals immature mail-auth [verify 2026-10-30]. Sub-1024-bit keys are rejected by compliant verifiers.
 
 ### 6.4 Multi-Signature Messages
 
@@ -469,7 +467,7 @@ A message can carry multiple `DKIM-Signature:` headers — typical for messages 
 
 If the `DKIM-Signature:` includes `l=N`, only the first `N` bytes of the body are included in the hash. An attacker who modifies (or *appends*) bytes after position `N` does not invalidate the signature. The threat is a *signature replay* / *content-injection* pattern: take a legitimately signed message (e.g., a benign newsletter) with `l=N`, replace the body content beyond byte `N` with attacker content, and the resulting message still passes DKIM verification at the recipient.
 
-Forensic indicator: any `DKIM-Signature:` carrying `l=` is suspect; mail-flow vendors who emit `l=` should be flagged as a posture issue. Most modern senders do not emit `l=`; presence of `l=` in 2026-era messages typically indicates legacy MTA configuration or a deliberate attacker pattern. Microsoft has documented `l=` exploitation patterns (`l=`-stripping abuse) and Gmail's behavior toward `l=` has shifted [verify 2026-04-27 — check Microsoft / Google current guidance].
+Forensic indicator: any `DKIM-Signature:` carrying `l=` is suspect; mail-flow vendors who emit `l=` should be flagged as a posture issue. Most modern senders do not emit `l=`; presence of `l=` in 2026-era messages typically indicates legacy MTA configuration or a deliberate attacker pattern. RFC 6376 §8.2 ("Misuse of Body Length Limits") describes the attack; treat any `l=` as a posture finding [verify 2026-10-30].
 
 ### 6.6 Body Modification Detection
 
@@ -485,8 +483,8 @@ python3 -c "import dkim; print(dkim.verify(open('msg.eml','rb').read()))"
 
 # CLI tools
 opendkim-testmsg < msg.eml
-# Or:
-dkim-verify msg.eml
+# Or the dkimpy console script (reads the message from stdin) [verify 2026-10-30]:
+dkimverify < msg.eml
 
 # Inspect a signed message's signing parameters
 grep -i "DKIM-Signature\|Authentication-Results" msg.eml
@@ -498,7 +496,7 @@ grep -i "DKIM-Signature\|Authentication-Results" msg.eml
 
 ### 7.1 DMARC Record Anatomy
 
-DMARC (RFC 7489) is a TXT record published at `_dmarc.<domain>` declaring policy and reporting addresses for mail that fails alignment.
+DMARC (RFC 9989, Proposed Standard, May 2026, which obsoletes RFC 7489; aggregate reporting is RFC 9990 and failure reporting RFC 9991) is a TXT record published at `_dmarc.<domain>` declaring policy and reporting addresses for mail that fails alignment [verify 2026-10-30].
 
 ```
 _dmarc.example.com.  TXT  "v=DMARC1; p=quarantine; rua=mailto:dmarc-rua@example.com;
@@ -511,14 +509,16 @@ Tags:
 - **`v=`** — version (always `DMARC1`).
 - **`p=`** — policy: `none` (monitor), `quarantine` (junk-folder), `reject` (do not deliver).
 - **`sp=`** — sub-domain policy (defaults to `p=` if absent). Many domains publish `p=quarantine; sp=reject` to lock down sub-domains while keeping primary-domain policy lenient.
-- **`pct=`** — percentage of failing messages to which the policy applies; rollout dial (1-100). `pct=10` means 10% of failing mail is quarantined / rejected, 90% is delivered normally.
+- **`np=`** — policy for non-existent sub-domains (imported into RFC 9989 from RFC 9091); falls back to `sp=`, then `p=`.
+- **`pct=`** — legacy RFC 7489 sampling tag, marked *historic* by RFC 9989; still common in published records and honoured by RFC 7489-era receivers (`pct=10` = apply the policy to 10% of failing mail) [verify 2026-10-30].
+- **`t=`** — RFC 9989 test mode, replacing some `pct=` functionality: `t=y` asks receivers to apply one level below the published policy (`reject` → `quarantine`, `quarantine` → `none`); default `t=n`.
 - **`adkim=`** — DKIM alignment mode: `r` (relaxed — `header.d=` is `example.com` or any sub-domain) or `s` (strict — exact match).
 - **`aspf=`** — SPF alignment mode: `r` (relaxed — envelope `MAIL FROM` domain is `example.com` or any sub-domain) or `s` (strict — exact match).
-- **`rua=`** — aggregate-report destination(s); comma-separated `mailto:` URIs; report cadence is daily.
+- **`rua=`** — aggregate-report destination(s); comma-separated `mailto:` URIs; report cadence is daily or more frequent (RFC 9990).
 - **`ruf=`** — forensic-report (failure-report) destination(s); per-message reports; not all senders honor `ruf` due to PII concerns.
 - **`fo=`** — failure-reporting options: `0` (default — generate report only if both SPF and DKIM fail to produce a DMARC-pass), `1` (any auth failure), `d` (DKIM failure regardless of alignment), `s` (SPF failure regardless of alignment).
-- **`rf=`** — report format (`afrf` is the only widely-supported value).
-- **`ri=`** — aggregate-report interval in seconds (default 86400 = daily).
+- **`rf=`** / **`ri=`** — legacy RFC 7489 tags (failure-report format / aggregate interval), marked *historic* by RFC 9989; receivers may ignore them.
+- **`psd=`** — `y` / `n` / `u` (default `u`): marks a record published by a Public Suffix Domain operator; used in RFC 9989 Organizational-Domain discovery.
 
 ### 7.2 Alignment
 
@@ -539,13 +539,13 @@ A message can have SPF=pass on a third-party sender (`smtp.mailfrom=mailgun.org`
 |---|---|---|
 | Yes | Any | Pass |
 | Any | Yes | Pass |
-| No | No | Fail (subject to `pct=`, `fo=`, `p=`) |
+| No | No | Fail (subject to `p=` / `sp=` / `np=`, `t=` or legacy `pct=`, and `fo=` for reporting) |
 
-When both fail, the receiver applies `p=` modulated by `pct=` and emits aggregate / forensic reports per `rua=` / `ruf=` / `fo=`.
+When both fail, the receiver applies `p=` modulated by `t=` (or legacy `pct=`) and emits aggregate / forensic reports per `rua=` / `ruf=` / `fo=`.
 
 ### 7.4 Aggregate (`rua`) Report Parsing
 
-Aggregate reports are XML files (RFC 7489 Appendix C) attached to daily mail to the `rua=` address. Each report covers one reporter (one receiver organization, one policy domain, one day), summarizing per-source-IP counts of disposition decisions.
+Aggregate reports are XML files (schema: RFC 9990 Appendix A; RFC 7489 Appendix C for legacy reporters) attached to daily mail to the `rua=` address. Each report covers one reporter (one receiver organization, one policy domain, one day), summarizing per-source-IP counts of disposition decisions.
 
 Schema highlights:
 
@@ -574,12 +574,14 @@ Schema highlights:
       <header_from>example.com</header_from>
     </identifiers>
     <auth_results>
-      <dkim><domain>example.com</domain><result>fail</result></dkim>
+      <dkim><domain>example.com</domain><selector>mail2024</selector><result>fail</result></dkim>
       <spf><domain>spoofable.com</domain><result>pass</result></spf>
     </auth_results>
   </record>
 </feedback>
 ```
+
+RFC 9990 reporters may add a top-level `<version>`, report `np` / `discovery_method` / `testing` (and no `pct`) in `policy_published`, and must include the DKIM `<selector>`; RFC 7489-era reporters still send `pct` and may omit the selector.
 
 Forensic uses:
 
@@ -589,7 +591,7 @@ Forensic uses:
 
 ### 7.5 Forensic (`ruf`) Reports
 
-Per-message failure reports (RFC 6591 ARF format). They include redacted message headers and (sometimes) body excerpts. Privacy concerns mean many large receivers (Gmail, Microsoft) do not honor `ruf=` at scale or honor it only for opted-in domains [verify 2026-04-27]. When available, `ruf` reports give per-message visibility — invaluable for active-incident hunting but not a reliable steady-state stream.
+Per-message failure reports (RFC 6591 ARF format, as updated by RFC 9991). They include redacted message headers and (sometimes) body excerpts. Gmail does not support `ruf=`, and Microsoft 365 never sends failure reports even when a valid `ruf=` is published, so `ruf` coverage comes only from other receivers [verify 2026-10-30]. When available, `ruf` reports give per-message visibility — invaluable for active-incident hunting but not a reliable steady-state stream.
 
 ### 7.6 DMARC Reporting Infrastructure
 
@@ -597,16 +599,16 @@ Customers consume `rua` / `ruf` reports through:
 
 | Approach | Notes |
 |---|---|
-| **In-house parser** | `parsedmarc` (https://github.com/domainaware/parsedmarc) is the canonical open-source parser; ingests via IMAP / S3 / file; outputs Elasticsearch / Splunk / S3 / SQL [verify 2026-04-27] |
+| **In-house parser** | `parsedmarc` (https://github.com/domainaware/parsedmarc) is the canonical open-source parser; ingests from IMAP / Microsoft Graph / Gmail API / Maildir mailboxes or report files; outputs Elasticsearch / OpenSearch / Splunk HEC / Kafka / S3 / syslog / GELF / webhook / PostgreSQL [verify 2026-10-30] |
 | **dmarcian** | Commercial DMARC analytics platform (https://dmarcian.com) |
 | **Valimail** | Commercial DMARC + sender-identity platform |
-| **Postmark DMARC** | Free DMARC-monitoring service (Wildbit / ActiveCampaign) |
+| **Postmark DMARC** | Free weekly DMARC digest plus a paid monitoring tier (ActiveCampaign) |
 | **MXToolbox** | Commercial DMARC monitoring |
 | **Cloudflare DMARC Management** | Cloudflare-hosted aggregation for Cloudflare-DNS customers |
 | **EasyDMARC** | Commercial DMARC platform |
 | **OnDMARC (Red Sift)** | Commercial DMARC platform |
-| **Agari Brand Protection** | Enterprise DMARC + brand-impersonation platform (acquired by Fortra) [verify 2026-04-27] |
-| **Microsoft DMARC reporting** | Microsoft published DMARC aggregate-report receiver capability for tenants [verify 2026-04-27] |
+| **Agari DMARC Protection** | Enterprise DMARC + look-alike-domain / brand-impersonation platform; formerly Agari Brand Protection, now sold by Fortra [verify 2026-10-30] |
+| **Microsoft 365 as a reporter** | Exchange Online sends `rua` aggregate reports for inbound mail only when the tenant's MX points directly at Microsoft 365, and never sends `ruf` failure reports; Microsoft offers no built-in report consumer (it points to PowerShell / Power BI automation or external services) [verify 2026-10-30] |
 
 For active BEC investigations, the customer's existing aggregate-report archive — even if previously unparsed — is the highest-value historical lookalike-sender corpus.
 
@@ -622,9 +624,10 @@ dig _dmarc.sub.example.com TXT +short
 # Bulk DMARC check across customer-owned domains (psl-aware)
 # Use a scripted approach with dnspython + publicsuffix2
 
-# Aggregate-report parser (parsedmarc)
-parsedmarc --imap-host imap.example.com --imap-user dmarc-rua --imap-pass "$PW" \
-           --output ./rua-output
+# Aggregate-report parser (parsedmarc). Mailbox settings live in an INI file ([imap] host / user /
+# password) or in PARSEDMARC_{SECTION}_{KEY} env vars; there are no --imap-* CLI flags [verify 2026-10-30]
+export PARSEDMARC_IMAP_PASSWORD="$PW"   # keeps the secret out of the INI file
+parsedmarc -c /etc/parsedmarc.ini -o ./rua-output
 
 # Inspect a single XML report
 unzip -p report.xml.zip | xmllint --format -
@@ -638,7 +641,7 @@ unzip -p report.xml.zip | xmllint --format -
 
 DMARC is brittle across **indirect mail flows** — mailing lists, vacation auto-forwards, Microsoft 365 transport-rule rewriting — because intermediates legitimately modify messages (add `[list]` to `Subject:`, append disclaimer footers, rewrite `From:` to a list address). These modifications break DKIM body-hash; SPF alignment is already broken because the relay is the new envelope sender. Without ARC, a forwarded legitimate message arrives at the final recipient with DMARC=fail.
 
-ARC (Authenticated Received Chain, RFC 8617) lets each cooperating intermediate add a sealed record of *what authentication looked like when I received this*, plus a re-signature of the message *as I forwarded it*. The final recipient validates the chain and can choose to honor the auth-result the chain attests was true at origin even if direct DMARC fails.
+ARC (Authenticated Received Chain, RFC 8617, Experimental) lets each cooperating intermediate add a sealed record of *what authentication looked like when I received this*, plus a re-signature of the message *as I forwarded it*. The final recipient validates the chain and can choose to honor the auth-result the chain attests was true at origin even if direct DMARC fails.
 
 ### 8.2 ARC Headers
 
@@ -653,14 +656,17 @@ ARC instance numbering: `i=1` is the first ARC-aware MTA; subsequent hops increm
 ### 8.3 ARC Validation
 
 ```bash
-# Python tooling (dkimpy supports ARC)
+# Python tooling (dkimpy supports ARC; needs the authres package)
 python3 -c "import authres, dkim; print(dkim.arc_verify(open('msg.eml','rb').read()))"
 
-# OpenARC (https://github.com/trusteddomainproject/OpenARC) — verify 2026-04-27
-openarc-tool < msg.eml
+# dkimpy also installs an ARC chain-validation CLI that reads the message on stdin [verify 2026-10-30]
+arcverify < msg.eml
+
+# OpenARC is a milter, not a one-shot verifier; the maintained fork is https://github.com/flowerysong/OpenARC
+# (trusteddomainproject/OpenARC has had no push since 2024-04)
 ```
 
-Trusted ARC-sealer list is the recipient policy decision: which ARC sealers does the recipient trust to attest to origin-time authentication? Major mailbox providers (Gmail, Microsoft 365, Yahoo, AOL — verify 2026-04-27) operate ARC sealers; smaller intermediates may or may not. A broken or absent ARC chain on a forwarded message is a routine forensic signal — it does not necessarily mean spoofing, but it limits the receiver's ability to override a direct-DMARC fail.
+Trusted ARC-sealer list is the recipient policy decision: which ARC sealers does the recipient trust to attest to origin-time authentication? Gmail and Microsoft 365 document ARC support (Google's ARC help page describes the three ARC headers and the `cv=` chain-validation tag; Microsoft 365 lets admins designate trusted ARC sealers) [verify 2026-10-30]; other providers and smaller intermediates may or may not seal. A broken or absent ARC chain on a forwarded message is a routine forensic signal — it does not necessarily mean spoofing, but it limits the receiver's ability to override a direct-DMARC fail.
 
 ### 8.4 ARC Forensic Patterns
 
@@ -686,17 +692,17 @@ Trusted ARC-sealer list is the recipient policy decision: which ARC sealers does
 | Keyboard adjacency | `exampke.com`, `wxample.com` |
 | TLD substitution | `example.co`, `example.cm`, `example.org`, `example.com.<cctld>` |
 | Subdomain confusion | `example.com.evil.com`, `secure-example.com`, `login-example.com` |
-| IDN homograph (Punycode `xn--`) | `xn--exmple-cua.com` displays in IDN-aware UIs as `exаmple.com` (Cyrillic `а`) |
-| Mixed-script | Combinations of Latin + Cyrillic + Greek visually identical; Unicode TR39 confusables |
+| IDN homograph (Punycode `xn--`) | `xn--exmple-4nf.com` displays in IDN-aware UIs as `exаmple.com` (Cyrillic `а`, U+0430); compare `xn--exmple-cua.com` = `exämple.com` (Latin `ä`) |
+| Mixed-script | Combinations of Latin + Cyrillic + Greek visually identical; UTS #39 (Unicode Security Mechanisms) confusables |
 | Brand-confusable (legitimate-domain-near) | `examplecorp.com` against `example-corp.com` |
 
 ### 9.2 IDN Homograph Forensics
 
-Internationalized Domain Names encode non-ASCII characters as Punycode (RFC 3492) prefixed with `xn--`. Browsers and mail clients render the Unicode form unless safety heuristics (mixed-script, non-allowed-scripts) downgrade to Punycode. Modern browser policies (Chromium, Firefox) downgrade to Punycode display when the label contains characters outside the user's configured-scripts plus Latin, mitigating the worst homograph cases — but mail clients are inconsistent [verify 2026-04-27 — check current policy state].
+Internationalized Domain Names encode non-ASCII characters as Punycode (RFC 3492) prefixed with `xn--`. Browsers and mail clients render the Unicode form unless safety heuristics downgrade to Punycode. Chromium (since Chrome 51, ignoring the browser's language settings) and Firefox both apply per-label script-mixing rules: Latin may not mix with Cyrillic or Greek, and disallowed characters force Punycode. Chromium also runs UTS #39 confusable checks, including whole-script confusables (an all-Cyrillic Latin look-alike on `.com` shows as Punycode), while Firefox's documented algorithm skips the checks for allow-listed TLDs and permits whole-script confusables [verify 2026-10-30]. Mail clients apply their own, inconsistent rules.
 
 ```bash
 # Decode IDN
-python3 -c "print('xn--exmple-cua.com'.encode().decode('idna'))"
+python3 -c "print('xn--exmple-4nf.com'.encode().decode('idna'))"
 
 # Encode IDN
 python3 -c "print('exаmple.com'.encode('idna').decode())"
@@ -726,8 +732,9 @@ dnstwist --registered example.com
 # JSON output for parsing
 dnstwist --registered --format json example.com > squat-candidates.json
 
-# Include WHOIS, banner, and SSL-cert grabbing
-dnstwist --registered --whois --banners --ssdeep example.com
+# Include WHOIS (creation date / registrar), HTTP + SMTP banners, and web-page similarity hashing.
+# dnstwist has no certificate grab (use the crt.sh / openssl steps in §9.4-§9.5); --ssdeep is a hidden legacy alias [verify 2026-10-30]
+dnstwist --registered --whois --banners --lsh ssdeep example.com
 
 # Scan against multiple base domains
 for d in example.com example.org example.net; do
@@ -739,19 +746,20 @@ done
 
 ### 9.4 Certificate Transparency Log Monitoring
 
-CT logs (RFC 6962) record every TLS certificate issued by a participating CA. Monitoring CT for issuance against your brand surface catches squatters at certificate-issuance time, often before mail-sending. crt.sh, Censys, Cloudflare Merkle Town, Google's CT portal, Facebook's CT monitoring, and SecurityTrails all provide query APIs [verify 2026-04-27].
+CT logs (RFC 6962; RFC 9162 "CT 2.0" obsoletes it on paper, but Chrome-recognised logs implement RFC 6962 or the C2SP static-ct-api) record every TLS certificate issued by a participating CA. Monitoring CT for issuance against your brand surface catches squatters at certificate-issuance time, often before mail-sending. crt.sh, Censys, Cloudflare Radar's Certificate Transparency pages (formerly Merkle Town; ct.cloudflare.com redirects there), Google's Transparency Report, and SecurityTrails provide query interfaces; Facebook's CT monitoring tool page now returns 404 [verify 2026-10-30].
 
 ```bash
 # crt.sh JSON API (free)
 curl -s "https://crt.sh/?q=%25example%25&output=json" | jq '.[] | .name_value' | sort -u
 
-# Censys (commercial)
-censys search "parsed.subject.common_name: *example*"
+# Censys (commercial; legacy censys-python CLI, certificates index). Censys says its Search v1/v2 APIs
+# will be deprecated in favour of the Censys Platform (censys-sdk-python) [verify 2026-10-30]
+censys search 'parsed.subject_dn: "example"' --index-type certificates
 
 # Continuous CT monitoring — cron / scheduled job; diff against day-prior set
 ```
 
-Brand-protection platforms (DomainTools Iris, Group-IB Digital Risk Protection, RiskIQ Digital Footprint / Microsoft Defender External Attack Surface Management, ZeroFox, BrandShield, Mandiant Digital Threat Monitoring — verify 2026-04-27) provide aggregated CT + WHOIS + DNS + content monitoring.
+Brand-protection platforms (DomainTools Iris, Group-IB Digital Risk Protection, Microsoft Defender External Attack Surface Management (ex-RiskIQ), ZeroFox, BrandShield, Mandiant Digital Threat Monitoring [verify 2026-10-30]) provide aggregated CT + WHOIS + DNS + content monitoring.
 
 ### 9.5 Registrar / Hosting-Provider Forensics
 
@@ -761,14 +769,13 @@ For each suspect lookalike domain:
 # WHOIS
 whois lookalike.example.com
 
-# Historical WHOIS (commercial)
-# DomainTools Iris: https://iris.domaintools.com/
-# WhoisXMLAPI: https://www.whoisxmlapi.com/whois-history-api
-# verify 2026-04-27
+# Historical WHOIS (commercial) [verify 2026-10-30]
+# DomainTools Iris: https://research.domaintools.com/ (iris.domaintools.com redirects there)
+# WhoisXML API WHOIS History: https://whois-history.whoisxmlapi.com/
 
-# DNS records (current)
-dig lookalike.example.com ANY +short
-dig lookalike.example.com MX +short
+# DNS records (current). Many authoritative servers (Cloudflare included) answer ANY minimally
+# per RFC 8482, so query each type explicitly [verify 2026-10-30]
+for t in A AAAA NS MX TXT; do dig lookalike.example.com "$t" +short; done
 dig _dmarc.lookalike.example.com TXT +short
 dig default._domainkey.lookalike.example.com TXT +short
 
@@ -777,7 +784,7 @@ echo | openssl s_client -connect lookalike.example.com:443 -servername lookalike
   | openssl x509 -text -noout
 
 # Passive DNS (commercial)
-# SecurityTrails, DomainTools, RiskIQ — verify 2026-04-27
+# SecurityTrails, DomainTools, threat intelligence in the Microsoft Defender portal (formerly Defender TI / RiskIQ PassiveTotal) [verify 2026-10-30]
 ```
 
 Forensic indicators:
@@ -788,14 +795,15 @@ Forensic indicators:
 - **A records on commodity hosting** (DigitalOcean, Vultr, Linode, Hetzner, OVH, Cloudflare) — operational signal.
 - **Cloudflare-fronted** — common; impedes upstream-IP discovery; pivot via SSL-cert SAN, mail-flow MX, or coordinated provider abuse.
 - **No DMARC / weak SPF on the lookalike** — campaign infrastructure rarely deploys outbound mail-auth on the squat domain itself; their mail uses other infrastructure.
-- **Registrar pattern** (NameCheap / NameSilo / Tucows / Porkbun / Hostinger — verify 2026-04-27) — bulk-registration patterns are visible across sister-squats; the same registrant (even when redacted via Privacy Service) often clusters at one registrar.
+- **Registrar pattern** (NameCheap / NameSilo / Tucows / Porkbun / Hostinger [verify 2026-10-30]) — bulk-registration patterns are visible across sister-squats; the same registrant (even when redacted via Privacy Service) often clusters at one registrar.
 
 ### 9.6 Brand-Confusable Unicode (TR39 Confusables)
 
-Unicode Technical Report 39 publishes a confusables.txt mapping similar-looking glyphs across scripts. Tools:
+Unicode Technical Standard #39 (Unicode Security Mechanisms) publishes `confusables.txt` (https://www.unicode.org/Public/security/latest/confusables.txt), mapping similar-looking glyphs across scripts. Tools:
 
 ```bash
-# Python: confusables-py
+# Python: confusable_homoglyphs (PyPI confusable-homoglyphs). GitHub repo archived Jan 2024;
+# now maintained at https://sr.ht/~valhalla/confusable_homoglyphs/ [verify 2026-10-30]
 python3 -c "from confusable_homoglyphs import confusables; print(confusables.is_confusable('exаmple.com'))"
 
 # Online ICU confusables analyzer
@@ -808,7 +816,7 @@ python3 -c "from confusable_homoglyphs import confusables; print(confusables.is_
 2. **Resolve** — DNS A / MX / TXT for each registered candidate.
 3. **Enrich** — WHOIS, registrar, hosting ASN, SSL certs, passive DNS.
 4. **Cross-walk to incident headers** — does any candidate appear in the suspect message's `From:`, `Reply-To:`, `Return-Path`, embedded URLs, signature block?
-5. **Cross-walk to DMARC reports** — has this candidate appeared as a `source_ip` against the customer's domain? (No — `source_ip` is the *sender* IP. Cross-walk to the customer's mail-flow alerts and SEG quarantine logs.)
+5. **Cross-walk to DMARC reports** — `source_ip` is the connecting IP and `header_from` is the customer's own domain, so a separate lookalike domain will not appear by name. Cross-walk the lookalike's A / MX IPs against `source_ip` entries, then against the customer's mail-flow alerts and SEG quarantine logs.
 6. **Track campaign infrastructure** — sister-domain discovery (SSL-cert SAN expansion, registrar-data clustering, hosting-IP co-location).
 7. **Coordinate take-down** — registrar abuse contact + hosting-provider abuse contact + CDN abuse contact; legal-counsel on UDRP (Uniform Domain-Name Dispute-Resolution Policy) where the brand has a registered trademark.
 
@@ -821,68 +829,80 @@ python3 -c "from confusable_homoglyphs import confusables; print(confusables.is_
 The mailbox-side of any M365-hosted incident is owned by [[sop-saas-log-forensics|SaaS Log Forensics]]. This SOP covers the **mail-flow** layer specifically.
 
 ```powershell
-# Connect to Exchange Online
+# Connect to Exchange Online (ExchangeOnlineManagement 3.7.0+ for the V2 trace cmdlets)
 Connect-ExchangeOnline -UserPrincipalName investigator@<tenant>.onmicrosoft.com
 
-# Get-MessageTrace — last 10 days, 5000-message page
-Get-MessageTrace -StartDate (Get-Date).AddDays(-10) -EndDate (Get-Date) `
-                 -SenderAddress "spoofed@example.com" `
-                 -PageSize 5000 | Export-Csv mt-recent.csv
+# Get-MessageTraceV2: last 90 days, at most 10 days per query, ResultSize up to 5000, no paging [verify 2026-10-30]
+Get-MessageTraceV2 -StartDate (Get-Date).AddDays(-10) -EndDate (Get-Date) `
+                   -SenderAddress "spoofed@example.com" `
+                   -ResultSize 5000 | Export-Csv mt-recent.csv
+# Next batch: rerun with -StartingRecipientAddress / -EndDate set to the last row's recipient address / received time.
+# Legacy Get-MessageTrace (10 days, -PageSize) is "replaced by the Get-MessageTraceV2 cmdlet".
 
-# Historical trace (10-90 days; report-based, slower)
+# Historical trace (report-based, asynchronous; up to 90 days back)
 Start-HistoricalSearch -ReportTitle "BEC-investigation-2026-04-27" `
-                      -StartDate "2026-02-01" -EndDate "2026-04-27" `
+                      -StartDate (Get-Date).AddDays(-85) -EndDate (Get-Date) `
                       -ReportType MessageTrace `
                       -SenderAddress "spoofed@example.com"
 # Result delivered as CSV / report by mail; pull from Get-HistoricalSearch
 
-# Per-message detail (event-level: Receive, Submit, Deliver, FilterAgent, Send,
-# Quarantine, AttributionFlow)
-Get-MessageTraceDetail -MessageTraceId <guid> -Recipient <recipient>
+# Per-message detail. Documented -Event examples: RECEIVE, SEND, FAIL, DELIVER, EXPAND, TRANSFER, DEFER.
+# Without -StartDate / -EndDate only the last 48 hours are searched.
+Get-MessageTraceDetailV2 -MessageTraceId <guid> -RecipientAddress <recipient> `
+                         -StartDate (Get-Date).AddDays(-7) -EndDate (Get-Date)
 ```
 
-Microsoft is migrating message trace to a new Reporting Web Service / Graph endpoint [verify 2026-04-27 — `Get-MessageTraceV2` cmdlet name and Graph endpoint are evolving; verify against current Microsoft documentation before scripting]. The legacy `Get-MessageTrace` retains 10-day visibility; longer windows require historical search, which is asynchronous and report-driven.
+`Get-MessageTrace` / `Get-MessageTraceDetail` are replaced by `Get-MessageTraceV2` / `Get-MessageTraceDetailV2` and "will eventually be deprecated" (V2: 90-day window, 10 days per query, 100 queries per tenant per 5 minutes). Message-trace support in the legacy Reporting Web Service began deprecating on 8 April 2026 and is replaced by the Microsoft Graph message-trace API (`exchangeMessageTrace`) [verify 2026-10-30]. `Start-HistoricalSearch` remains the asynchronous, report-driven route for bulk exports.
 
-For higher-fidelity event-level detail, Defender for Office 365 **Threat Explorer** (Defender portal → Email & collaboration → Explorer) provides the per-recipient delivery action (Delivered / Junk / Phish / Bulk / Quarantine / Replaced / Stripped) and supports purge actions (Soft Delete / Hard Delete / Move to Junk / Move to Inbox); state-changing actions require explicit authorization.
+For higher-fidelity event-level detail, Defender for Office 365 **Threat Explorer** (Plan 2; Plan 1 tenants get the lighter Real-time detections page; Defender portal → Email & collaboration → Explorer) gives the per-recipient delivery action (Blocked / Delivered / Delivered to junk / Replaced) plus original and latest delivery location (Inbox/folder, Junk, Quarantine, Deleted Items, Dropped, Failed, On-prem/external), and supports remediation actions (move to inbox / move to junk / move to deleted items / soft delete / hard delete) [verify 2026-10-30]; state-changing actions require explicit authorization.
 
 ### 10.2 On-Premises Exchange Message Tracking
 
 ```powershell
-# On-premises Exchange Server message tracking
+# On-premises Exchange Server message tracking. -EventId takes a single string, so filter client-side
+# (or run one call per EventId); ResultSize defaults to 1000 [verify 2026-10-30]
 Get-MessageTrackingLog -Server <transport-server> -Start "2026-04-27 00:00" -End "2026-04-27 23:59" `
-    -Sender "spoofed@example.com" -EventId "DELIVER","FAIL","RECEIVE","SEND","BADMAIL"
+    -Sender "spoofed@example.com" -ResultSize Unlimited |
+    Where-Object { $_.EventId -in 'DELIVER','FAIL','RECEIVE','SEND','BADMAIL' }
 ```
 
 Hybrid environments (Exchange Online + on-prem) require message-trace correlation across both surfaces.
 
 ### 10.3 Google Workspace Email Log Search
 
-Workspace Email Log Search (Admin Console → Reporting → Email Log Search) provides per-message visibility for the last 30 days, with deeper retention via Vault (when in-place) and via Gmail BigQuery export.
+Workspace Email Log Search (ELS; Admin console → Reporting → Email Log Search) gives full delivery-status detail for the last 30 days (up to 1,000 messages and 15,000 log entries per message per search). Its "Older than 30 days" option needs the recipient address and Message-ID and returns post-delivery status only. Gmail log events are kept 6 months for Admin console reports and audit & investigation; longer windows need the BigQuery export, and Vault retains message *content*, not logs [verify 2026-10-30].
 
-Query parameters: `From:`, `To:`, `Subject:`, message size, sent / received timestamp, message ID. Results include the per-recipient routing decision (Delivered / Quarantine / Spam-Marked / Phishing / Reverted) and the security verdict.
+Search fields: Sender (full or partial address, or Return-Path), Recipient, Sender IP, Recipient IP, Subject, Message ID, and date range. Results show a status for each delivery step plus post-delivery state (labels, location, spam marking, deletion).
 
 ```bash
-# GAM7 wrapper (https://github.com/GAM-team/GAM)
-gam report email startTime "2026-04-27T00:00:00Z" endTime "2026-04-27T23:59:59Z" \
-    eventName "ATTACHMENT_DELIVERY" \
-    fields "user,event,message_id,recipient_email,sender_email,subject"
+# GAM7 (https://github.com/GAM-team/GAM; installs as `gam`): Gmail log events via the Reports API
+# (applicationName=gmail; eventName is always `delivery`; start/end window <= 30 days) [verify 2026-10-30]
+gam redirect csv ./gmail-2026-04-27.csv report gmail start "2026-04-27T00:00:00Z" end "2026-04-27T23:59:59Z"
 
-# Workspace Reports API (gmail application — covers a different surface than Email Log Search)
-gam report gmail eventName authorize fields user,event,client_id,scope
+# Narrow by event_info.mail_event_type code from the Reports API Gmail appendix (e.g. 5 = message quarantined)
+gam report gmail start "2026-04-27T00:00:00Z" end "2026-04-27T23:59:59Z" gmaileventtypes 5
+
+# OAuth grants (OAuth-consent BEC variant) are the `token` application, not `gmail`
+gam report token event authorize
 ```
 
 ### 10.4 Gmail BigQuery Export
 
-For long-term mail-event evidence, customers can configure Workspace logs export to BigQuery, which exports the Gmail logs (delivery decisions, sender / recipient, subject, message ID, security verdict) at full granularity beyond the 30-day Email Log Search window [verify 2026-04-27].
+For long-term mail-event evidence, customers can configure Workspace logs export to BigQuery, which exports the Gmail logs (delivery decisions, sender / recipient, subject, message ID, security verdict) at full granularity beyond the 30-day Email Log Search window; the export includes up to 180 days of historical activity data [verify 2026-10-30].
 
 ```sql
--- Example BigQuery against `<project>.<dataset>.activity` (Workspace logs export schema)
-SELECT *
-FROM `project.dataset.activity`
-WHERE event.name = 'message_delivered'
-  AND event.parameters.sender_email LIKE '%spoofed@example.com%'
-  AND TIMESTAMP_TRUNC(time, DAY) BETWEEN '2026-02-01' AND '2026-04-27'
-ORDER BY time DESC
+-- Workspace service-log export, `activity` table; Gmail fields live under `gmail.*`.
+-- Tables are day-partitioned on _PARTITIONTIME (Pacific Time boundaries); filter on it to limit cost.
+SELECT TIMESTAMP_MICROS(gmail.event_info.timestamp_usec) AS ts,
+       gmail.message_info.subject,
+       gmail.message_info.source.address AS sender,
+       destination.address AS recipient,
+       gmail.message_info.rfc2822_message_id,
+       gmail.event_info.mail_event_type
+FROM `project.dataset.activity` d, d.gmail.message_info.destination
+WHERE gmail.message_info.source.address = 'spoofed@example.com'
+  AND DATE(_PARTITIONTIME) BETWEEN '2026-02-01' AND '2026-04-27'
+ORDER BY ts DESC
 ```
 
 ### 10.5 Cross-Walk to Mailbox-Compromise Side
@@ -891,12 +911,12 @@ When the BEC includes a mailbox-compromise pivot:
 
 - **Authentication context** for the suspicious sign-in: Entra ID sign-in logs / Workspace `login` Reports → [[sop-saas-log-forensics|SaaS Log Forensics]] §4.2 / §5.1.
 - **Mailbox-rule changes** (`New-InboxRule`, `Set-InboxRule`, `Remove-InboxRule`) → [[sop-saas-log-forensics|SaaS Log Forensics]] §4.6.
-- **Mailbox audit** (mail accessed, sent, moved, deleted) — `Search-MailboxAuditLog` → [[sop-saas-log-forensics|SaaS Log Forensics]] §4.5.
+- **Mailbox audit** (mail accessed, sent, moved, deleted) — `Search-UnifiedAuditLog -RecordType ExchangeItem` / `ExchangeItemGroup` / `ExchangeItemAggregated`, one session per record type: set `$sid = "case-$([guid]::NewGuid())"` once, before the loop (a new SessionId restarts at the first block, so generating it inside the loop never terminates), then run `do { $page = Search-UnifiedAuditLog ... -SessionId $sid -SessionCommand ReturnLargeSet -ResultSize 5000; $page } while ($page)` (100 records by default without it; max 50,000 per session, unsorted). Microsoft says `Search-MailboxAuditLog` "will be deprecated in the cloud-based service" [verify 2026-10-30] → [[sop-saas-log-forensics|SaaS Log Forensics]] §4.5.
 - **OAuth-app token persistence** (the OAuth-consent BEC variant) → [[sop-saas-log-forensics|SaaS Log Forensics]] §10. The mailbox-side compromise reconstruction lives there; this SOP captures the *messages* the compromised mailbox sent and received.
 
 ### 10.6 Quarantine and Junk-Folder Forensics
 
-Recipient-side quarantine / junk-folder content is part of the mail-flow record. Defender for Office 365 quarantine retains messages for tenant-configurable periods (default 30 days [verify 2026-04-27]); Workspace **Spam** and **Quarantine** retain for the workspace-configured retention (default 30 days [verify 2026-04-27]). Quarantine pulls (read-only) are part of evidence collection; release / delete actions are state-changing and require authorization.
+Recipient-side quarantine / junk-folder content is part of the mail-flow record. Defender for Office 365 / EOP quarantine retention depends on the verdict: anti-spam verdicts (spam, high-confidence spam, phishing, high-confidence phishing, bulk) keep **15 days** under the default and custom anti-spam policies (configurable 1-30 days via `QuarantineRetentionPeriod`) and 30 days under the Standard / Strict presets; anti-phishing quarantine follows the anti-spam value; malware, mail-flow-rule and Safe Attachments quarantine is a fixed **30 days**; expired messages are permanently deleted. Workspace admin **Quarantine** holds messages for a fixed 30 days, then deletes them permanently (Vault retention can hold copies longer) [verify 2026-10-30]. User **Spam**-folder retention is not stated on the admin pages checked; confirm before relying on it. Quarantine pulls (read-only) are part of evidence collection; release / delete actions are state-changing and require authorization.
 
 ```powershell
 # M365 quarantine pull
@@ -924,7 +944,7 @@ Mimecast Audits / Tracker / Hold-Queue / Search & Recover provide message-level 
 - **Threat Intelligence Dashboard** — IOCs surfaced from URL Protection / Attachment Protection.
 - **Audit Logs** — administrator actions (block, allow, release, deny, policy-change).
 
-Pull via Mimecast API (https://www.mimecast.com/tech-connect/documentation/) — version pin per engagement [verify 2026-04-27]. Engagement-time admin role: dedicated investigator console user with `Audit` and `Search & Recover` rights.
+Pull via Mimecast API 2.0 (developer portal https://developer.services.mimecast.com/); the old tech-connect documentation URL now redirects to an "API 1.0 Documentation" archive, so build new integrations on 2.0 [verify 2026-10-30]. Engagement-time admin role: dedicated investigator console user with `Audit` and `Search & Recover` rights.
 
 ### 11.2 Proofpoint
 
@@ -936,29 +956,30 @@ Proofpoint provides:
 - **Threat Response Auto-Pull (TRAP)** — post-delivery message removal events.
 - **Audit Logs** — admin / API activity.
 
-Pull via Proofpoint REST API / SIEM API [verify 2026-04-27]. Engagement-time admin role: read-only Smart Search + Threat Insight.
+Pull via Proofpoint REST API / SIEM API (https://help.proofpoint.com/Threat_Insight_Dashboard/API_Documentation/SIEM_API) [verify 2026-10-30]. Engagement-time admin role: read-only Smart Search + Threat Insight.
 
 ### 11.3 Microsoft Defender for Office 365
 
 Already covered at §10.1 (Threat Explorer, Quarantine). Additionally:
 
 - **Submissions** — administrator submissions to Microsoft for mis-classification review.
-- **Campaign Views** — Microsoft-aggregated campaign intelligence.
-- **Compromised User Detection** — leaked-credential / suspicious-mail-flow alerts.
+- **Campaigns** (Plan 2) — Microsoft-aggregated campaign intelligence.
+- **AIR for compromised users** (Plan 2) — automated investigation of suspicious-mail-flow / compromised-user alerts.
 - **Attack Simulation Training** — *training* infrastructure that should not appear in real incidents (rule out as cause when investigating "received simulated phishing" reports).
 
 ### 11.4 Cisco Secure Email (formerly Ironport ESA)
 
 - **Message Tracking** — appliance / cloud message-flow search.
 - **Mail Logs** — raw MTA logs (extensible to SIEM / log-management).
-- **AsyncOS** version drives feature scope and API surface [verify 2026-04-27].
+- **AsyncOS** version drives feature scope and API surface [verify 2026-10-30].
 
-### 11.5 Barracuda Email Security Gateway / Email Security Service
+### 11.5 Barracuda Email Gateway Defense / Email Security Gateway
 
-- **Message Logs** — per-message disposition.
-- **Atlas** (cloud) intelligence overlay.
+- **Message Log** — per-message disposition and block category in Email Gateway Defense; Barracuda's documentation covers moving from the Email Security Gateway appliance to Email Gateway Defense [verify 2026-10-30].
 
-### 11.6 Sophos Email Appliance / Sophos Central Email
+### 11.6 Sophos Central Email
+
+Sophos lists the on-prem **Sophos Email Appliance** under "Sophos Products Now End of Life"; treat SEA logs as legacy evidence [verify 2026-10-30].
 
 - **Message Search** — per-message routing decision.
 - **Audit Trail** — admin actions.
@@ -989,7 +1010,7 @@ Lawful acquisition paths:
 
 - **Open directory exposure** — many kit operators leave directory-listing enabled on the staging server; the kit is downloadable while it is live. `wget -r -np -k <url>/<kit-path>/` archives the tree. Capture with `curl -I` first to confirm scope; respect engagement scope (do not enumerate beyond the suspect path).
 - **Takedown-coordinated copy** — when working with a hosting provider's abuse team or a CDN's trust-and-safety team to take down infrastructure, the takedown coordination frequently includes a copy of the served content for evidence.
-- **Sandbox capture** — detonating the phishing URL in a sandbox (Microsoft Defender for Office 365 Detonation, Joe Sandbox, ANY.RUN, Hatching Triage — verify 2026-04-27) can capture the kit's served output and sometimes the source.
+- **Sandbox capture** — detonating the phishing URL in a sandbox (Microsoft Defender for Office 365 Detonation, Joe Sandbox, ANY.RUN, Hatching Triage [verify 2026-10-30]) can capture the kit's served output and sometimes the source.
 - **Customer-supplied** — the customer's IR firm captured the kit during the incident.
 - **LE-shared evidence** — when an active investigation is in coordination with FBI / NCSC / Europol.
 
@@ -1016,17 +1037,17 @@ Static-analysis hooks (route to [[sop-malware-analysis|Malware Analysis]] for de
 - **Strings** — `strings -a -n 8 *.php | grep -E 'mail\(|smtp|telegram|@gmail|api\.telegram|hotmail|protonmail|onion'`
 - **Telltale exfil patterns** — PHP `mail()`-based send to attacker `@gmail.com` / `@protonmail.com` / `@onionmail.org`; PHP `curl_*` POST to attacker URL; Telegram Bot API (`api.telegram.org/bot<token>/sendMessage?chat_id=<id>`).
 - **Anti-analyst blockers** — `allow.php` / `blockers.php` filtering by IP CIDR (Google ASNs, security-vendor ASNs, Tor exits), User-Agent (`Bot`, `crawl`, `scan`, `wget`, `curl`), and GeoIP.
-- **Kit-author signatures** — many kits carry author tags (`/* coded by ... */` comments, watermarks, author-website links); cross-walk against threat-intel kit-tracking communities (PhishKit Tracker [verify 2026-04-27], Group-IB Phishing Kit Track, Akamai Hunt, Cofense Intelligence).
+- **Kit-author signatures** — many kits carry author tags (`/* coded by ... */` comments, watermarks, author-website links); cross-walk against vendor and community phishing-kit research and your own corpus of kit signatures.
 
 ### 12.4 Adversary-in-the-Middle (AiTM) Detection
 
-**EvilGinx, Modlishka, Muraena**, and a growing family of AiTM kits proxy the legitimate authentication flow — the victim sees the real login page (because the kit fetches it from the legitimate provider), enters credentials, completes MFA; the kit captures the post-MFA session cookie / token, then either passes through or fails the user out. The attacker holds a valid session token without ever needing the credential in isolation. AiTM is the dominant pattern defeating MFA in 2024-2026 BEC [verify 2026-04-27].
+**EvilGinx, Modlishka, Muraena**, and a growing family of AiTM kits proxy the legitimate authentication flow — the victim sees the real login page (because the kit fetches it from the legitimate provider), enters credentials, completes MFA; the kit captures the post-MFA session cookie / token, then either passes through or fails the user out. The attacker holds a valid session token without ever needing the credential in isolation. AiTM is a widely reported route around MFA in BEC (for example Microsoft's 2022 write-up https://www.microsoft.com/en-us/security/blog/2022/07/12/from-cookie-theft-to-bec-attackers-use-aitm-phishing-sites-as-entry-point-to-further-financial-fraud/); cite a current vendor report when quoting prevalence [verify 2026-10-30].
 
 Detection signatures:
 
 - **Hostname pattern** — AiTM kits commonly proxy `login.microsoftonline.com` through a registered lookalike (`login-microsoftonline.<lookalike>.<tld>`); cross-walk against §9 lookalike inventory.
 - **TLS-cert SAN expansion** — kits frequently issue a single cert covering multiple impersonated provider hostnames; CT-log monitoring (§9.4) catches the issuance.
-- **JA3 / JA4 client-side fingerprint** — when the kit operates as an HTTP client back to the legitimate provider, the kit's TLS-stack fingerprint differs from the victim's browser. SaaS providers' anomaly engines exploit this; investigators can request the JA3/JA4 from the provider's incident-response team [verify 2026-04-27].
+- **JA3 / JA4 client-side fingerprint** — when the kit operates as an HTTP client back to the legitimate provider, the kit's TLS-stack fingerprint differs from the victim's browser. SaaS providers' anomaly engines exploit this; whether a provider will share TLS-fingerprint data depends on its legal-process / IR channel, so ask rather than assume it is available.
 - **Header-based** — the proxy adds / strips / re-orders HTTP headers in characteristic ways; the legitimate provider's signal team has fingerprints.
 - **Geolocation chain** — sign-in via a residential-proxy hosted in country A while victim is in country B; combined with the immediate post-sign-in session token use from a different residential-proxy ASN.
 
@@ -1037,19 +1058,19 @@ Defensive mitigation lives in [[sop-saas-log-forensics|SaaS Log Forensics]] and 
 | Surface | Pattern |
 |---|---|
 | **Cloudflare Tunnel (`*.trycloudflare.com`)** | Free-tunnel name in suspicious URL — operationally cheap and short-lived |
-| **ngrok (`*.ngrok-free.app`, `*.ngrok.io`)** | Free-tunnel tooling abused for short-lived phishing |
+| **ngrok (free `*.ngrok-free.app` / `*.ngrok-free.dev`; paid `*.ngrok.app` / `*.ngrok.dev` / `*.ngrok.io`)** | Free-tunnel tooling abused for short-lived phishing |
 | **Serverless (`*.azurewebsites.net`, `*.web.app`, `*.firebaseapp.com`, `*.netlify.app`, `*.vercel.app`, `*.cloudfront.net`, `*.r2.dev`, `*.pages.dev`, `*.workers.dev`)** | Serverless / managed-hosting platforms abused for phishing pages; verify provider abuse contacts |
 | **Compromised legitimate domains** | Older WordPress / cPanel sites with vulnerable plugins host kits in subdirectories; `<legitimate>/<random-path>/<kit>/` |
 | **Residential-proxy ASN egress** | Sign-in / phishing-victim-fetch from residential-proxy ASN |
 | **Free-mail attacker addresses for exfil** | `*@gmail.com` / `*@outlook.com` / `*@protonmail.com` / `*@yandex.com` / `*@onionmail.org` in kit `config.php` |
-| **Telegram bot exfil** | `api.telegram.org/bot<token>/sendMessage?chat_id=<id>` — token reuse across campaigns is common; cross-walk via Telegram-bot-tracking research [verify 2026-04-27] |
+| **Telegram bot exfil** | `api.telegram.org/bot<token>/sendMessage?chat_id=<id>` — token reuse across campaigns is common |
 | **Open-directory exposure** | `Index of /` / `Apache/2.X Server` directory listing allows kit retrieval at investigation time |
 
 ### 12.6 Disclosure of Findings
 
-- **Hosting / CDN / registrar abuse-contact disclosure** — for active infrastructure, route through documented abuse channels (AWS abuse@, Cloudflare abuse, GoDaddy abuse, Namecheap abuse, etc.).
+- **Hosting / CDN / registrar abuse-contact disclosure** — for active infrastructure, route through documented abuse channels (AWS abuse form or trustandsafety@support.aws.com, Cloudflare abuse, the registrar's published abuse contact from WHOIS / RDAP, etc.) [verify 2026-10-30].
 - **Brand-coordination disclosure** — when the kit impersonates a brand, the brand's security team is the disclosure path (Microsoft MSRC, Google security, Apple Product Security, the brand's CSIRT).
-- **Threat-intel community sharing** — kit IOCs can be shared via PhishTank, OpenPhish, MISP communities, NCSC Phishing Reporting, US-CERT, sector-specific ISACs (FS-ISAC for finance, H-ISAC for healthcare).
+- **Threat-intel community sharing** — kit IOCs can be shared via APWG (forward to reportphishing@apwg.org), Netcraft (https://report.netcraft.com/report), OpenPhish (report@openphish.com), PhishTank (existing accounts only; new registration is disabled), MISP communities, the NCSC's suspicious-email address (report@phishing.gov.uk), CISA (formerly US-CERT; us-cert.gov redirects to cisa.gov), and sector-specific ISACs (FS-ISAC for finance, H-ISAC for healthcare) [verify 2026-10-30].
 - **LE referral** — for active campaigns with significant victimization, FBI IC3 referral and Secret Service Field Office contact (US); NCSC (UK); national CERT pathway elsewhere.
 
 ---
@@ -1061,23 +1082,25 @@ Defensive mitigation lives in [[sop-saas-log-forensics|SaaS Log Forensics]] and 
 The investigator does not own the customer's banking relationship; the customer's treasurer / CFO / fraud-claims team coordinates with the bank. The investigator's job is to *enable* the recovery operation through forensic outputs:
 
 - **A timeline** — when was the message received; when was the wire authorized; when was the wire transmitted; when was the fraud detected.
-- **A wire reference** — the originating bank's wire reference number; the SWIFT GPI **UETR** (Unique End-to-End Transaction Reference, ISO 20022 — verify 2026-04-27); the Fedwire IMAD / OMAD; the SEPA reference.
+- **A wire reference** — the originating bank's wire reference number; the SWIFT GPI **UETR** (Unique End-to-End Transaction Reference, ISO 20022 [verify 2026-10-30]); the Fedwire IMAD / OMAD; the SEPA reference.
 - **Beneficiary detail** — beneficiary bank, beneficiary account / IBAN, beneficiary name (often a money-mule company or individual).
 - **The pretext narrative** — the BEC reconstruction package (the email; the lookalike; the spoofed-CEO chain) that the FBI and bank fraud teams will reference.
 
 ### 13.2 SWIFT Recall Mechanics
 
-**SWIFT MT103** is the Single Customer Credit Transfer message; the originating bank sends MT103 to the beneficiary bank (often through correspondent banks). Recall is via **SWIFT MT192** (Request for Cancellation), citing the original MT103 reference. The destination-bank's compliance team evaluates the cancellation request; if funds are still on hold, return is likely. The 2018-era introduction of **SWIFT GPI** added the **UETR** (Unique End-to-End Transaction Reference) and **Stop and Recall** service — a faster path for the originating bank to attempt recall across the GPI network [verify 2026-04-27].
+**SWIFT MT103** was the legacy customer credit transfer message; the originating bank sends it to the beneficiary bank (often through correspondent banks). Since 22 November 2025 cross-border payment instructions use ISO 20022 (**pacs.008** for customer credit transfers), and MT 103s still sent are converted and delivered in ISO 20022 format. Recall is via a cancellation request (ISO 20022 **camt.056**, FI To FI Payment Cancellation Request) citing the original payment reference. The destination-bank's compliance team evaluates the cancellation request; if funds are still on hold, return is likely. **SWIFT GPI** tracks each payment end to end by its **UETR** (Unique End-to-End Transaction Reference; field 121 in MT messages, a dedicated element in ISO 20022 messages), so quote the UETR in every recall request [verify 2026-10-30].
 
-Cross-border MT103 recalls historically engage both banks' AML / financial-intelligence-unit (FIU) coordination; the FBI Legal Attaché in the destination jurisdiction frequently coordinates the FIU contact.
+Cross-border wire recalls engage both banks' AML / financial-intelligence-unit (FIU) coordination; the FBI Legal Attaché in the destination jurisdiction frequently coordinates the FIU contact.
 
 ### 13.3 Fedwire Recall
 
-Fedwire transfers are domestic US dollar (mostly inter-bank) settlements. Fedwire recall is structured around the Fed Funds Rule and bank-to-bank cooperation; the originating bank's Fed funds operations team initiates the recall. Recovery within the same business day is most likely; cross-day recall depends on beneficiary-bank cooperation. FedNow (the Federal Reserve's instant-payment service launched 2023 [verify 2026-04-27]) has its own real-time recall path with shorter windows.
+Fedwire transfers are domestic US dollar (mostly inter-bank) settlements. Fedwire funds transfers are governed by Regulation J Subpart B (12 CFR 210.25–210.32, which incorporates UCC Article 4A); recall depends on bank-to-bank cooperation, and the originating bank's wire-operations team initiates it. Recovery within the same business day is most likely; cross-day recall depends on beneficiary-bank cooperation. FedNow (the Federal Reserve's instant-payment service, live since 20 July 2023) is governed by Regulation J Subpart C (12 CFR 210.40–210.47); it moves money instantly, so the recall request has to start even sooner [verify 2026-10-30].
 
 ### 13.4 SEPA / EU Recall
 
-SEPA Credit Transfer (SCT) recall uses **SCT R-Transactions** — Reject, Return, Refusal, Reversal, Recall — codified in the EPC (European Payments Council) Rulebook. SEPA Instant Credit Transfer (SCT Inst) has a separate, faster recall window. Cross-EU recalls coordinate through the originating-bank's national-clearing-system; intra-Eurozone recall is faster than cross-currency [verify 2026-04-27].
+SEPA Credit Transfer (SCT) exception handling uses **SCT R-transactions** — Rejects, Returns, Recalls and Requests for Recall by the Originator (RFRO) — plus a separate SCT Inquiry process, all defined in the EPC (European Payments Council) SCT Rulebook. A fraud-induced transfer is recalled with reason code `FRAD` (Fraudulent Origin); the Beneficiary PSP breaches the rulebook if it does not answer a Recall or RFRO within 15 Banking Business Days (EPC135-18 v6.0, November 2024). R-transactions travel through the same clearing and settlement mechanism (CSM) as the original transfer unless the PSPs have agreed otherwise. SEPA Instant Credit Transfer (SCT Inst) is a separate EPC scheme (launched November 2017; the payee's PSP has at most ten seconds to confirm receipt and make the funds available), so the money is with the beneficiary almost at once; check the SCT Inst rulebook for its own recall rules [verify 2026-10-30].
+
+**Payee-verification and UK reimbursement context.** Under the EU Instant Payments Regulation, euro-area PSPs must offer Verification of Payee (VoP: a name / IBAN check returning match, close match, no match or other) on standard and instant credit transfers from 9 October 2025 (non-euro Member States from 9 July 2027); a VoP warning that the victim overrode is a reconstruction data-point. In the UK, Confirmation of Payee runs the same name check on Faster Payments and CHAPS, and since 7 October 2024 the PSR's mandatory APP-fraud reimbursement protections cover individuals, microenterprises and charities (not larger businesses) up to £85,000 per claim; unreimbursed losses above that can go to the Financial Ombudsman Service (award limit £455,000 for complaints referred on or after 1 April 2026 about acts on or after 1 April 2019) [verify 2026-10-30].
 
 ### 13.5 IC3 Referral and the Financial Fraud Kill Chain
 
@@ -1086,15 +1109,15 @@ Customer detects BEC wire
    ↓
 Customer's fraud-claims team contacts originating bank fraud desk
    ↓ (within hours)
-Originating bank issues recall (SWIFT MT192 / Fedwire recall / SEPA recall)
+Originating bank issues recall (SWIFT camt.056 cancellation request / Fedwire recall / SEPA recall)
    ↓ (concurrently)
-Customer files at IC3.gov  (https://www.ic3.gov)
+Customer files at IC3.gov  (https://www.ic3.gov) — regardless of amount
    ↓
-IC3 routes to FBI field office
-   ↓ (when threshold met)
-FBI activates Financial Fraud Kill Chain (FFKC)
-   ↓
-FBI Legal Attaché in destination jurisdiction engages destination FIU
+IC3 Recovery Asset Team (RAT) liaises with the banks and FBI field offices
+   ↓ (no published dollar threshold; speed decides)
+IC3 RAT initiates the Financial Fraud Kill Chain (FFKC)
+   ↓ (international transfers)
+RAT coordinates with FinCEN's Rapid Response Team and the FBI Legal Attaché (LEGAT); destination FIU engaged
    ↓
 Destination FIU coordinates with destination bank for funds freeze
    ↓
@@ -1103,22 +1126,22 @@ Destination bank holds funds pending civil / criminal action
 
 Practical investigator actions:
 
-- **Help the customer assemble the IC3 packet** — wire confirmation; recipient bank info; beneficiary info; copy of the BEC email; lookalike domain analysis; investigator contact info. IC3 has a structured intake form; submitting in the first 24 hours materially improves outcomes [verify 2026-04-27 — IC3 publishes recovery statistics annually].
-- **Note FFKC threshold** — historically a USD 50,000 threshold and 72-hour transmission window applied for international wire FFKC; verify against current IC3 / FBI guidance for current thresholds and FFKC service expansion (FedNow, SCT Inst, domestic ACH where applicable) [verify 2026-04-27].
-- **Coordinate with bank's BSA / AML officer** — the customer's bank has Bank Secrecy Act SAR-filing obligations triggered by the fraudulent transfer (31 CFR 1020.320 SAR threshold $5,000 if there's a known suspect; $25,000 if no suspect — verify 2026-04-27); the SAR-filing process is the bank's, not the investigator's, but the investigator's reconstruction supports it.
+- **Help the customer assemble the IC3 packet** — wire confirmation; recipient bank info; beneficiary info; copy of the BEC email; lookalike domain analysis; investigator contact info. IC3 has a structured intake form; file as soon as possible — FinCEN is "most likely to be able to interdict or recover funds when fraudulently induced wire transfers are reported to law enforcement within 72 hours of the transaction" (FinCEN Rapid Response Program fact sheet, April 2026), and IC3 publishes RAT / FFKC outcomes in its annual report [verify 2026-10-30].
+- **No FFKC dollar threshold** — IC3 publishes none: "Regardless of the amount lost, file a complaint with www.ic3.gov as soon as possible" (IC3 PSA, 11 September 2024). The IC3 Recovery Asset Team (established 2018) runs the FFKC for domestic and international transfers; international requests go through FinCEN's Rapid Response Team and FBI LEGAT offices (IC3 2025 Annual Report). The older USD 50,000 / SWIFT / 72-hour eligibility list is historical and unpublished; never use it as a reason to skip a filing (§3.3) [verify 2026-10-30].
+- **Coordinate with bank's BSA / AML officer** — the customer's bank has Bank Secrecy Act SAR-filing obligations triggered by the fraudulent transfer (FinCEN's 31 CFR 1020.320 triggers at $5,000 aggregate when the bank knows, suspects or has reason to suspect the transaction is illicit; the prudential regulators' parallel rules — e.g. OCC 12 CFR 21.11 — add tiers: insider abuse at any amount, $5,000 or more where a suspect can be identified, $25,000 or more regardless of suspects) [verify 2026-10-30]; the SAR-filing process is the bank's, not the investigator's, but the investigator's reconstruction supports it.
 
 ### 13.6 ACH and Check Recall
 
-ACH unauthorized debits can be returned by the receiving depository financial institution (RDFI) within 60 days under Regulation E for consumer accounts; for B2B / commercial accounts the unauthorized-debit return window is much shorter, generally 24 hours under Reg J / WEB / CCD authorization rules [verify 2026-04-27 — NACHA rules update annually]. Check fraud (counterfeit check, altered check, payee endorsement fraud) routes through UCC §3 / §4 frameworks; recovery via the originating bank's check-fraud claims process.
+ACH unauthorized debits to consumer accounts can be returned by the receiving depository financial institution (RDFI) as R10 within 60 days with a Written Statement of Unauthorized Debit (WSUD) under the Nacha Operating Rules, in line with the consumer's 60-day error-notice window under Regulation E (12 CFR 1005.11); for non-consumer (B2B) accounts the unauthorized-debit return is R29 within 2 banking days (Nacha amends its Operating Rules regularly) [verify 2026-10-30]. Regulation J covers check collection through the Reserve Banks, Fedwire and FedNow; ACH returns run under the Nacha Operating Rules. An ACH credit the victim *originated* is not an unauthorized debit: ask the originating bank to request a recall / reversal (§3.2 payroll-redirect row). Check fraud (counterfeit check, altered check, payee endorsement fraud) routes through UCC Articles 3 and 4; recovery via the originating bank's check-fraud claims process.
 
 ### 13.7 Cryptocurrency Payout Recovery
 
 When BEC payout instructed cryptocurrency:
 
 1. **Capture the wallet address** from the message body (or QR code via OCR) immediately; confirm on-chain receipt.
-2. **Submit to sanctions / abuse databases** — Chainalysis Reactor, TRM Labs, Elliptic, Crystal Blockchain, Etherscan / Blockchain.com label-tagging — verify 2026-04-27.
+2. **Submit to sanctions / abuse databases** — Chainalysis Reactor, TRM Labs, Elliptic, Crystal Intelligence (ex-Crystal Blockchain), Etherscan label-tagging [verify 2026-10-30].
 3. **Hand off the on-chain trace** to [[../../Investigations/Techniques/sop-blockchain-investigation|Blockchain Investigation]]; [[../../Investigations/Techniques/sop-mixer-tracing|Mixer & Privacy-Pool Tracing]] when funds funnel into Tornado Cash / Wasabi / Samourai-style services.
-4. **Coordinate with destination CEX compliance** — when funds arrive at a centralized exchange, that exchange's compliance team can freeze the deposit if law-enforcement preservation request is in place. Coinbase, Kraken, Binance, Bitstamp, OKX, and most major CEXes publish LE-cooperation pathways [verify 2026-04-27].
+4. **Coordinate with destination CEX compliance** — when funds arrive at a centralized exchange, that exchange's compliance team can freeze the deposit if law-enforcement preservation request is in place. Binance, OKX, Kraken and Bitstamp publish law-enforcement request pathways; Kraken states it responds to lawful requests to freeze funds identified and held with it [verify 2026-10-30].
 5. **Sanctions consideration** — if the wallet is on an OFAC SDN list (Treasury sanctioned address), the customer's bank and CEX have sanctions-blocking obligations; route through [[sop-legal-ethics|Legal & Ethics]] for sanctions-counsel.
 
 ### 13.8 Insurance Claim Considerations
@@ -1139,7 +1162,7 @@ The wire-recall section of the BEC report typically contains:
 - Transaction-level table: timestamp; originating account; beneficiary account; amount; FX rate (if cross-currency); UETR / Fedwire reference / SEPA reference.
 - Recall actions taken: who acted, when, on what authority, with what bank-side reference; outcome.
 - IC3 reference number (the IC3 case number issued at intake).
-- FFKC engagement status (when threshold met).
+- FFKC engagement status (IC3 RAT request and freeze outcome).
 - SAR coordination — note that the customer's bank has independent SAR obligations the investigator should not impede; the investigator's report does not file or substitute for a SAR.
 - Insurance-carrier notification status.
 - Funds recovered (cumulative); funds outstanding; civil / criminal action recommendations.
@@ -1168,7 +1191,7 @@ The wire-recall section of the BEC report typically contains:
 | Adversary infrastructure clearnet pivot (lookalike domain enrichment, hosting / registrar / WHOIS investigation) | [[../../Investigations/Techniques/sop-web-dns-whois-osint|Web / DNS / WHOIS OSINT]] |
 | Adversary-tied account / handle / persona dossier | [[../../Investigations/Techniques/sop-entity-dossier|Entity Dossier]] |
 | Marketplace / forum / leak-site presence of BEC-related credentials, kit listings, tutorials | [[../../Investigations/Techniques/sop-darkweb-investigation|Darkweb Investigation]] |
-| Authorized offensive phishing / red-team email tradecraft | (no SOP yet — `CLAUDE.md` Gaps item) |
+| Authorized offensive phishing / red-team email tradecraft | (no Intel Codex SOP yet) |
 | Container / Kubernetes runtime forensics that follow a cloud-credential exfiltration | [[../Pentesting/sop-container-k8s-pentest|Container & Kubernetes Pentesting]] for offensive aspects; [[sop-cloud-forensics|Cloud Forensics]] §10 for forensics |
 | SIEM / SEG / EDR detection-coverage validation (purple-team for BEC) | [[../Pentesting/sop-detection-evasion-testing|Detection & Evasion Testing]] |
 | Bug-bounty-style web-app vulnerability in a customer-facing portal whose abuse enabled the BEC | [[../Pentesting/sop-web-application-security|Web Application Security]] + [[../Pentesting/sop-bug-bounty|Bug Bounty]] |
@@ -1188,12 +1211,12 @@ The wire-recall section of the BEC report typically contains:
 | `dig` / `drill` / `kdig` | DNS lookups for SPF / DKIM / DMARC / BIMI records | (system) |
 | `dkimpy` / `opendkim-testmsg` | DKIM signature verification | https://launchpad.net/dkimpy / https://github.com/trusteddomainproject/OpenDKIM |
 | `pyspf` / `spf-tools` | SPF evaluation, lookup-count check | https://launchpad.net/pyspf / https://github.com/spf-tools/spf-tools |
-| `parsedmarc` | DMARC aggregate + forensic report parser | https://github.com/domainaware/parsedmarc [verify 2026-04-27] |
-| OpenARC | ARC chain validation | https://github.com/trusteddomainproject/OpenARC [verify 2026-04-27] |
+| `parsedmarc` | DMARC aggregate + forensic report parser | https://github.com/domainaware/parsedmarc [verify 2026-10-30] |
+| OpenARC | ARC chain validation (milter); upstream `trusteddomainproject/OpenARC` last pushed 2024-04, so use the maintained fork | https://github.com/flowerysong/OpenARC [verify 2026-10-30] |
 | `swaks` | SMTP test client (sandbox use only — never against production with real targets) | https://github.com/jetmore/swaks |
-| `mailheader-parser` / `mha` | Email header analyzers (web-based variants from Microsoft, Google, MXToolbox) | various — verify 2026-04-27 |
-| Microsoft Message Header Analyzer | Web-based header parser by Microsoft | https://mha.azurewebsites.net/ [verify 2026-04-27] |
-| Google Toolbox MessageHeader | Web-based header parser by Google | https://toolbox.googleapps.com/apps/messageheader/analyzeheader [verify 2026-04-27] |
+| MXToolbox Email Header Analyzer | Web-based header parser by MXToolbox | https://mxtoolbox.com/EmailHeaders.aspx [verify 2026-10-30] |
+| Microsoft Message Header Analyzer | Web-based header parser by Microsoft | https://mha.azurewebsites.net/ [verify 2026-10-30] |
+| Google Toolbox MessageHeader | Web-based header parser by Google | https://toolbox.googleapps.com/apps/messageheader/analyzeheader [verify 2026-10-30] |
 | MXToolbox SuperTool | Web-based DNS / mail-flow analysis | https://mxtoolbox.com/SuperTool.aspx |
 
 ### Lookalike-Domain Tooling
@@ -1204,44 +1227,44 @@ The wire-recall section of the BEC report typically contains:
 | `urlcrazy` | Alternate generator | https://github.com/urbanadventurer/urlcrazy |
 | `urlinsane` | Alternate generator (Go) | https://github.com/rangertaha/urlinsane |
 | `crt.sh` | Certificate Transparency log search (free) | https://crt.sh |
-| `Censys` | CT log + internet scan + cert search (commercial, free tier) | https://censys.io |
-| `confusable-homoglyphs` | Python TR39-confusables analyzer | https://github.com/vhf/confusable_homoglyphs |
-| `whois` / `whoisxmlapi` | WHOIS lookup, current and historical (commercial) | (system) / https://www.whoisxmlapi.com [verify 2026-04-27] |
-| DomainTools Iris / Investigate | Commercial passive-DNS + WHOIS-history + brand-protection | https://www.domaintools.com [verify 2026-04-27] |
-| Group-IB Digital Risk Protection | Commercial brand / domain monitoring | https://www.group-ib.com [verify 2026-04-27] |
-| RiskIQ Digital Footprint / Microsoft Defender EASM | Commercial external-attack-surface management (acquired by Microsoft) | https://www.microsoft.com [verify 2026-04-27] |
-| ZeroFox / BrandShield / Mandiant Digital Threat Monitoring | Commercial brand-protection platforms | various — verify 2026-04-27 |
+| `Censys` | CT log + internet scan + cert search (commercial, free tier) | https://censys.com |
+| `confusable-homoglyphs` | Python UTS #39 confusables analyzer (GitHub repo archived Jan 2024; maintained on sr.ht) | https://sr.ht/~valhalla/confusable_homoglyphs/ [verify 2026-10-30] |
+| `whois` / `whoisxmlapi` | WHOIS lookup, current and historical (commercial) | (system) / https://www.whoisxmlapi.com [verify 2026-10-30] |
+| DomainTools Iris / Investigate | Commercial passive-DNS + WHOIS-history + brand-protection | https://www.domaintools.com [verify 2026-10-30] |
+| Group-IB Digital Risk Protection | Commercial brand / domain monitoring | https://www.group-ib.com [verify 2026-10-30] |
+| Microsoft Defender EASM (ex-RiskIQ) | Commercial external-attack-surface management (Microsoft acquired RiskIQ in 2021) | https://www.microsoft.com/en-us/security/business/cloud-security/microsoft-defender-external-attack-surface-management [verify 2026-10-30] |
+| ZeroFox / BrandShield / Mandiant Digital Threat Monitoring | Commercial brand-protection platforms | https://www.zerofox.com / https://www.brandshield.com / https://cloud.google.com/security/products/digital-threat-monitoring [verify 2026-10-30] |
 
 ### M365 / Workspace / SEG Forensic Surfaces
 
 | Tool | Vendor | Purpose |
 |------|--------|---------|
-| `Get-MessageTrace` / `Get-MessageTraceDetail` | Microsoft 365 (Exchange Online PowerShell) | Mail-flow tracing (10-day live, 90-day historical) |
-| `Get-MessageTraceV2` / new Reporting endpoint | Microsoft 365 | Successor cmdlet / API [verify 2026-04-27] |
-| `Search-MessageTrackingLog` | Exchange Server (on-prem) | On-prem mail-flow tracking |
+| `Get-MessageTrace` / `Get-MessageTraceDetail` | Microsoft 365 (Exchange Online PowerShell) | Legacy mail-flow tracing (10-day window); Microsoft: "replaced by the Get-MessageTraceV2 cmdlet and will eventually be deprecated" |
+| `Get-MessageTraceV2` / `Get-MessageTraceDetailV2` | Microsoft 365 (Exchange Online PowerShell) | Successor cmdlets: 90-day search window, at most 10 days per query, last 48 hours when run without parameters [verify 2026-10-30] |
+| `Get-MessageTrackingLog` | Exchange Server (on-prem) | On-prem mail-flow tracking |
 | Defender for Office 365 Threat Explorer | Microsoft 365 | Per-recipient delivery / disposition |
 | Defender for Office 365 Quarantine | Microsoft 365 | Quarantined-message inspection |
 | `Get-QuarantineMessage` | Microsoft 365 | Programmatic quarantine pull |
 | Workspace Email Log Search | Google Workspace | 30-day per-message routing / disposition |
-| GAM7 | Google Workspace | CLI for Reports + Email Log + Vault |
+| GAM7 (installs as `gam`) | Google Workspace | CLI for Reports + Email Log + Vault |
 | Workspace Vault | Google Workspace | eDiscovery + holds for long-term mail-content evidence |
 | Gmail BigQuery export | Google Workspace | Long-window message-event evidence |
 | Mimecast Tracker / Search & Recover / Audits | Mimecast | Per-message routing + archive search |
 | Proofpoint Smart Search / Threat Insight / TAP / TRAP | Proofpoint | Per-message + campaign + URL / attachment analysis |
 | Cisco Secure Email Message Tracking | Cisco | On-prem / cloud appliance mail-flow tracking |
-| Barracuda Email Security Message Logs | Barracuda | Per-message routing |
-| Sophos Email Message Search | Sophos | Per-message routing |
+| Barracuda Email Gateway Defense Message Log | Barracuda | Per-message routing |
+| Sophos Central Email Message Search | Sophos | Per-message routing (the on-prem Sophos Email Appliance is end of life) |
 
 ### Phishing-Kit / Sandbox / Detonation
 
 | Tool | Purpose | Link |
 |------|---------|------|
 | Microsoft Defender for Office 365 Detonation | Sandbox detonation of URLs / attachments | (in-product) |
-| Joe Sandbox | Commercial sandbox | https://www.joesandbox.com [verify 2026-04-27] |
-| ANY.RUN | Commercial sandbox | https://any.run [verify 2026-04-27] |
-| Hatching Triage | Commercial sandbox (acquired by Recorded Future) | https://tria.ge [verify 2026-04-27] |
+| Joe Sandbox | Commercial sandbox | https://www.joesandbox.com [verify 2026-10-30] |
+| ANY.RUN | Commercial sandbox | https://any.run [verify 2026-10-30] |
+| Hatching Triage | Commercial sandbox (acquired by Recorded Future) | https://tria.ge [verify 2026-10-30] |
 | URLScan.io | URL crawl with full HAR + screenshot + DOM | https://urlscan.io |
-| PhishTool | Phishing analysis platform | https://www.phishtool.com [verify 2026-04-27] |
+| PhishTool | Phishing analysis platform | https://www.phishtool.com [verify 2026-10-30] |
 | PhishTank | Crowd-sourced phishing-URL clearinghouse | https://phishtank.org |
 | OpenPhish | Phishing-URL feed | https://openphish.com |
 
@@ -1252,9 +1275,9 @@ The wire-recall section of the BEC report typically contains:
 | FBI IC3 | https://www.ic3.gov — Internet Crime Complaint Center filing |
 | FBI Field Office contact | Direct field-office contact for active wire fraud |
 | Secret Service Field Office | Concurrent jurisdiction for financial crimes (US) |
-| FinCEN Rapid Response Program | https://www.fincen.gov — wire-fraud rapid coordination |
-| SWIFT GPI Stop and Recall | Originating-bank operations via the GPI network |
-| EPC (European Payments Council) Rulebooks | SEPA / SCT Inst recall rules — https://www.europeanpaymentscouncil.eu [verify 2026-04-27] |
+| FinCEN Rapid Response Program (RRP) | https://www.fincen.gov/system/files/2026-04/RRPFactSheet.pdf — activated through an IC3 complaint or a USSS field office; FinCEN: "Please do not contact FinCEN directly" [verify 2026-10-30] |
+| SWIFT gpi UETR tracking + camt.056 cancellation request | Originating-bank operations via the Swift network |
+| EPC (European Payments Council) Rulebooks | SEPA / SCT Inst recall rules — https://www.europeanpaymentscouncil.eu [verify 2026-10-30] |
 | NCSC (UK) | https://www.ncsc.gov.uk — UK cyber-fraud reporting + advice |
 | Report Fraud (UK; replaced Action Fraud 2025-12-04) | https://www.reportfraud.police.uk — UK fraud and cyber crime reporting; 0300 123 2040; Scotland: Police Scotland 101 [verify 2026-10-29] |
 | Europol EC3 | https://www.europol.europa.eu/about-europol/european-cybercrime-centre-ec3 — EU cybercrime |
@@ -1266,8 +1289,8 @@ The wire-recall section of the BEC report typically contains:
 | Sigma | Vendor-neutral detection rules with M365 / Workspace / SEG backends | https://github.com/SigmaHQ/sigma |
 | MITRE ATT&CK for Initial Access (Phishing) | Adversary technique reference | https://attack.mitre.org/techniques/T1566/ |
 | MISP | Threat-intel sharing platform with phishing-kit support | https://www.misp-project.org |
-| TheHive / Cortex | IR case-management + observable enrichment | https://thehive-project.org |
-| OpenCTI | Threat-intelligence platform with kit / domain / actor objects | https://www.filigran.io/en/products/opencti/ [verify 2026-04-27] |
+| TheHive / Cortex | IR case-management + observable enrichment | https://strangebee.com/thehive/ |
+| OpenCTI | Threat-intelligence platform with kit / domain / actor objects | https://filigran.io/products/opencti [verify 2026-10-30] |
 
 ---
 
@@ -1284,11 +1307,11 @@ The wire-recall section of the BEC report typically contains:
 - **Lookalike-domain inventory is incomplete.** No tool catches every variant; CT logs only catch certificate-issued lookalikes; passive DNS catches only resolved lookalikes. Continuous monitoring with multiple tools and human review is the closest to a complete picture.
 - **Wire recall depends on speed and beneficiary-bank cooperation.** Within 24 hours, recall is plausible; beyond 72 hours, recovery rates fall sharply. The investigator does not control the bank's response time.
 - **Cryptocurrency-payout recovery is rarely possible.** Once funds are on-chain to a non-custodial wallet, recovery requires either downstream CEX-deposit + LE preservation or a court-ordered seizure path; chargeback / reversal does not exist on-chain.
-- **AiTM and session-token theft defeat MFA.** "We had MFA enabled" is not protective; the attacker captures the post-MFA session. Conditional Access policies (compliant device, sign-in risk, location, named-locations), Continuous Access Evaluation, and FIDO2-bound tokens are the layered mitigations [verify 2026-04-27 — current best-practice landscape].
+- **AiTM and session-token theft defeat MFA.** "We had MFA enabled" is not protective; the attacker captures the post-MFA session. Phishing-resistant MFA (FIDO2 / certificate-based authentication), Conditional Access policies (compliant device, sign-in risk, network / named locations), Continuous Access Evaluation, and Conditional Access Token Protection (device-bound sign-in session tokens) are the layered mitigations [verify 2026-10-30].
 - **Phishing-kit acquisition has legal nuance.** Lawful acquisition paths are documented in §12.2; downloading from a live-attacker server is widely accepted as defensive forensics but may interact with anti-hacking statutes if the server is owned by a non-suspect third party. Verify under counsel for anything beyond the customer's own infrastructure.
 - **SAR / FinCEN obligations are the bank's, not the investigator's.** The investigator's reconstruction supports the bank's SAR but does not substitute for it; the customer's bank has independent BSA obligations.
 - **Insurance coverage may exclude social-engineering BEC.** Older policies cover computer-fraud and funds-transfer-fraud but exclude social-engineering. Newer policies add a sub-limited social-engineering rider. The investigator must not promise coverage outcomes.
-- **Court-admissibility of mail-flow evidence depends on chain-of-custody.** Provider-side declarations (eDiscovery export with provider attestation per [[../../Investigations/Techniques/sop-collection-log|Collection Log]] §10 FRE 902(13)/(14)) are evidentiary-grade; raw `Get-MessageTrace` output without provider attestation is weaker. Plan exports through eDiscovery / Vault / Discovery for litigation-bound work.
+- **Court-admissibility of mail-flow evidence depends on chain-of-custody.** Provider-side declarations (eDiscovery export with provider attestation per [[../../Investigations/Techniques/sop-collection-log|Collection Log]] §10 FRE 902(13)/(14)) are evidentiary-grade; raw `Get-MessageTraceV2` output without provider attestation is weaker. Plan exports through eDiscovery / Vault / Discovery for litigation-bound work.
 - **Cross-tenant log visibility is asymmetric.** When the suspect's tenant is on the same provider as the victim, the suspect-side mail-flow is reachable only via provider legal process (subpoena / preservation letter); the victim-side mail-flow is in scope.
 - **Multi-vendor SEG disagreement is common.** Mimecast / Proofpoint / Defender / Barracuda each apply distinct policies; SEG-A may have quarantined what SEG-B delivered. The chronological reconstruction must reconcile all transit-point dispositions.
 
@@ -1299,7 +1322,7 @@ The wire-recall section of the BEC report typically contains:
 - **Reading headers top-down.** The top-most `Received:` is the latest hop; the bottom-most is closest to origin. Bottom-up is the rule.
 - **Trusting `From:` over `Authentication-Results:`.** The `From:` is sender-controlled; the trusted `Authentication-Results:` is the evidence.
 - **Inferring "DMARC blocked it" from existence of DMARC.** Confirm the policy (`p=`) and the alignment (`adkim` / `aspf`); `p=none` is monitoring.
-- **Forgetting `pct=` rollout.** A `pct=10` rollout means 90% of failing mail is delivered. Verify the published policy is not in partial rollout.
+- **Forgetting partial rollout or test mode.** Legacy `pct=10` asks RFC 7489-era receivers to apply the policy to only 10% of failing mail; RFC 9989 `t=y` asks receivers to apply one level below the published policy. Verify the published policy is not in partial rollout or test mode.
 - **Mixing envelope `MAIL FROM` with header `From:`.** SPF authenticates the envelope; DMARC requires alignment to the header `From:`.
 - **Ignoring sub-domain policy (`sp=`).** Attackers register `accounts.example.com` against an `example.com` `p=reject; sp=none` posture; receiver behavior on the sub-domain is permissive.
 - **Skipping the trusted-MTA boundary identification.** Without identifying which MTA is "trusted," every header is suspect and no decision is defensible.
@@ -1310,7 +1333,7 @@ The wire-recall section of the BEC report typically contains:
 - **Over-trusting passive DNS history.** Passive-DNS sources have varying coverage, retention, and freshness; cross-check at least two sources before drawing definitive timelines.
 - **Skipping `Reply-To:` analysis.** A `From:` matching the legitimate sender with `Reply-To:` to a free-mail address is a classic BEC tell that authentication does not catch.
 - **Skipping `Return-Path` analysis.** A spoofed `From:` with a different `Return-Path` (envelope sender) is the SPF-decoupled-from-DMARC pattern; SPF passes on the envelope while `From:` is the spoof.
-- **Pre-filtering message-trace queries too narrowly.** Filtering at the `Get-MessageTrace` API loses surrounding context; pull broad on time and recipient, filter at analysis time.
+- **Pre-filtering message-trace queries too narrowly.** Filtering at the `Get-MessageTraceV2` query loses surrounding context; pull broad on time and recipient, filter at analysis time.
 - **Ignoring SaaS-side mailbox-rule pivots.** A clean header-forensics report does not preclude that the mailbox was compromised; cross-walk to inbox-rule / mailbox-audit forensics in [[sop-saas-log-forensics|SaaS Log Forensics]].
 - **Not coordinating wire recall with the bank in the first 4 hours.** Recall before correspondent-bank settlement is materially easier; the recall conversation begins with the customer's bank fraud team, not the investigator.
 - **Treating IC3 as the only LE path.** IC3 is the FBI's intake channel; FBI Field Office, Secret Service, state AGs, NCSC (UK), and Europol all have direct contact paths for active wire fraud.
@@ -1330,15 +1353,15 @@ The scenarios below abstract observed BEC patterns to illustrate how the methodo
 
 **Pattern.** Attacker registers `examp1e-corp.com` (digit `1` for letter `l`) one week before the incident. The domain is on a commodity registrar (NameSilo / Hostinger / NameCheap), DNS at Cloudflare, MX pointed at a free SMTP relay. The attacker sets up SPF (`v=spf1 include:_spf.<smtp-relay>.com -all`) and DKIM under the lookalike domain. Mail authenticates cleanly (SPF=pass on `examp1e-corp.com`; DKIM=pass for `examp1e-corp.com`; DMARC=pass because the *lookalike's* `From:` domain is the same as the SPF/DKIM signer). The attacker mails the customer's CFO from `ceo@examp1e-corp.com` (display: `John CEO <ceo@examp1e-corp.com>`) requesting an urgent USD 240,000 wire to a Hong Kong beneficiary to close a confidential M&A deal, citing the legitimate CEO's known travel pattern.
 
-**Forensic catch.** §4.2 trusted `Authentication-Results:` confirms the message *did* pass DMARC — but for the lookalike domain, not the legitimate `example-corp.com`. §9.3 dnstwist scan against `example-corp.com` surfaces `examp1e-corp.com` (along with siblings); §9.4 CT-log search shows the cert was issued seven days before the incident (recently-registered signal). §9.5 WHOIS / DNS / hosting enrichment ties the registration to a NameSilo + Cloudflare + Hetzner pattern with sister-domain matches (`exampie-corp.com`, `examplecorp-secure.com`); §10.1 `Get-MessageTrace` confirms the inbound delivery and recipient action; §13 confirms the wire was transmitted at 14:42 UTC and is at the correspondent-bank stage at incident detection.
+**Forensic catch.** §4.2 trusted `Authentication-Results:` confirms the message *did* pass DMARC — but for the lookalike domain, not the legitimate `example-corp.com`. §9.3 dnstwist scan against `example-corp.com` surfaces `examp1e-corp.com` (along with siblings); §9.4 CT-log search shows the cert was issued seven days before the incident (recently-registered signal). §9.5 WHOIS / DNS / hosting enrichment ties the registration to a NameSilo + Cloudflare + Hetzner pattern with sister-domain matches (`exampie-corp.com`, `examplecorp-secure.com`); §10.1 `Get-MessageTraceV2` confirms the inbound delivery and recipient action; §13 confirms the wire was transmitted at 14:42 UTC and is at the correspondent-bank stage at incident detection.
 
-**Hand-off.** §13 wire-recall begins immediately — customer's bank engages SWIFT MT192 cancellation; IC3 referral filed; FFKC threshold met. Lookalike-domain take-down request to NameSilo and Cloudflare. Adversary-infrastructure intelligence packaged for [[../../Investigations/Techniques/sop-web-dns-whois-osint|Web / DNS / WHOIS OSINT]] follow-on. Mailbox-side audit (was the legitimate CEO's mailbox compromised, did the attacker monitor inbound?) routes to [[sop-saas-log-forensics|SaaS Log Forensics]] for confirmation.
+**Hand-off.** §13 wire-recall begins immediately — customer's bank sends a SWIFT camt.056 cancellation request; IC3 referral filed; IC3 RAT initiates the FFKC request. Lookalike-domain take-down request to NameSilo and Cloudflare. Adversary-infrastructure intelligence packaged for [[../../Investigations/Techniques/sop-web-dns-whois-osint|Web / DNS / WHOIS OSINT]] follow-on. Mailbox-side audit (was the legitimate CEO's mailbox compromised, did the attacker monitor inbound?) routes to [[sop-saas-log-forensics|SaaS Log Forensics]] for confirmation.
 
 ### 18.2 Scenario — Vendor-Invoice Fraud via Compromised Vendor Mailbox
 
 **Pattern.** A trusted vendor's accounts-receivable mailbox is compromised (the vendor falls victim to a separate AiTM phishing attack). The attacker sits silently for two weeks, monitoring the vendor's outbound invoicing rhythm. When the vendor sends a USD 87,000 invoice to the customer, the attacker — operating from the *legitimate* vendor mailbox — replies-all to the existing thread with a "banking detail update" PDF that points to an attacker-controlled bank account. The customer's AP team, seeing thread continuity and authentic SPF / DKIM / DMARC from the vendor, processes the wire to the new beneficiary.
 
-**Forensic catch.** §4.2 trusted `Authentication-Results:` confirms full DMARC pass — because the message *did* come from the vendor's legitimate domain via the vendor's legitimate MTA. §10.1 `Get-MessageTrace` shows the inbound message traversed normal mail-flow. §10.5 cross-walk to mailbox-compromise side at the vendor: the vendor's [[sop-saas-log-forensics|SaaS Log Forensics]] §4.2 sign-in audit, §4.5 mailbox audit, and §4.6 inbox-rule audit (likely a forwarding rule on AP-related subjects). The forensic header analysis here captures the *outbound* messages the compromised vendor mailbox sent; the *inbound* compromise is the vendor's IR engagement, not the customer's. §12.4 AiTM signature on the vendor side: the original phishing landing page that captured the vendor's session.
+**Forensic catch.** §4.2 trusted `Authentication-Results:` confirms full DMARC pass — because the message *did* come from the vendor's legitimate domain via the vendor's legitimate MTA. §10.1 `Get-MessageTraceV2` shows the inbound message traversed normal mail-flow. §10.5 cross-walk to mailbox-compromise side at the vendor: the vendor's [[sop-saas-log-forensics|SaaS Log Forensics]] §4.2 sign-in audit, §4.5 mailbox audit, and §4.6 inbox-rule audit (likely a forwarding rule on AP-related subjects). The forensic header analysis here captures the *outbound* messages the compromised vendor mailbox sent; the *inbound* compromise is the vendor's IR engagement, not the customer's. §12.4 AiTM signature on the vendor side: the original phishing landing page that captured the vendor's session.
 
 **Hand-off.** Mailbox-compromise reconstruction at the *vendor* routes to [[sop-saas-log-forensics|SaaS Log Forensics]] (the vendor's own engagement, not the customer's). Wire recall per §13 (challenging — the apparent message authentication was clean, so DMARC alerts did not fire; detection was post-payment). PDF attachment (the "banking-detail update") routes to [[sop-malware-analysis|Malware Analysis]] §6.3 PDF Analysis. Customer's vendor-management process for "out-of-band verification of banking-change requests" is the structural fix recommendation.
 
@@ -1346,9 +1369,9 @@ The scenarios below abstract observed BEC patterns to illustrate how the methodo
 
 **Pattern.** Attacker registers `<title-agent>.<lookalike-tld>` (e.g., the legitimate title agent `ABC Title Co` operates `abctitle.com`; attacker registers `abctitle.co` or `abctitle-secure.com`). Attacker enrolls in the buyer's email thread (often via a spoofed reply at the right phase of the closing process) impersonating the title agent's closing coordinator. With closing two days away, attacker sends "wire instructions" to the buyer naming an attacker-controlled bank. Buyer wires USD 480,000.
 
-**Forensic catch.** §4 header analysis on the attacker's "wire instructions" message — `From:` is the lookalike domain, `In-Reply-To:` may be forged or the attacker hijacked an earlier thread message via the buyer-side compromise. §9 lookalike inventory against `abctitle.com` — surfaces the squat. §10.1 `Get-MessageTrace` on the buyer's mailbox shows the inbound message and any earlier suspicious authenticated messages. §9.4 CT-log shows the squat cert issuance timing.
+**Forensic catch.** §4 header analysis on the attacker's "wire instructions" message — `From:` is the lookalike domain, `In-Reply-To:` may be forged or the attacker hijacked an earlier thread message via the buyer-side compromise. §9 lookalike inventory against `abctitle.com` — surfaces the squat. §10.1 `Get-MessageTraceV2` on the buyer's mailbox shows the inbound message and any earlier suspicious authenticated messages. §9.4 CT-log shows the squat cert issuance timing.
 
-**Hand-off.** Wire recall per §13 — particularly tight 24-hour window if detected at closing. ALTA escrow procedures and title-agent's E&O insurance carrier engaged. Civil action against the registrar / hosting provider for take-down + preservation. FBI Real Estate Wire Fraud Task Force notification. The buyer's mailbox compromise (if present) routes to [[sop-saas-log-forensics|SaaS Log Forensics]]; sometimes the buyer's mailbox is *not* compromised and the attacker harvested context from a public closing-process announcement or social-media post — in which case [[../../Investigations/Techniques/sop-image-video-osint|Image / Video OSINT]] and [[../../Investigations/Techniques/sop-entity-dossier|Entity Dossier]] reconstruct the OSINT trail.
+**Hand-off.** Wire recall per §13 — particularly tight 24-hour window if detected at closing. ALTA escrow procedures and title-agent's E&O insurance carrier engaged. Civil action against the registrar / hosting provider for take-down + preservation. IC3 complaint plus FBI field-office notification; the IC3 Recovery Asset Team runs real-estate BEC wires through the FFKC like any other (the IC3 2024 Annual Report cites a real-estate BEC recovered this way). The buyer's mailbox compromise (if present) routes to [[sop-saas-log-forensics|SaaS Log Forensics]]; sometimes the buyer's mailbox is *not* compromised and the attacker harvested context from a public closing-process announcement or social-media post — in which case [[../../Investigations/Techniques/sop-image-video-osint|Image / Video OSINT]] and [[../../Investigations/Techniques/sop-entity-dossier|Entity Dossier]] reconstruct the OSINT trail.
 
 ### 18.4 Scenario — Cryptocurrency-Payout Vendor-Invoice Fraud
 
@@ -1362,7 +1385,7 @@ The scenarios below abstract observed BEC patterns to illustrate how the methodo
 
 **Pattern.** Customer's sales executive falls to an AiTM phishing attack (per §12.4) on `login-microsoftonline.<lookalike>.<tld>`; the attacker captures the sales executive's post-MFA session token. With mailbox access, the attacker enumerates the sales executive's customers, identifies a customer in active-renewal cycle, and sends a "renewal banking-detail update" message *from the legitimate compromised mailbox* to the customer's AP team. The customer's AP wires USD 64,000 to attacker beneficiary.
 
-**Forensic catch.** §4.2 trusted `Authentication-Results:` confirms full DMARC pass — message came from the legitimate mailbox. §10.5 cross-walk to the mailbox-compromise side: [[sop-saas-log-forensics|SaaS Log Forensics]] §4.2 sign-in audit identifies the AiTM session origin (residential-proxy IP, unusual ASN); §4.6 inbox-rule audit identifies the auto-forward rule for "renewal" / "banking" / "AP" subjects (the attacker's persistence primitive on the mailbox). §10.1 `Get-MessageTrace` on the *outbound* legs shows the attacker's send pattern. §12.4 AiTM signature on the original phishing landing page (the lookalike host); §9 catches the lookalike domain.
+**Forensic catch.** §4.2 trusted `Authentication-Results:` confirms full DMARC pass — message came from the legitimate mailbox. §10.5 cross-walk to the mailbox-compromise side: [[sop-saas-log-forensics|SaaS Log Forensics]] §4.2 sign-in audit identifies the AiTM session origin (residential-proxy IP, unusual ASN); §4.6 inbox-rule audit identifies the auto-forward rule for "renewal" / "banking" / "AP" subjects (the attacker's persistence primitive on the mailbox). §10.1 `Get-MessageTraceV2` on the *outbound* legs shows the attacker's send pattern. §12.4 AiTM signature on the original phishing landing page (the lookalike host); §9 catches the lookalike domain.
 
 **Hand-off.** Mailbox-compromise reconstruction routes to [[sop-saas-log-forensics|SaaS Log Forensics]] §4 and §10 (whether the compromise was OAuth-consent BEC or AiTM-session-token-replay). AiTM phishing-kit analysis routes to §12 here for kit-fingerprint extraction; deeper RE to [[sop-malware-analysis|Malware Analysis]] §6.4 Script Analysis. Wire recall per §13. Customer's customer notification (the *downstream* victim) coordinated through [[../../Investigations/Techniques/sop-reporting-packaging-disclosure|Reporting, Packaging & Disclosure]]; the duty-of-care to the downstream victim is jurisdiction-specific and counsel-led.
 
@@ -1371,8 +1394,8 @@ The scenarios below abstract observed BEC patterns to illustrate how the methodo
 ## 19. Related SOPs
 
 **Analysis (parent and adjacent):**
-- [[sop-saas-log-forensics|SaaS Log Forensics]] — sibling SOP covering the SaaS-tenant identity / collaboration plane (M365 UAL, mailbox audit, inbox-rule forensics, OAuth consent grants, mailbox-compromise reconstruction). Per the buildout-plan scope contract, the OAuth-consent BEC variant lives in #8; this SOP covers the email-flow and header-spoofing side. Hybrid BEC incidents that pivot through mailbox compromise are split: the *messages* live here, the *mailbox audit* lives in #8.
-- [[sop-cloud-forensics|Cloud Forensics]] — sibling SOP covering the IaaS plane. When BEC-stolen credentials enable cloud-resource action, the email side stays here; the cloud-resource action routes to #7.
+- [[sop-saas-log-forensics|SaaS Log Forensics]] — sibling SOP covering the SaaS-tenant identity / collaboration plane (M365 UAL, mailbox audit, inbox-rule forensics, OAuth consent grants, mailbox-compromise reconstruction). The OAuth-consent BEC variant lives in SaaS Log Forensics; this SOP covers the email-flow and header-spoofing side. Hybrid BEC incidents that pivot through mailbox compromise are split: the *messages* live here, the *mailbox audit* lives in SaaS Log Forensics.
+- [[sop-cloud-forensics|Cloud Forensics]] — sibling SOP covering the IaaS plane. When BEC-stolen credentials enable cloud-resource action, the email side stays here; the cloud-resource action routes to Cloud Forensics.
 - [[sop-forensics-investigation|Digital Forensics Investigation]] — parent template; host / disk / memory forensics methodology applied to artifacts produced by BEC engagements (PST exports, recovered phishing-kit operator endpoints, victim laptops).
 - [[sop-malware-analysis|Malware Analysis]] — receives hand-off for attachment static / dynamic analysis (Office macro, PDF, ISO, HTA, LNK, OneNote payload, archive) per §6.2-6.8 of that SOP, and for deep RE of recovered phishing kits per §6.4 Script Analysis.
 - [[sop-reverse-engineering|Reverse Engineering]] — for binary / native-code components inside recovered kits or attached payloads.
@@ -1399,7 +1422,7 @@ The scenarios below abstract observed BEC patterns to illustrate how the methodo
 - [[../../Investigations/Techniques/sop-reporting-packaging-disclosure|Reporting, Packaging & Disclosure]] — disclosure mechanics, regulator notification packaging, third-party (vendor / customer / downstream-victim) notification.
 
 **Cross-cutting:**
-- [[sop-legal-ethics|Legal & Ethics]] — canonical jurisdictional framework, breach-notification timelines, wire-fraud-statute interaction (18 U.S.C. §1343 wire fraud, §1349 conspiracy, §1956 / §1957 money-laundering; UK Fraud Act 2006; equivalent EU and other-jurisdiction wire-fraud statutes), insurance-coverage interaction, and counsel-led decisions on cross-border evidence transfer.
+- [[sop-legal-ethics|Legal & Ethics]] — canonical jurisdictional framework, breach-notification timelines, wire-fraud-statute interaction (18 U.S.C. §1343 wire fraud, §1349 attempt and conspiracy, §1956 / §1957 money-laundering; UK Fraud Act 2006; equivalent EU and other-jurisdiction wire-fraud statutes), insurance-coverage interaction, and counsel-led decisions on cross-border evidence transfer.
 - [[sop-opsec-plan|OPSEC]] — investigator infrastructure, artifact hygiene, pre-disclosure handling discipline; particular attention during active wire-fraud incidents where adversary may be monitoring victim infrastructure and IR-team operational signal can leak.
 
 ---
@@ -1412,9 +1435,9 @@ The scenarios below abstract observed BEC patterns to illustrate how the methodo
 
 - **Tenant-administrator authorization** is the typical engagement authority for the recipient-side mail-flow surface. The customer's mailbox-provider admin authorizes the investigator's read-only role and any state-changing actions (sender-block, message purge, mailbox-rule disablement, OAuth-app revocation). Without it, the investigator's access is unauthorized regardless of the suspect's behavior.
 - **Sender-side authorization is asymmetric.** The investigator cannot authenticate, sign, or query *sender-side* logs on infrastructure they do not own; provider legal process (subpoena / preservation letter) is the route for sender-side evidence on a third-party provider.
-- **Provider legal process** for cross-tenant evidence — when the suspect's tenant is on the same provider as the victim, the provider's law-enforcement portal and customer-side legal-process pathways are the route. Microsoft, Google, Mimecast, Proofpoint, Cisco, Barracuda, AWS SES, SendGrid, Mailgun, and most major SEGs publish LE-cooperation paths and require subpoena / warrant / MLAT / preservation letter [verify 2026-04-27].
-- **Cross-jurisdiction authorization.** EU-data, healthcare, payment, and government-tenant workloads carry residency / sovereignty constraints. CLOUD Act executive agreements, Schrems II / DPF / SCCs framing, MLATs, and the Budapest Convention Second Additional Protocol shape cross-border evidence-transfer pathways. Verify under counsel.
-- **Wire-fraud-statute interaction.** 18 U.S.C. §1343 (wire fraud), §1349 (conspiracy), §1956 / §1957 (money-laundering); UK Fraud Act 2006; EU and other-jurisdiction wire-fraud statutes. The investigator coordinates with prosecution / civil-litigation strategy through counsel; the engagement does not direct the prosecution.
+- **Provider legal process** for cross-tenant evidence — when the suspect's tenant is on the same provider as the victim, the provider's law-enforcement portal and customer-side legal-process pathways are the route. Microsoft, Google, Proofpoint, Cisco, Barracuda, AWS (SES), Twilio (SendGrid) and Sinch (Mailgun) publish law-enforcement / legal-process guidance; the required instrument (subpoena / warrant / MLAT / preservation letter) depends on data type and jurisdiction [verify 2026-10-30].
+- **Cross-jurisdiction authorization.** EU-data, healthcare, payment, and government-tenant workloads carry residency / sovereignty constraints. CLOUD Act executive agreements, Schrems II / DPF / SCCs framing, MLATs, the Budapest Convention Second Additional Protocol (CETS 224; not yet in force — four of the five required ratifications as of April 2026) and, in the EU, the e-Evidence Regulation (EU) 2023/1543 (applies from 18 August 2026) shape cross-border evidence-transfer pathways. Verify under counsel [verify 2026-10-30].
+- **Wire-fraud-statute interaction.** 18 U.S.C. §1343 (wire fraud), §1349 (attempt and conspiracy), §1956 / §1957 (money-laundering); UK Fraud Act 2006; EU and other-jurisdiction wire-fraud statutes. The investigator coordinates with prosecution / civil-litigation strategy through counsel; the engagement does not direct the prosecution.
 - **Engagement scope drift.** BEC investigations expand: initial scope is one wire; mid-engagement scope adds vendor-side compromise, customer's-customer notification, and a pattern campaign across multiple victims. Any scope expansion needs documented re-authorization.
 
 ### Anti-Hacking Statute Framing
@@ -1433,10 +1456,10 @@ Email and BEC forensics actions are typically read-only against tenants and infr
 - **GDPR Art. 33** — supervisory-authority notification within 72 hours of becoming aware of a personal-data breach.
 - **GDPR Art. 34** — data-subject notification when the breach is high-risk to data subjects. BEC compromises that exposed mail content frequently meet the high-risk bar.
 - **HIPAA Breach Notification Rule** — covered entities + business associates have 60-day notification windows. Mailboxes holding ePHI trigger this rule on compromise.
-- **State breach laws** (US) — varies by state; California (CCPA / CPRA), New York (SHIELD), and many others have specific timelines and requirements; some (NY, CT, MD, VT) have specific BEC / financial-loss reporting interaction.
+- **State breach laws** (US) — varies by state; California, New York (SHIELD Act) and many others have their own timelines and requirements; check the statute of each affected data subject's state under counsel.
 - **PCI DSS Incident Response Plan** — required for cardholder-data environments.
-- **Sectoral rules** — finance (NYDFS Part 500 — 72-hour cyber-event notification, FFIEC, EBA / DORA, GLBA Safeguards Rule), healthcare (HIPAA, NIS2 in EU), telecom — verify per engagement.
-- **Wire-fraud-related disclosure** — beyond breach laws, wire fraud may trigger SEC cyber-disclosure (for registrants, material incidents), state insurance-commissioner reporting, and bank-regulator notification (OCC / FDIC / FRB / state — for the customer's bank); the disclosure interaction with the active recall operation needs counsel coordination.
+- **Sectoral rules** — finance (NYDFS 23 NYCRR 500.17 — notice within 72 hours of determining that a cybersecurity incident occurred, FFIEC, EBA / DORA, GLBA Safeguards Rule), healthcare (HIPAA, NIS2 in EU), telecom — verify per engagement.
+- **Wire-fraud-related disclosure** — beyond breach laws, wire fraud may trigger SEC cyber-disclosure (registrants: Form 8-K Item 1.05 within four business days of determining the incident was material), state insurance-commissioner reporting, and bank-regulator notification (OCC / FDIC / FRB / state — for the customer's bank); the disclosure interaction with the active recall operation needs counsel coordination.
 
 ### Disclosure Discipline
 
@@ -1492,61 +1515,64 @@ Email and BEC forensics actions are typically read-only against tenants and infr
 - RFC 5322 — Internet Message Format — https://www.rfc-editor.org/rfc/rfc5322
 - RFC 6376 — DomainKeys Identified Mail (DKIM) Signatures — https://www.rfc-editor.org/rfc/rfc6376
 - RFC 7208 — Sender Policy Framework (SPF) for Authorizing Use of Domains in Email, Version 1 — https://www.rfc-editor.org/rfc/rfc7208
-- RFC 7489 — Domain-based Message Authentication, Reporting, and Conformance (DMARC) — https://www.rfc-editor.org/rfc/rfc7489
+- RFC 9989 — Domain-Based Message Authentication, Reporting, and Conformance (DMARC) (Proposed Standard, May 2026; obsoletes RFC 7489) — https://www.rfc-editor.org/rfc/rfc9989 [verify 2026-10-30]
+- RFC 9990 — DMARC Aggregate Reporting — https://www.rfc-editor.org/rfc/rfc9990
+- RFC 9991 — DMARC Failure Reporting — https://www.rfc-editor.org/rfc/rfc9991
+- RFC 7489 — Domain-based Message Authentication, Reporting, and Conformance (DMARC) (obsoleted; still what older reporters implement) — https://www.rfc-editor.org/rfc/rfc7489
 - RFC 8463 — A New Cryptographic Signature Method for DKIM (Ed25519-SHA256) — https://www.rfc-editor.org/rfc/rfc8463
 - RFC 8617 — The Authenticated Received Chain (ARC) Protocol — https://www.rfc-editor.org/rfc/rfc8617
 - RFC 8601 — Message Header Field for Indicating Message Authentication Status — https://www.rfc-editor.org/rfc/rfc8601
 - RFC 8616 — Email Authentication for Internationalized Mail — https://www.rfc-editor.org/rfc/rfc8616
-- RFC 9690 — Brand Indicators for Message Identification (BIMI) — https://www.rfc-editor.org/rfc/rfc9690 [verify 2026-04-27]
+- BIMI — Brand Indicators for Message Identification (no RFC; IETF Internet-Draft) [verify 2026-10-30]
 - RFC 6591 — Authentication Failure Reporting Using the Abuse Reporting Format — https://www.rfc-editor.org/rfc/rfc6591
 - RFC 6962 — Certificate Transparency — https://www.rfc-editor.org/rfc/rfc6962
 - RFC 3492 — Punycode: A Bootstring encoding of Unicode — https://www.rfc-editor.org/rfc/rfc3492
-- Unicode TR39 — Unicode Security Mechanisms — https://www.unicode.org/reports/tr39/
+- Unicode UTS #39 — Unicode Security Mechanisms — https://www.unicode.org/reports/tr39/
 - ISO 20022 — Financial-services messaging (UETR / SWIFT GPI) — https://www.iso20022.org
 
 **Vendor documentation:**
-- Microsoft — Anti-spoofing protection in EOP — https://learn.microsoft.com/defender-office-365/anti-spoofing-protection-about [verify 2026-04-27]
-- Microsoft — Email message tracing — https://learn.microsoft.com/exchange/monitoring/trace-an-email-message/trace-an-email-message [verify 2026-04-27]
-- Microsoft — Defender for Office 365 Threat Explorer — https://learn.microsoft.com/defender-office-365/threat-explorer-real-time-detections-about [verify 2026-04-27]
-- Google Workspace — Email Log Search — https://support.google.com/a/answer/2604578 [verify 2026-04-27]
-- Google Workspace — Workspace logs export to BigQuery — https://support.google.com/a/answer/9079365 [verify 2026-04-27]
-- Mimecast — Tech Connect / API — https://www.mimecast.com/tech-connect/documentation/ [verify 2026-04-27]
-- Proofpoint — Email Protection / Smart Search — https://www.proofpoint.com/us/products/email-security-and-protection [verify 2026-04-27]
-- Cisco Secure Email — https://www.cisco.com/c/en/us/products/security/email-security/index.html [verify 2026-04-27]
-- Barracuda Email Protection — https://www.barracuda.com/products/email-protection [verify 2026-04-27]
+- Microsoft — Anti-spoofing protection — https://learn.microsoft.com/en-us/defender-office-365/anti-phishing-protection-spoofing-about [verify 2026-10-30]
+- Microsoft — Email message tracing — https://learn.microsoft.com/exchange/monitoring/trace-an-email-message/trace-an-email-message [verify 2026-10-30]
+- Microsoft — Defender for Office 365 Threat Explorer — https://learn.microsoft.com/defender-office-365/threat-explorer-real-time-detections-about [verify 2026-10-30]
+- Google Workspace — Email Log Search — https://knowledge.workspace.google.com/admin/support/troubleshooting/find-messages-with-email-log-search [verify 2026-10-30]
+- Google Workspace — Workspace logs export to BigQuery — https://knowledge.workspace.google.com/admin/reports/set-up-service-log-exports-to-bigquery [verify 2026-10-30]
+- Mimecast — API 2.0 developer portal — https://developer.services.mimecast.com/ (the old tech-connect URL redirects to the API 1.0 archive) [verify 2026-10-30]
+- Proofpoint — Email Protection / Smart Search — https://www.proofpoint.com/us/products/email-protection [verify 2026-10-30]
+- Cisco Secure Email — https://www.cisco.com/c/en/us/products/security/email-security/index.html [verify 2026-10-30]
+- Barracuda Email Protection — https://www.barracuda.com/products/email-protection [verify 2026-10-30]
 
 **FBI / IC3 / law-enforcement:**
 - FBI IC3 — Internet Crime Complaint Center — https://www.ic3.gov
-- FBI BEC public-service announcements (annual) — https://www.ic3.gov/Media/PSA [verify 2026-04-27]
+- FBI IC3 public-service announcements (BEC PSAs are periodic, not strictly annual) — https://www.ic3.gov/PSA [verify 2026-10-30]
 - FBI Field Office locator — https://www.fbi.gov/contact-us/field-offices
 - US Secret Service Field Offices — https://www.secretservice.gov/contact/field-offices
 - FinCEN — https://www.fincen.gov
-- FinCEN Rapid Response Program — search FinCEN for current program scope [verify 2026-04-27]
+- FinCEN Rapid Response Program fact sheet (April 2026) — https://www.fincen.gov/system/files/2026-04/RRPFactSheet.pdf [verify 2026-10-30]
 - US Treasury OFAC SDN list — https://sanctionssearch.ofac.treas.gov/
 - NCSC (UK) — https://www.ncsc.gov.uk
 - Report Fraud (UK; formerly Action Fraud) — https://www.reportfraud.police.uk [verify 2026-10-29]
 - Europol European Cybercrime Centre (EC3) — https://www.europol.europa.eu/about-europol/european-cybercrime-centre-ec3
-- Australian Cyber Security Centre (ACSC) — https://www.cyber.gov.au [verify 2026-04-27]
-- Canadian Anti-Fraud Centre — https://www.antifraudcentre-centreantifraude.ca [verify 2026-04-27]
+- Australian Cyber Security Centre (ACSC) — https://www.cyber.gov.au [verify 2026-10-30]
+- Canadian Anti-Fraud Centre — https://www.antifraudcentre-centreantifraude.ca [verify 2026-10-30]
 
 **Banking and payments standards:**
 - SWIFT — https://www.swift.com
 - SWIFT GPI — https://www.swift.com/our-solutions/swift-gpi
 - European Payments Council — https://www.europeanpaymentscouncil.eu (SEPA / SCT / SCT Inst rulebooks)
-- NACHA Operating Rules — https://www.nacha.org/rules [verify 2026-04-27]
-- Federal Reserve — Fedwire / FedNow — https://www.frbservices.org [verify 2026-04-27]
+- Nacha Operating Rules — https://www.nacha.org/newrules [verify 2026-10-30]
+- Federal Reserve — Fedwire / FedNow — https://www.frbservices.org [verify 2026-10-30]
 
 **Mail-authentication tooling and corpora:**
-- parsedmarc — https://github.com/domainaware/parsedmarc [verify 2026-04-27]
+- parsedmarc — https://github.com/domainaware/parsedmarc [verify 2026-10-30]
 - dnstwist — https://github.com/elceef/dnstwist
 - urlcrazy — https://github.com/urbanadventurer/urlcrazy
 - urlinsane — https://github.com/rangertaha/urlinsane
 - crt.sh — https://crt.sh
-- Censys — https://censys.io
-- DKIMpy — https://launchpad.net/dkimpy [verify 2026-04-27]
-- OpenDKIM — https://github.com/trusteddomainproject/OpenDKIM [verify 2026-04-27]
-- pyspf — https://launchpad.net/pyspf [verify 2026-04-27]
-- OpenARC — https://github.com/trusteddomainproject/OpenARC [verify 2026-04-27]
+- Censys — https://censys.com
+- DKIMpy — https://launchpad.net/dkimpy [verify 2026-10-30]
+- OpenDKIM — https://github.com/trusteddomainproject/OpenDKIM [verify 2026-10-30]
+- pyspf — https://launchpad.net/pyspf [verify 2026-10-30]
+- OpenARC (maintained fork; upstream trusteddomainproject/OpenARC last pushed 2024-04) — https://github.com/flowerysong/OpenARC [verify 2026-10-30]
 - DMARC.org — https://dmarc.org
 
 **Phishing-kit / threat-intel:**
@@ -1556,30 +1582,30 @@ Email and BEC forensics actions are typically read-only against tenants and infr
 - MITRE ATT&CK — Initial Access (Phishing T1566) — https://attack.mitre.org/techniques/T1566/
 - MITRE ATT&CK — T1566.002 Spearphishing Link — https://attack.mitre.org/techniques/T1566/002/
 - MITRE ATT&CK — T1534 Internal Spearphishing — https://attack.mitre.org/techniques/T1534/
-- Cofense Intelligence — https://cofense.com [verify 2026-04-27]
-- Akamai Hunt blog — https://www.akamai.com/blog [verify 2026-04-27]
-- Google Threat Analysis Group — https://blog.google/threat-analysis-group/ [verify 2026-04-27]
-- Microsoft Threat Intelligence — https://www.microsoft.com/security/blog/topic/threat-intelligence/ [verify 2026-04-27]
-- Volexity — https://www.volexity.com/blog/ [verify 2026-04-27]
-- Proofpoint Threat Insight — https://www.proofpoint.com/us/blog/threat-insight [verify 2026-04-27]
-- Trustwave SpiderLabs blog — https://www.trustwave.com/en-us/resources/blogs/spiderlabs-blog/ [verify 2026-04-27]
+- Cofense — https://cofense.com [verify 2026-10-30]
+- Akamai Security Research blog — https://www.akamai.com/blog/security-research [verify 2026-10-30]
+- Google Threat Intelligence Group (GTIG) — https://cloud.google.com/blog/topics/threat-intelligence (the old TAG blog URL redirects to https://blog.google/security/) [verify 2026-10-30]
+- Microsoft Threat Intelligence — https://www.microsoft.com/security/blog/topic/threat-intelligence/ [verify 2026-10-30]
+- Volexity — https://www.volexity.com/blog/ [verify 2026-10-30]
+- Proofpoint Threat Insight — https://www.proofpoint.com/us/blog/threat-insight [verify 2026-10-30]
+- LevelBlue SpiderLabs blog (the Trustwave SpiderLabs URL redirects here) — https://www.levelblue.com/blogs/spiderlabs-blog [verify 2026-10-30]
 
 **Reporting catalogues and case studies:**
-- FBI IC3 Annual Internet Crime Report — annual — https://www.ic3.gov/Media/AnnualReport [verify 2026-04-27]
+- FBI IC3 Annual Internet Crime Report — annual — https://www.ic3.gov/AnnualReport/Reports [verify 2026-10-30]
 - Verizon DBIR — annual incident analysis (BEC / phishing breakouts each year) — https://www.verizon.com/business/resources/reports/dbir/
-- Anti-Phishing Working Group (APWG) Phishing Activity Trends Report — https://apwg.org [verify 2026-04-27]
-- Microsoft Digital Defense Report — annual — https://www.microsoft.com/security/business/microsoft-digital-defense-report [verify 2026-04-27]
+- Anti-Phishing Working Group (APWG) Phishing Activity Trends Report — https://apwg.org [verify 2026-10-30]
+- Microsoft Digital Defense Report — annual — https://www.microsoft.com/en-us/corporate-responsibility/topics/cybersecurity/reports/microsoft-digital-defense-report/ [verify 2026-10-30]
 
 **Training and certification:**
-- SANS FOR509 — Enterprise Cloud Forensics and Incident Response (covers M365 / Workspace / SaaS surfaces relevant to BEC) [verify 2026-04-27]
+- SANS FOR509 — Enterprise Cloud Forensics and Incident Response (covers M365 / Workspace / SaaS surfaces relevant to BEC) [verify 2026-10-30]
 - SANS FOR578 — Cyber Threat Intelligence
 - SANS SEC504 — Hacker Tools, Techniques, and Incident Handling
-- M3AAWG (Messaging, Malware and Mobile Anti-Abuse Working Group) — https://www.m3aawg.org [verify 2026-04-27]
-- (ISC)² CCSP / CISSP — for broader IR / governance competence
-- Microsoft — SC-200 / SC-400 (Security Operations Analyst / Information Protection Administrator)
+- M3AAWG (Messaging, Malware and Mobile Anti-Abuse Working Group) — https://www.m3aawg.org [verify 2026-10-30]
+- ISC2 CCSP / CISSP — for broader IR / governance competence
+- Microsoft — SC-200 (Security Operations Analyst Associate); SC-400 retired 2025-05-30 [verify 2026-10-30]
 
 ---
 
 **Version:** 1.0
-**Last Updated:** 2026-10-29
-**Review Frequency:** Quarterly (BEC TTPs, AiTM kit landscape, lookalike-domain registrar patterns, M365 / Workspace / SEG message-trace API field renames, and IC3 / FFKC threshold guidance evolve on a quarterly cadence; RFC-level SPF / DKIM / DMARC / ARC fundamentals and chain-of-custody discipline are slower)
+**Last Updated:** 2026-10-30
+**Review Frequency:** Quarterly (BEC TTPs, AiTM kit landscape, lookalike-domain registrar patterns, M365 / Workspace / SEG message-trace API field renames, and IC3 / FFKC guidance evolve on a quarterly cadence; RFC-level SPF / DKIM / DMARC / ARC fundamentals and chain-of-custody discipline are slower)

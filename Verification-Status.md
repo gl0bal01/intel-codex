@@ -32,9 +32,9 @@ file, so a SOP is only as fresh as its stalest claim.
 
 | State | SOPs |
 |-------|------|
-| current (≤ 150 days) | 25 |
+| current (≤ 150 days) | 26 |
 | due soon (151–180 days) | 0 |
-| overdue (> 180 days) | 16 |
+| overdue (> 180 days) | 15 |
 | no source checks recorded | 0 |
 | **Total** | **41** |
 
@@ -75,7 +75,7 @@ file, so a SOP is only as fresh as its stalest claim.
 | AI/ML Vulnerability & Evasion Testing SOP | [[sop-ai-vulnerability-evasion]] | 2026-04-26 | 25 | 2026-04-26 | 187 | overdue |
 | Cloud Forensics SOP | [[sop-cloud-forensics]] | 2026-10-30 | 261 | 2026-10-30 | 0 | current |
 | Cryptography Analysis SOP | [[sop-cryptography-analysis]] | 2026-04-25 | 7 | 2026-04-25 | 188 | overdue |
-| Email & BEC Forensics SOP | [[sop-email-bec-forensics]] | 2026-10-29 | 82 | 2026-04-27 | 186 | overdue |
+| Email & BEC Forensics SOP | [[sop-email-bec-forensics]] | 2026-10-30 | 136 | 2026-10-29 | 1 | current |
 | Digital Forensics Investigation SOP | [[sop-forensics-investigation]] | 2026-10-30 | 212 | 2026-10-29 | 1 | current |
 | Hash Generation Methods for Evidence Integrity | [[sop-hash-generation-methods]] | 2026-04-26 | 4 | 2026-04-26 | 187 | overdue |
 | Malware Analysis SOP | [[sop-malware-analysis]] | 2026-10-18 | 200 | 2026-10-18 | 12 | current |
