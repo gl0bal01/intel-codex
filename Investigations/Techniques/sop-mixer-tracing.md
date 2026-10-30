@@ -100,7 +100,7 @@ Three failure modes drive this SOP:
 Before any non-trivial mixer-tracing query or large-scale collection:
 
 - [ ] Written authorization names mixer / privacy-pool analytics as in-scope, with target deposit / withdrawal addresses and (where known) the specific mixer protocol(s) enumerated.
-- [ ] Sanctions exposure check: confirm jurisdictional posture for research against currently-listed entities (Sinbad, Blender.io, and others remain SDN-listed as of 2026-04-26 [verify 2026-04-26]; Tornado Cash was delisted 2025-03-21 [verify 2026-04-26]). Most jurisdictions permit analytical observation; transactional engagement is the prohibited line.
+- [ ] Sanctions exposure check: confirm jurisdictional posture for research against currently-listed entities (as of 2026-10-29, Sinbad, Blender.io, and others remain SDN-listed; Tornado Cash was delisted 2025-03-21). [verify 2026-10-29] Most jurisdictions permit analytical observation; transactional engagement is the prohibited line.
 - [ ] Engagement deliverable specified — intel report, evidence package, court submission, regulator filing, ISAC notification — driving the evidentiary bar.
 - [ ] Data-protection lawful basis documented per query class (GDPR Art. 6 / Art. 9, UK DPA, CCPA / CPRA — see [[sop-legal-ethics|Legal & Ethics]]).
 - [ ] If operating inside a regulated entity (bank, VASP, exchange): MLRO / compliance is looped in before findings are externalized — mixer-implicated funds typically trigger heightened-risk SAR pathways.
@@ -145,8 +145,8 @@ Mixer / privacy-pool tooling falls into four classes. Each has a distinct on-cha
 |-------|----------|--------------------|---------------------------|
 | **CoinJoin (UTXO)** | Wasabi (ZeroLink, WabiSabi), Samourai Whirlpool, JoinMarket | Multi-input multi-output Bitcoin transactions with equal-output denominations and known coordinator-published structure | Common-input violation + sub-round timing + post-mix spending pattern |
 | **Smart-contract pool** | Tornado Cash (Ethereum + L2 deployments), Aztec (deprecated zk-rollup), Railgun, USDC.cc-style pools | Fixed-denomination deposit + zk-SNARK withdrawal calls to a known contract | Deposit-withdrawal linkage via gas, time, address-reuse, single-relay, multi-deposit clustering |
-| **Custodial / centralized mixer** | (Historical) Bitcoin Fog, Helix, ChipMixer, Blender.io, Sinbad, Sinbad-successor "YoMix" [verify 2026-04-26] | Single operator address-cluster receiving deposits and emitting (often time-shifted, fragmented) withdrawals | Operator-cluster identification + statistical input-output flow analysis |
-| **Privacy-by-default chain** | Monero (RingCT), Zcash (sapling / orchard shielded pool), Dash (PrivateSend), Decred (StakeShuffle / mixed outputs) | Chain-internal — ring signatures, zero-knowledge shielded transactions, opt-in CoinJoin | Statistical / metadata attacks; cross-chain egress analysis; opt-in-vs-default usage patterns |
+| **Custodial / centralized mixer** | (Historical) Bitcoin Fog, Helix, ChipMixer, Blender.io, Sinbad, Sinbad-successor "YoMix" [verify 2026-10-29] | Single operator address-cluster receiving deposits and emitting (often time-shifted, fragmented) withdrawals | Operator-cluster identification + statistical input-output flow analysis |
+| **Privacy-by-default chain** | Monero (RingCT), Zcash (sapling / orchard shielded pool), Dash (CoinJoin, ex-PrivateSend), Decred (StakeShuffle / mixed outputs) | Chain-internal — ring signatures, zero-knowledge shielded transactions, opt-in CoinJoin | Statistical / metadata attacks; cross-chain egress analysis; opt-in-vs-default usage patterns |
 
 ### 3.2 Bridge-as-mixer obfuscation
 
@@ -180,9 +180,9 @@ CoinJoin transactions deliberately violate the common-input ownership heuristic 
 
 **Protocol summary:**
 
-- **ZeroLink** (Wasabi 1.x, 2018-2022) — Chaumian-CoinJoin coordinator with fixed denominations (typically 0.1 BTC). Coordinator computes the CoinJoin; clients blind-sign output requests. Fixed denominations make rounds visually identifiable on-chain. [verify 2026-04-26]
-- **WabiSabi** (Wasabi 2.x, June 2022 onwards) — coordinator-mediated CoinJoin with **arbitrary denominations** via credentials. WabiSabi rounds are harder to identify visually because outputs need not all be equal; the structural fingerprint is the round-coordination pattern (input set, fee pattern, output set construction). [verify 2026-04-26]
-- **zkSNACKs** (the Wasabi coordinator operator) announced in June 2024 it would refuse coordination for transactions associated with US-sanctioned addresses, then in mid-2024 ceased operation of its coordinator entirely. Subsequent Wasabi forks (e.g., Ginger Wallet) operate independent coordinators. [verify 2026-04-26]
+- **ZeroLink** (Wasabi 1.x, 2018-2022) — Chaumian-CoinJoin coordinator with fixed denominations (typically 0.1 BTC). Coordinator computes the CoinJoin; clients blind-sign output requests. Fixed denominations make rounds visually identifiable on-chain. [verify 2026-10-29]
+- **WabiSabi** (Wasabi 2.x, June 2022 onwards) — coordinator-mediated CoinJoin with **arbitrary denominations** via credentials. WabiSabi rounds are harder to identify visually because outputs need not all be equal; the structural fingerprint is the round-coordination pattern (input set, fee pattern, output set construction). [verify 2026-10-29]
+- **zkSNACKs** (the Wasabi coordinator operator) announced on 2024-05-02 that it would discontinue its CoinJoin coordination service effective 2024-06-01, citing legal uncertainty ("we need to regain more certainty before moving forward"). Wasabi 2.0.8 (released 2024-06-01) added coordinator selection; independent coordinators, including the one run by the Wasabi-derived Ginger Wallet, continue WabiSabi rounds. [verify 2026-10-29]
 
 **Heuristic surface:**
 
@@ -197,11 +197,11 @@ CoinJoin transactions deliberately violate the common-input ownership heuristic 
 
 **Key academic and operational references:**
 
-- Maxwell 2013 — original CoinJoin proposal (Bitcoin-talk post, foundational). [verify 2026-04-26]
-- Ficsór et al. 2017 — *ZeroLink: The Bitcoin Fungibility Framework* (Wasabi protocol). [verify 2026-04-26]
-- Seres et al. 2021 — *Mixeth, Tornado, Wasabi: A study of mixing services* (academic comparative analysis). [verify 2026-04-26]
-- Ndiaye / Seres 2023 — empirical analysis of WabiSabi round structure and post-mix spending patterns. [verify 2026-04-26]
-- Chainalysis Reactor and Crystal Intelligence both publish methodology notes on Wasabi round identification; specific heuristic implementations are proprietary. [verify 2026-04-26]
+- Maxwell 2013 — original CoinJoin proposal (Bitcoin-talk post, foundational). [verify 2026-10-29]
+- Ficsór et al. 2017 — *ZeroLink: The Bitcoin Fungibility Framework* (Wasabi protocol). [verify 2026-10-29]
+- Stütz, Stockinger, Haslhofer, Moreno-Sanchez, Maffei 2021 — *Adoption and Actual Privacy of Decentralized CoinJoin Implementations in Bitcoin* (arXiv 2109.10229) — measurement study detecting Wasabi and Samourai CoinJoins and their pre-/post-mix traceability. [verify 2026-10-29]
+- Ficsór, Kogman, Ontivero, Seres 2021 — *WabiSabi: Centrally Coordinated CoinJoins with Variable Amounts* (IACR ePrint 2021/206) — protocol reference for WabiSabi round structure. [verify 2026-10-29]
+- Commercial tools (e.g., Chainalysis Reactor, Crystal Intelligence) flag CoinJoin rounds, but their heuristic implementations are proprietary (vendor claims; public methodology notes not independently verified). Obtain the vendor's methodology statement before relying on a label in a deliverable.
 
 **Failure modes of the analyst:**
 
@@ -213,9 +213,9 @@ CoinJoin transactions deliberately violate the common-input ownership heuristic 
 
 **Protocol summary:**
 
-- **Whirlpool** (Samourai Wallet, 2019-2024) — closed-pool CoinJoin with fixed denominations (0.001, 0.01, 0.05, 0.5 BTC pools). Five-input five-output rounds; each output is indistinguishable within the round at the *transaction* layer. [verify 2026-04-26]
-- **Tx0 transaction** — a one-time "premix" transaction prepares funds for entry into Whirlpool, splitting into pool-denominated outputs plus a "doxxic change" output (acknowledged by Samourai documentation as non-private). The Tx0 → pool-entry pattern is visually identifiable. [verify 2026-04-26]
-- **Operational status:** Samourai founders Keonne Rodriguez and William Lonergan Hill were indicted by SDNY on 2024-04-24 for conspiracy to commit money laundering and to operate an unlicensed money-transmitting business. Samourai infrastructure (Whirlpool servers, Samourai Wallet site) was seized. The case is ongoing as of 2026-04-26. [verify 2026-04-26]
+- **Whirlpool** (Samourai Wallet, 2019-2024) — closed-pool CoinJoin with fixed denominations (0.001, 0.01, 0.05, 0.5 BTC pools). [verify 2026-10-29] Rounds are commonly described as five-input five-output (community documentation; not re-confirmed against the offline Samourai docs); each output is indistinguishable within the round at the *transaction* layer.
+- **Tx0 transaction** — a one-time "premix" transaction prepares funds for entry into Whirlpool, splitting into pool-denominated outputs plus a "doxxic change" output (Samourai's documentation labels it unmixed change and recommends marking it Do Not Spend). [verify 2026-10-29] The Tx0 → pool-entry pattern is visually identifiable.
+- **Operational status:** Samourai founders Keonne Rodriguez and William Lonergan Hill were indicted by SDNY on 2024-04-24 for conspiracy to commit money laundering and to operate an unlicensed money-transmitting business. Samourai infrastructure (Whirlpool servers, Samourai Wallet site) was seized. Both later pleaded guilty to conspiracy to operate a money-transmitting business that knowingly transmitted criminal proceeds; U.S. District Judge Denise Cote (SDNY) sentenced Rodriguez to 5 years (2025-11-06) and Hill to 4 years (2025-11-19) and ordered forfeiture of $237.8M. [verify 2026-10-29]
 - Post-takedown, Whirlpool coordination ceased; pre-takedown rounds remain on-chain as historical artifacts.
 
 **Heuristic surface:**
@@ -232,17 +232,17 @@ CoinJoin transactions deliberately violate the common-input ownership heuristic 
 
 **Key references:**
 
-- Samourai Wallet documentation (archived) — Whirlpool protocol, Tx0 structure, doxxic change disclosure. [verify 2026-04-26]
-- DOJ press release SDNY 2024-04-24 — Samourai indictment; specifies Whirlpool as alleged money-laundering conspiracy infrastructure. [verify 2026-04-26]
-- BitMex Research / OXT.me had published Whirlpool round analyses pre-takedown; OXT.me status post-2024 is uncertain. [verify 2026-04-26]
+- Samourai Wallet documentation (offline; [Wayback copy](https://web.archive.org/web/20250121075709/https://docs.samourai.io/whirlpool/basic-concepts)) — Whirlpool protocol, Tx0 structure, doxxic change disclosure. [verify 2026-10-29]
+- DOJ press release SDNY 2024-04-24 — Samourai indictment; specifies Whirlpool as alleged money-laundering conspiracy infrastructure. [verify 2026-10-29]
+- OXT.me (Samourai-affiliated Bitcoin analytics) has been offline since 2024-04, after the Samourai indictment; use archived copies of its pre-takedown Whirlpool analyses only. [verify 2026-10-29]
 
 ### 4.3 JoinMarket
 
 **Protocol summary:**
 
-- Maker-taker CoinJoin marketplace (no central coordinator). Takers pay makers a small fee to participate in CoinJoin transactions on-demand. [verify 2026-04-26]
+- Maker-taker CoinJoin marketplace (no central coordinator). Takers pay makers a small fee to participate in CoinJoin transactions on-demand. [verify 2026-10-29]
 - Variable participant count and flexible denominations make rounds harder to fingerprint than Wasabi or Whirlpool.
-- Long-running protocol (since ~2015); active community; small cumulative volume relative to Wasabi / Whirlpool.
+- Long-running protocol (since ~2015); reference implementation archived 2026-04 (see Key references); small cumulative volume relative to Wasabi / Whirlpool.
 
 **Heuristic surface:**
 
@@ -256,8 +256,8 @@ CoinJoin transactions deliberately violate the common-input ownership heuristic 
 
 **Key references:**
 
-- JoinMarket project documentation; project repositories on GitHub. [verify 2026-04-26]
-- Möser et al. 2018 — empirical analysis of JoinMarket usage patterns. [verify 2026-04-26]
+- JoinMarket project documentation and the `joinmarket-clientserver` repository on GitHub (archived 2026-04 after release v0.9.12 of 2026-04-21); the release notes point to `joinmarket-ng` as an actively developed alternative codebase, without endorsing it. [verify 2026-10-29]
+- Möser & Böhme 2016 — *Join Me on a Market for Anonymity* (WEIS 2016); journal version *The Price of Anonymity: Empirical Evidence from a Market for Bitcoin Anonymization* (Journal of Cybersecurity 3(2), 2017) — measurement study of JoinMarket usage. [verify 2026-10-29]
 
 ### 4.4 Cross-CoinJoin tradecraft
 
@@ -275,21 +275,21 @@ Tornado Cash is the canonical smart-contract privacy pool. Its protocol structur
 
 ### 5.1 Protocol summary
 
-- **Pool contracts** with fixed denominations per ETH pool (0.1, 1, 10, 100 ETH) and per ERC-20 pool (denominations vary per token). [verify 2026-04-26]
+- **Pool contracts** with fixed denominations per ETH pool (0.1, 1, 10, 100 ETH) and per ERC-20 pool (denominations vary per token). [verify 2026-10-29]
 - **Deposit:** user deposits a fixed denomination, generating a secret commitment stored in a Merkle tree.
 - **Withdrawal:** user proves knowledge of the secret via a zk-SNARK, optionally via a relayer (so the withdrawal transaction is paid by an address with no funding link to the deposit).
 - **Anonymity-set** for a given deposit = number of other commitments in the same pool's Merkle tree at the time of withdrawal.
-- **Multi-chain:** Tornado Cash deployed on Ethereum mainnet, BSC, Polygon, Arbitrum, Optimism, Avalanche, Gnosis (xDai), Polygon, plus historical deployments. [verify 2026-04-26]
+- **Multi-chain:** Tornado Cash deployed on Ethereum mainnet, BSC, Polygon, Arbitrum One, Optimism, Avalanche, and Gnosis Chain (ex-xDai), plus Tornado Cash Nova (arbitrary-amount pool on Gnosis Chain). [verify 2026-10-29]
 
 ### 5.2 Sanctions and prosecution status
 
-- **2022-08-08:** OFAC SDN-listed the Tornado Cash smart-contract addresses and the Tornado Cash entity. First time a smart contract was directly sanctioned. [verify 2026-04-26]
-- **2022-08-10:** Alexey Pertsev (Tornado Cash developer) arrested in the Netherlands. Convicted by a Dutch court 2024-05-14, sentenced to 5 years 4 months for money laundering. Appeal filed; status as of 2026-04-26: appeal pending. [verify 2026-04-26]
-- **2023-08-23:** US SDNY indicted Roman Storm and Roman Semenov (Tornado Cash co-founders) on conspiracy to commit money laundering, sanctions, and unlicensed money transmission. Storm arrested in US; Semenov indicted in absentia. [verify 2026-04-26]
-- **2024-11-26:** US 5th Circuit *Van Loon v. Treasury* ruled that the immutable Tornado Cash smart contracts are not "property" subject to OFAC blocking under IEEPA. [verify 2026-04-26]
-- **2025-03-21:** OFAC removed Tornado Cash addresses from the SDN list, citing the *Van Loon* decision. [verify 2026-04-26]
-- **Storm trial:** scheduled / proceeded through 2025; status as of 2026-04-26 should be verified against the SDNY docket. [verify 2026-04-26]
-- **Pertsev appeal:** Dutch appellate proceedings ongoing as of 2026-04-26. [verify 2026-04-26]
+- **2022-08-08:** OFAC SDN-listed the Tornado Cash smart-contract addresses and the Tornado Cash entity. First time a smart contract was directly sanctioned. [verify 2026-10-29]
+- **2022-08-10:** Alexey Pertsev (Tornado Cash developer) arrested in the Netherlands. Convicted by a Dutch court 2024-05-14, sentenced to 5 years 4 months for money laundering. Appeal filed; status as of 2026-10-29: appeal pending. [verify 2026-10-29]
+- **2023-08-23:** US SDNY indicted Roman Storm and Roman Semenov (Tornado Cash co-founders) on conspiracy to commit money laundering, sanctions, and unlicensed money transmission. Storm was arrested in Washington State the same day; Semenov remains at large and was OFAC-designated the same day (still SDN-listed as of 2026-10-29, after the Tornado Cash delisting). [verify 2026-10-29]
+- **2024-11-26:** US 5th Circuit *Van Loon v. Treasury* ruled that the immutable Tornado Cash smart contracts are not "property" subject to OFAC blocking under IEEPA. [verify 2026-10-29]
+- **2025-03-21:** OFAC removed Tornado Cash addresses from the SDN list, citing the *Van Loon* decision. [verify 2026-10-29]
+- **Storm trial:** on 2025-08-06 the jury convicted Storm of conspiracy to operate an unlicensed money-transmitting business and hung on the money-laundering and sanctions (IEEPA) conspiracy counts. His Rule 29 acquittal motion, argued 2026-04-09, was still pending on the docket in October 2026; retrial on the hung counts is set for 2027-04-26 (SDNY No. 23-cr-430, Dkt. 300). [verify 2026-10-29]
+- **Pertsev appeal:** Dutch appellate proceedings ongoing as of 2026-10-29 (no appellate judgment published). [verify 2026-10-29]
 
 The 2022 → 2024 → 2025 trajectory is a canonical example of a single smart contract's sanctions posture changing three times. Time-stamp every Tornado-related sanctions finding in any deliverable.
 
@@ -312,16 +312,16 @@ These heuristics produce **probabilistic** deposit-withdrawal linkages. None alo
 
 ### 5.4 Tutela and successor research
 
-- **Tutela** (Wu et al. 2022, *"Tutela: An Open-Source Tool for Assessing User-Side Tornado Cash Privacy"*) — released a public dashboard implementing the address-reuse, gas-price, and multi-deposit heuristics on Tornado Cash. Tutela demonstrated that a substantial fraction of historical Tornado Cash users were trivially deanonymizable. The paper's heuristics remain the academic basis for most current Tornado-tracing tooling. [verify 2026-04-26]
-- **Beres et al. 2021** — *"Blockchain is Watching You"* — earlier statistical analysis of Tornado Cash anonymity claims, including time-window and gas-correlation heuristics. [verify 2026-04-26]
-- **Subsequent commercial implementations** — Chainalysis Reactor, TRM Labs, and Elliptic all implemented Tornado-aware heuristics in production tooling, often citing Tutela / Beres as the academic basis in court submissions. Vendor implementations may or may not match the academic heuristics one-for-one; pin the version. [verify 2026-04-26]
+- **Tutela** (Wu et al. 2022, *"Tutela: An Open-Source Tool for Assessing User-Privacy on Ethereum and Tornado Cash"*) — released a public dashboard implementing the address-reuse, gas-price, and multi-deposit heuristics on Tornado Cash. Tutela demonstrated that a substantial fraction of historical Tornado Cash users were trivially deanonymizable. The paper's heuristics remain the academic basis for most current Tornado-tracing tooling. [verify 2026-10-29]
+- **Beres et al. 2021** — *"Blockchain is Watching You"* — earlier statistical analysis of Tornado Cash anonymity claims, including time-window and gas-correlation heuristics. [verify 2026-10-29]
+- **Subsequent commercial implementations** — Chainalysis Reactor, TRM Labs, and Elliptic market Tornado-aware tracing in production tooling (vendor claims; court citations of Tutela / Beres not independently verified). Vendor implementations may or may not match the academic heuristics one-for-one; pin the version.
 
 ### 5.5 Other zk-pool / smart-contract privacy systems
 
-- **Aztec** — zk-rollup with shielded transactions on Ethereum. Aztec Connect was deprecated 2024. Earlier shielded-transaction history remains analyzable by the same general heuristic family. [verify 2026-04-26]
-- **Railgun** — privacy-pool smart contract on Ethereum, Polygon, BSC, Arbitrum. Active as of 2026-04-26. Less academic literature than Tornado; behavioural heuristics generalize. [verify 2026-04-26]
-- **Aleo** — privacy-default L1 with shielded execution. Limited tracing literature; emerging surface. [verify 2026-04-26]
-- **Penumbra** — Cosmos-ecosystem privacy chain. Limited tracing literature. [verify 2026-04-26]
+- **Aztec** — zk-rollup with shielded transactions on Ethereum. Aztec Connect's sunset was announced in March 2023 (deposits closed 2023-03-21; Aztec said it would stop running the sequencer in March 2024). [verify 2026-10-29] Earlier shielded-transaction history remains analyzable by the same general heuristic family.
+- **Railgun** — privacy-pool smart contract on Ethereum, Polygon, BSC, Arbitrum. Active as of 2026-10-29. [verify 2026-10-29] Less academic literature than Tornado; behavioural heuristics generalize.
+- **Aleo** — privacy-focused L1 with zero-knowledge program execution. [verify 2026-10-29] Limited tracing literature (analyst assessment); emerging surface.
+- **Penumbra** — Cosmos-ecosystem (IBC-connected) shielded chain and DEX. [verify 2026-10-29] Limited tracing literature (analyst assessment).
 
 For each new smart-contract privacy pool, the analyst's first task is to characterize the deposit / withdrawal protocol structure, identify which Tornado-class heuristics generalize, and seek the academic literature (or vendor methodology notes) supporting any specific deanonymization claim.
 
@@ -353,7 +353,7 @@ Bridges are not designed as mixers, but **deliberate** bridge use for obfuscatio
 
 ### 6.2 THORChain-mediated obfuscation
 
-THORChain is the most-cited deliberate-obfuscation bridge in DPRK / Lazarus, ransomware, and DeFi-exploit laundering chains observed 2022-2026 [verify 2026-04-26].
+THORChain recurs as a deliberate-obfuscation bridge in public reporting on DPRK / Lazarus, ransomware, and DeFi-exploit laundering chains observed 2022-2026 (vendor and analyst reporting; no authoritative ranking).
 
 **Why:**
 
@@ -363,11 +363,11 @@ THORChain is the most-cited deliberate-obfuscation bridge in DPRK / Lazarus, ran
 
 **Tracing:**
 
-- THORChain provides Midgard (analytics indexer) that records inbound and outbound observation transactions per swap. [verify 2026-04-26]
+- THORChain provides Midgard (analytics indexer) that records inbound and outbound observation transactions per swap. [verify 2026-10-29]
 - Pair the inbound-observation TX (source chain) with the outbound-observation TX (destination chain) via the swap memo / inbound-TX hash.
 - THORChain also operates "RUNE" as the protocol's internal liquidity asset; funds pass through RUNE pools transiently. The user-visible source ↔ destination pairing is the operational level; the RUNE legs are protocol-internal.
 
-**Operational note:** THORChain's community has made public statements on Lazarus laundering activity; some pools have implemented voluntary blocking of OFAC-listed addresses. The level of voluntary cooperation varies by community decision over time. [verify 2026-04-26]
+**Operational note:** sanctions controls sit at THORChain front-ends, not in the protocol — e.g., THORSwap's terms of service exclude sanctioned persons and restricted territories. No protocol-level OFAC address blocking is documented; expect no protocol-level cooperation. [verify 2026-10-29]
 
 ### 6.3 Bridge-mediated mixer-equivalent flows
 
@@ -393,7 +393,16 @@ Examples include Bungee (Socket), Li.Fi, Squid (Axelar), Synapse Aggregator. Agg
 
 ### 6.5 Notable laundering-chain case patterns
 
-- **Lazarus / DPRK incidents 2022-2024.** Ronin (2022-03-23, $625M) [verify 2026-04-26], Harmony Horizon (2022-06-23, $100M) [verify 2026-04-26], Atomic Wallet (2023-06-02) [verify 2026-04-26], Stake.com (2023-09-04) [verify 2026-04-26], HTX / Heco Bridge (2023-11-22) [verify 2026-04-26], DMM Bitcoin (2024-05-31) [verify 2026-04-26], WazirX (2024-07-18) [verify 2026-04-26], Radiant Capital (2024-10-16) [verify 2026-04-26]. Common laundering pattern: rapid bridge through THORChain to BTC; multi-hop swap layering; eventual mixer or OTC-desk off-ramp. UN Panel of Experts on DPRK and Chainalysis annual report attribute these. Treat any specific event-attribution claim against current public reporting. [verify 2026-04-26]
+- **Lazarus / DPRK incidents 2022-2025.** Common laundering pattern: rapid bridge through THORChain to BTC; multi-hop swap layering; eventual mixer or OTC-desk off-ramp. Attribution sources vary by incident (US-government releases where noted, otherwise vendor reporting); treat any specific event-attribution claim against current public reporting.
+  - Ronin / Axie Infinity — 2022-03-23, almost $620M (OFAC). [verify 2026-10-29]
+  - Harmony Horizon Bridge — 2022-06-24 per OFAC (FBI: theft "reported on June 24, 2022"), $100M (FBI). [verify 2026-10-29]
+  - Atomic Wallet — 2023-06-03 per OFAC, ~$100M. [verify 2026-10-29]
+  - Stake.com — 2023-09-04, $41M (FBI). [verify 2026-10-29]
+  - HTX / Heco Bridge — 2023-11-22 (analyst-attributed; no US-government attribution located).
+  - DMM Bitcoin — late May 2024, 4,502.9 BTC (~$308M), TraderTraitor (FBI / DC3 / NPA, 2024-12-23). [verify 2026-10-29]
+  - WazirX — 2024-07-18, ~$235M (US / Japan / ROK joint statement, 2025-01-14). [verify 2026-10-29]
+  - Radiant Capital — 2024-10-16, ~$50M, DPRK-linked UNC4736 (Radiant / Mandiant). [verify 2026-10-29]
+  - Bybit — on or about 2025-02-21, ~$1.5B, TraderTraitor (FBI PSA, 2025-02-26). [verify 2026-10-29]
 - **Ransomware affiliate flows.** Often: BTC ransom payment → exchange deposit OR mixer (Sinbad / Wasabi / Whirlpool pre-takedown) → bridge to alt-chain → decentralized swap → off-ramp via P2P or weakly-KYC'd VASP.
 - **DeFi-exploit fund movement.** Often: exploit → Tornado Cash deposit (when active and within sanctions tolerance) → bridge to alt-chain → DEX-swap → off-ramp via cross-chain bridge to BTC → mixer or OTC.
 
@@ -415,16 +424,16 @@ This section catalogues the research literature on privacy-coin traceability and
 
 **Protocol baseline:**
 
-- **RingCT** — ring signatures (sender ambiguity within a ring), Pedersen commitments (value blinding), stealth addresses (one-time recipient addresses). [verify 2026-04-26]
-- **Default ring size 16** (post-Bulletproofs+ era; protocol has increased ring sizes in network upgrades over time). [verify 2026-04-26]
+- **RingCT** — ring signatures (sender ambiguity within a ring), Pedersen commitments (value blinding), stealth addresses (one-time recipient addresses). [verify 2026-10-29]
+- **Default ring size 16** (post-Bulletproofs+ era; protocol has increased ring sizes in network upgrades over time). [verify 2026-10-29]
 - **No public address re-use** — every transaction creates a new stealth address.
 
 **Published research:**
 
-- **Möser et al. 2017** — *"An Empirical Analysis of Traceability in the Monero Blockchain"* (PoPETs 2018). Demonstrated that early Monero transactions (pre-RingCT, pre-mandatory mixin) leaked substantial metadata; identified the "0-mixin" transaction class as fully traceable; identified the "Eve-Alice-Eve" (EAE) attack on decoy selection for non-zero-mixin transactions. Findings *largely apply to pre-2017 history*; Monero hard-forked to address several of the called-out weaknesses. [verify 2026-04-26]
-- **Yu et al. 2019** and subsequent — refined decoy-selection critique; quantified the residual EAE-style linkage on transactions where decoys were chosen non-uniformly. Monero's decoy-selection algorithm has been updated multiple times in response. [verify 2026-04-26]
-- **Kumar et al. 2017** (USENIX Security 2017) — concurrent traceability analysis; broadly aligned with Möser et al. findings on pre-RingCT history. [verify 2026-04-26]
-- **Subsequent Monero Research Lab (MRL) responses** — public technical notes documenting protocol changes (mandatory mixin levels, mixin distribution improvements, ring-size increases) addressing the published attacks. [verify 2026-04-26]
+- **Möser et al. 2017** — *"An Empirical Analysis of Traceability in the Monero Blockchain"* (PoPETs 2018). Demonstrated that early Monero transactions (pre-RingCT, pre-mandatory mixin) leaked substantial metadata; identified the "0-mixin" transaction class as fully traceable; identified the "Eve-Alice-Eve" (EAE) attack on decoy selection for non-zero-mixin transactions. Findings *largely apply to pre-2017 history*; Monero hard-forked to address several of the called-out weaknesses. [verify 2026-10-29]
+- **Yu et al. 2019** and subsequent — refined decoy-selection critique; quantified the residual EAE-style linkage on transactions where decoys were chosen non-uniformly. Monero's decoy-selection algorithm has been updated multiple times in response. [verify 2026-10-29]
+- **Kumar et al. 2017** (ESORICS 2017; IACR ePrint 2017/338) — concurrent traceability analysis; broadly aligned with Möser et al. findings on pre-RingCT history. [verify 2026-10-29]
+- **Monero Research Lab (MRL) bulletins** — public technical notes on traceability attacks and mitigations, e.g., MRL-0001 (chain reactions), MRL-0004 (improving obfuscation), MRL-0007 (sets of spent outputs); index at getmonero.org/resources/research-lab. [verify 2026-10-29]
 
 **Practical bounds for 2026 investigations:**
 
@@ -442,14 +451,14 @@ This section catalogues the research literature on privacy-coin traceability and
 
 **Protocol baseline:**
 
-- **Sapling** (2018-) and **Orchard** (2022-) shielded pools; **transparent (t-)** addresses also exist alongside shielded (z-) addresses. [verify 2026-04-26]
+- **Sapling** (2018-) and **Orchard** (2022-) shielded pools; **transparent (t-)** addresses also exist alongside shielded (z-) addresses. [verify 2026-10-29]
 - Most historical Zcash usage has been transparent or transparent-leg (z→t / t→z), not shielded-to-shielded.
 
 **Published research:**
 
-- **Kappos et al. 2018** — *"An Empirical Analysis of Anonymity in Zcash"* (USENIX Security 2018). Demonstrated that pool-internal-only-transferring users were a small minority of Zcash usage; identified founder-reward shielding patterns; analyzed transparent-leg leakage (z→t and t→z transactions). [verify 2026-04-26]
-- **Quesnelle 2017** — *"On the linkability of Zcash transactions"* (preprint). Earlier analysis with similar findings. [verify 2026-04-26]
-- **Subsequent research** has analyzed Sapling-era usage patterns; the transparent-leg leakage remains the dominant attribution surface. [verify 2026-04-26]
+- **Kappos et al. 2018** — *"An Empirical Analysis of Anonymity in Zcash"* (USENIX Security 2018). Demonstrated that pool-internal-only-transferring users were a small minority of Zcash usage; identified founder-reward shielding patterns; analyzed transparent-leg leakage (z→t and t→z transactions). [verify 2026-10-29]
+- **Quesnelle 2017** — *"On the linkability of Zcash transactions"* (preprint). Earlier analysis with similar findings. [verify 2026-10-29]
+- **Sapling-era research** is not cited here (no specific study verified); treat transparent-leg leakage as the dominant attribution surface (analyst assessment).
 
 **Practical bounds for 2026 investigations:**
 
@@ -465,16 +474,16 @@ This section catalogues the research literature on privacy-coin traceability and
 
 ### 7.3 Dash and Decred (opt-in privacy)
 
-- **Dash PrivateSend** — opt-in CoinJoin built into the Dash wallet. Non-PrivateSend transactions are fully transparent and trace per standard UTXO clustering. PrivateSend round structure is known and identifiable; round-mixing-without-post-mix-discipline produces re-link patterns similar to Wasabi / JoinMarket. [verify 2026-04-26]
-- **Decred mixed outputs (StakeShuffle / CoinShuffle++)** — opt-in mixing; non-mixed transactions are fully transparent. [verify 2026-04-26]
+- **Dash CoinJoin** (formerly PrivateSend; RPCs renamed in Dash Core 0.17.0) — opt-in CoinJoin built into Dash Core. [verify 2026-10-29] Non-mixed transactions are fully transparent and trace per standard UTXO clustering. CoinJoin round structure is known and identifiable; round-mixing-without-post-mix-discipline produces re-link patterns similar to Wasabi / JoinMarket.
+- **Decred mixed outputs (StakeShuffle / CoinShuffle++)** — opt-in mixing; non-mixed transactions are fully transparent. [verify 2026-10-29]
 
 **Tradecraft note:** opt-in privacy chains are easier than privacy-default chains because the bulk of activity is transparent; mixing rounds are visible by structure; non-participation is the norm.
 
 ### 7.4 Privacy-coin off-ramp pivots
 
-- **Major exchanges have delisted / restricted Monero and Zcash** in many jurisdictions over 2020-2024. Bittrex (delisted 2021), Kraken (delisted XMR for UK customers 2023), Binance (delisted multiple privacy coins), Coinbase (does not list XMR). [verify 2026-04-26] Reduced VASP coverage means privacy-coin off-ramps concentrate on smaller exchanges, P2P platforms, and OTC desks — each with distinct subpoena / cooperation profiles.
-- **Monero P2P** — LocalMonero (closed 2024-05) [verify 2026-04-26], RetoSwap, Haveno (decentralized). Subpoena pathway varies; some operators have ceased due to regulatory pressure.
-- **Atomic-swap services** — Monero / BTC atomic swaps (Comit, Farcaster, samurai-monero swaps) shift the off-ramp from exchange-mediated to peer-mediated. The BTC side is fully traceable; the XMR side is not.
+- **Major exchanges have delisted / restricted Monero and Zcash** in many jurisdictions over 2020-2024. Bittrex delisted XMR, ZEC and DASH in 2021 (press reports; exchange now defunct). Kraken does not support XMR for UK clients and halted EEA XMR trading on 2024-10-31; Binance delisted XMR on 2024-02-20; Coinbase does not list XMR. [verify 2026-10-29] Reduced VASP coverage means privacy-coin off-ramps concentrate on smaller exchanges, P2P platforms, and OTC desks — each with distinct subpoena / cooperation profiles.
+- **Monero P2P** — RetoSwap, Haveno (decentralized). Subpoena pathway varies; some operators have ceased — LocalMonero wound down (announced 2024-05-07; new trades disabled 2024-05-14; site taken down 2024-11-07). [verify 2026-10-29]
+- **Atomic-swap services** — Monero / BTC atomic swaps (COMIT xmr-btc-swap, now unmaintained and continued by the community fork eigenwallet, formerly UnstoppableSwap; Farcaster) shift the off-ramp from exchange-mediated to peer-mediated. [verify 2026-10-29] The BTC side is fully traceable; the XMR side is not.
 - **DEX bridges to / from privacy coins** — limited; mostly via THORChain-style native swaps (Monero swaps integrated into some DEX aggregators) or via wrapped-XMR products (rare; legal-risk concentrated).
 
 ---
@@ -485,40 +494,40 @@ This section catalogues the research literature on privacy-coin traceability and
 
 | Date | Event | Enforcement | Notes |
 |------|-------|-------------|-------|
-| 2020-02-13 | Larry Harmon arrested (US) | Operating Helix mixer; pleaded guilty 2020-08-18; sentenced 2021-05 | First major US prosecution of a mixer operator. [verify 2026-04-26] |
-| 2021-04-27 | Roman Sterlingov arrested (LAX) | Bitcoin Fog operator; SDNY conviction 2024-03-12; sentenced 2024-11-08 to 12y6m | Canonical case; see [[sop-blockchain-investigation|Blockchain Investigation]] §12.1. [verify 2026-04-26] |
-| 2022-05-06 | Blender.io OFAC SDN-listed | First OFAC mixer designation; cited DPRK / Lazarus laundering | [verify 2026-04-26] |
-| 2022-08-08 | Tornado Cash OFAC SDN-listed | First OFAC smart-contract designation; addresses + entity | [verify 2026-04-26] |
-| 2022-08-10 | Alexey Pertsev arrested (Netherlands) | Dutch prosecution; conviction 2024-05-14, 5y4m sentence; appeal pending | [verify 2026-04-26] |
-| 2023-03-15 | ChipMixer takedown | DOJ + Europol + German BKA joint operation; ~$3B alleged volume | [verify 2026-04-26] |
-| 2023-08-23 | Storm + Semenov indicted (SDNY) | Tornado Cash co-founders; conspiracy to commit money laundering, sanctions, unlicensed money transmission | [verify 2026-04-26] |
-| 2023-11-29 | Sinbad.io OFAC SDN-listed | Successor to Blender.io; cited DPRK laundering | [verify 2026-04-26] |
-| 2024-04-24 | Samourai founders indicted (SDNY) | Rodriguez + Hill; conspiracy to launder + unlicensed money transmission; Whirlpool infrastructure seized | [verify 2026-04-26] |
-| 2024-05-14 | Pertsev convicted (Netherlands) | 5 years 4 months; appeal filed | [verify 2026-04-26] |
-| 2024-06 | zkSNACKs (Wasabi coordinator) ceases operation | Cited regulatory pressure post-Samourai indictment | [verify 2026-04-26] |
-| 2024-11-26 | *Van Loon v. Treasury* (5th Circuit) | Ruled immutable Tornado Cash contracts not "property" under IEEPA | [verify 2026-04-26] |
-| 2025-03-21 | Tornado Cash delisted (OFAC) | Citing *Van Loon*; smart-contract designations removed | [verify 2026-04-26] |
+| 2020-02-13 | Larry Harmon arrest announced (US) | Operating Helix mixer; D.D.C. indictment unsealed 2020-02-11; pleaded guilty 2021-08-18 (money-laundering conspiracy); sentenced 2024-11-15 to 3 years + $311M forfeiture money judgment | Helix operated 2014–2017, processing >$300M. [verify 2026-10-29] |
+| 2021-04-27 | Roman Sterlingov arrested (LAX) | Bitcoin Fog operator; D.D.C. jury conviction 2024-03-12; sentenced 2024-11-08 to 12y6m; D.C. Circuit affirmed conviction and sentence 2026-09-25 (No. 24-3161) | Canonical case; see [[sop-blockchain-investigation|Blockchain Investigation]] §12.1. [verify 2026-10-29] |
+| 2022-05-06 | Blender.io OFAC SDN-listed | First OFAC mixer designation; cited DPRK / Lazarus laundering | [verify 2026-10-29] |
+| 2022-08-08 | Tornado Cash OFAC SDN-listed | First OFAC smart-contract designation; addresses + entity | [verify 2026-10-29] |
+| 2022-08-10 | Alexey Pertsev arrested (Netherlands) | Dutch prosecution; conviction 2024-05-14, 5y4m sentence; appeal pending | [verify 2026-10-29] |
+| 2023-03-15 | ChipMixer takedown | DOJ + Europol + German BKA joint operation; ~$3B alleged volume | [verify 2026-10-29] |
+| 2023-08-23 | Storm + Semenov indicted (SDNY) | Tornado Cash co-founders; conspiracy to commit money laundering, sanctions, unlicensed money transmission | [verify 2026-10-29] |
+| 2023-11-29 | Sinbad.io OFAC SDN-listed | Believed by some industry experts (per OFAC) to be the Blender.io successor; cited DPRK laundering (Atomic Wallet, Horizon Bridge, Axie Infinity) | [verify 2026-10-29] |
+| 2024-04-24 | Samourai founders indicted (SDNY) | Rodriguez + Hill; conspiracy to launder + unlicensed money transmission; Whirlpool infrastructure seized | [verify 2026-10-29] |
+| 2024-05-14 | Pertsev convicted (Netherlands) | 5 years 4 months; appeal filed | [verify 2026-10-29] |
+| 2024-06-01 | zkSNACKs ends Wasabi CoinJoin coordination | Announced 2024-05-02, citing the need to regain legal certainty, eight days after the Samourai indictment | [verify 2026-10-29] |
+| 2024-11-26 | *Van Loon v. Treasury* (5th Circuit) | Ruled immutable Tornado Cash contracts not "property" under IEEPA | [verify 2026-10-29] |
+| 2025-03-21 | Tornado Cash delisted (OFAC) | Citing *Van Loon*; smart-contract designations removed | [verify 2026-10-29] |
 
-**Currently SDN-listed mixers (as of 2026-04-26):** Sinbad.io [verify 2026-04-26]; Blender.io [verify 2026-04-26]; check current OFAC bulk feed for full list.
+**Currently SDN-listed mixers (as of 2026-10-29):** Sinbad.io; Blender.io (Tornado Cash co-founder Roman Semenov also remains listed as an individual). [verify 2026-10-29] Check the current OFAC bulk feed for the full list.
 
-**Currently delisted:** Tornado Cash (delisted 2025-03-21 per *Van Loon*) [verify 2026-04-26].
+**Currently delisted:** Tornado Cash (delisted 2025-03-21 per *Van Loon*). [verify 2026-10-29]
 
-**In ongoing prosecution:** Storm, Semenov (Tornado Cash); Rodriguez, Hill (Samourai); Pertsev (appeal pending).
+**In ongoing prosecution:** Storm (convicted 2025-08-06 on the unlicensed money-transmitting conspiracy count; Rule 29 motion pending; retrial on the hung counts set for 2027-04-26); Semenov (at large; still SDN-listed); Pertsev (appeal pending). **Concluded:** Rodriguez (5 years) and Hill (4 years), Samourai, sentenced November 2025. [verify 2026-10-29]
 
 ### 8.2 Sanctions tradecraft
 
 - **Time-stamp every mixer-related sanctions finding.** Tornado Cash has had three different sanctions postures (listed → contested → delisted). Activity at each timestamp must be assessed against the contemporaneous SDN status.
 - **Delisting does not retroactively legalize.** Pre-delisting interactions remain subject to enforcement under the SDN status at the time of activity.
 - **Cluster screening.** Funds laundered through a since-delisted mixer remain tainted (in the AML / risk sense) even after the mixer is delisted; the enforcement posture changed but the historical activity did not.
-- **Cross-jurisdiction.** OFAC delisting does not bind EU, UK, UN, or other regimes. Tornado Cash's OFAC delisting (2025-03-21) does not necessarily delist it under EU restrictive measures or other regimes; check each regime separately. [verify 2026-04-26]
+- **Cross-jurisdiction.** OFAC delisting does not bind EU, UK, UN, or other regimes. Tornado Cash (OFAC-delisted 2025-03-21) does not appear on the EU consolidated financial-sanctions list or the UK Sanctions List as of 2026-10-29, but screen each regime separately rather than assume parity with OFAC. [verify 2026-10-29]
 
 ### 8.3 Mixer-protocol jurisprudence
 
-- **Pertsev (Dutch criminal court, 2024-05-14)** — convicted as a Tornado Cash developer despite no operator status; the court found that the developer's continuing role in maintaining the protocol satisfied money-laundering complicity standards under Dutch law. Appeal challenges this framing. [verify 2026-04-26]
-- **Storm (US, ongoing 2025-2026)** — defense raises First Amendment (publication of code as protected expression) and lack-of-control (immutable smart contract) defenses. Outcome will shape US prosecution of protocol developers vs operators. [verify 2026-04-26]
-- **Samourai (US, ongoing 2024-2026)** — operator-developer hybrid; closer to traditional "unlicensed money transmitter" framing because Whirlpool coordination involved active participation by Samourai infrastructure. [verify 2026-04-26]
-- **Bitcoin Fog / Sterlingov (US, conviction 2024-03-12)** — operator prosecution; canonical for heuristic-clustering Daubert challenges; see [[sop-blockchain-investigation|Blockchain Investigation]] §12.1. [verify 2026-04-26]
-- **Helix / Harmon (US, conviction 2020-08-18)** — earliest major mixer-operator prosecution; established the unlicensed-money-transmission framing for mixer operators. [verify 2026-04-26]
+- **Pertsev (Rechtbank Oost-Brabant, 's-Hertogenbosch, 2024-05-14)** — Tornado Cash developer convicted of co-perpetrating habitual money laundering (64 months). The court rejected the "neutral tool" framing: Tornado Cash combined maximal anonymity with no identification or control functionality, and he kept developing and operating it regardless of the abuse. Appeal pending (no appellate judgment published as of 2026-10-29). [verify 2026-10-29]
+- **Storm (US, SDNY)** — convicted 2025-08-06 on the unlicensed money-transmitting conspiracy count; the jury hung on the money-laundering and sanctions counts. Rule 29 motion pending; retrial on the hung counts set for 2027-04-26 (SDNY No. 23-cr-430, Dkt. 300). His acquittal motion argues, among other grounds, that Tornado Cash was noncustodial with immutable contracts and that the statutes as applied violate the First Amendment. The outcome will shape US prosecution of protocol developers vs operators. [verify 2026-10-29]
+- **Samourai (US, SDNY, concluded 2025)** — operator-developer hybrid, closer to the traditional "unlicensed money transmitter" framing because Whirlpool coordination involved active participation by Samourai infrastructure (analyst assessment). Rodriguez and Hill pleaded guilty to conspiracy to operate a money-transmitting business that knowingly transmitted criminal proceeds; sentenced to 5 years (Rodriguez, 2025-11-06) and 4 years (Hill, 2025-11-19). [verify 2026-10-29]
+- **Bitcoin Fog / Sterlingov (US, D.D.C., conviction 2024-03-12)** — operator prosecution; canonical for heuristic-clustering Daubert challenges. On 2026-09-25 the D.C. Circuit affirmed the conviction and 150-month sentence (No. 24-3161), holding that admitting the Chainalysis Reactor-based expert testimony was not an abuse of discretion; see [[sop-blockchain-investigation|Blockchain Investigation]] §12.1. [verify 2026-10-29]
+- **Helix / Harmon (US, D.D.C.)** — mixer-operator prosecution. The indictment (unsealed 2020-02-11) charged money-laundering conspiracy, operating an unlicensed money transmitting business, and money transmission without a D.C. license; Harmon pleaded guilty to the money-laundering conspiracy on 2021-08-18 and was sentenced 2024-11-15 to 3 years. [verify 2026-10-29]
 
 ---
 
@@ -588,12 +597,12 @@ Mixer-defeat findings face the highest Daubert-style scrutiny of any blockchain-
 
 ### 10.1 The elevated-challenge baseline
 
-- **Sterlingov / Bitcoin Fog defense** ([[sop-blockchain-investigation|Blockchain Investigation]] §12.1) attacked Chainalysis Reactor's clustering heuristics on the operator side of a centralized mixer. The methodology survived Daubert challenge and the conviction proceeded, but defense counsel established a documented playbook for attacking heuristic-based clustering.
-- **Storm trial (ongoing)** is the first major US trial probing Tornado Cash *user-side* deanonymization heuristics. Defense will likely raise:
+- **Sterlingov / Bitcoin Fog defense** ([[sop-blockchain-investigation|Blockchain Investigation]] §12.1) attacked Chainalysis Reactor's clustering heuristics on the operator side of a centralized mixer. The Reactor-based testimony survived a Daubert challenge (*United States v. Sterlingov*, 719 F. Supp. 3d 65 (D.D.C. 2024)), and the D.C. Circuit affirmed its admission and the conviction on 2026-09-25 (No. 24-3161), but defense counsel established a documented playbook for attacking heuristic-based clustering. [verify 2026-10-29]
+- **Storm trial** (SDNY; verdict 2025-08-06, retrial of the hung counts set for 2027-04-26) is the main US criminal case over Tornado Cash. [verify 2026-10-29] Challenges to Tornado-class tracing evidence can be expected to target (analyst assessment, not a summary of the trial record):
   - The probabilistic nature of address-reuse + gas-price + time-window heuristics
   - The absence of vendor-published error rates for Tornado-class deanonymization
   - The role of academic literature (Tutela, Beres) in establishing methodology
-  - Whether the sanctions context (Tornado was SDN-listed during much of the alleged conduct, then delisted) affects the underlying mens rea analysis
+  - Whether the sanctions context affects the mens rea analysis: the sanctions count concerns Lazarus Group funds moved through Tornado Cash in April–May 2022 from an OFAC-blocked wallet, while Tornado Cash's own SDN listing came later (2022-08-08) and was lifted 2025-03-21 [verify 2026-10-29]
 - **Pertsev appeal (Netherlands)** raises related issues under Dutch / EU criminal procedure — protocol-developer liability, computational-evidence admissibility, expert-witness scope.
 
 ### 10.2 Daubert posture for mixer-defeat heuristics
@@ -603,7 +612,7 @@ Mixer-defeat heuristics map onto the *Daubert* factors as follows:
 | Factor | Mixer-defeat status |
 |--------|---------------------|
 | **Testable** | Generally yes — heuristics are computable; outputs reproducible from on-chain data |
-| **Peer-reviewed** | For Tornado: Tutela (Wu et al. 2022), Beres et al. 2021 are peer-reviewed; for Monero: Möser et al. 2017, Kumar et al. 2017 are peer-reviewed; for Wasabi: less academic coverage; for centralized mixers: case-specific |
+| **Peer-reviewed** | For Tornado: Beres et al. 2021 (IEEE DAPPS 2021) is peer-reviewed; Tutela (Wu et al. 2022) is an arXiv preprint with an open-source implementation, not a peer-reviewed publication; for Monero: Möser et al. 2017 (PoPETs 2018) and Kumar et al. 2017 (ESORICS 2017) are peer-reviewed; for Wasabi: less academic coverage; for centralized mixers: case-specific [verify 2026-10-29] |
 | **Known error rate** | Sparse — academic publications include error analysis but often on specific datasets; vendor tooling rarely publishes per-heuristic error rates |
 | **Standards / operation** | Less mature than transparent-clustering — vendor tooling differs in implementation; reproducibility across vendors not guaranteed |
 | **General acceptance** | Tornado-class heuristics have wide LE / regulator adoption; CoinJoin-class less so; centralized-mixer operator-cluster identification is mature |
@@ -626,7 +635,7 @@ The **error-rate** factor is the primary defense angle. Practitioners building c
 - **Disclose limitations** in the report itself. Hidden weaknesses are more damaging in cross-examination than disclosed ones.
 - **Time-stamp sanctions context.** Mixer status has changed (Tornado 2022 → 2024 → 2025); report contemporaneous status.
 - **Capture raw on-chain data** — pool state, contract event logs, RPC responses. Vendor cluster renderings are interpretations; the on-chain record is the underlying fact.
-- **Maintain chain-of-custody** per [[sop-collection-log|Collection Log]]. SHA-256 hash all artifacts; preserve OpenTimestamps where appropriate.
+- **Maintain chain-of-custody** per [[sop-collection-log|Collection Log]]. SHA-256 hash all artifacts; preserve OpenTimestamps where appropriate. [verify 2026-10-29]
 
 ### 10.4 Expert-witness considerations
 
@@ -702,24 +711,24 @@ The contract is bidirectional: when those owner SOPs reach a mixer-tracing obser
 
 | Vendor | Mixer support | Notes |
 |--------|---------------|-------|
-| Chainalysis | Reactor — mixer-cluster identification, Tornado-class deanonymization (proprietary heuristics), CoinJoin round identification | Heaviest LE adoption; Sterlingov-tested at trial. [verify 2026-04-26] |
-| TRM Labs | Forensics — Tornado-class heuristics; cross-chain laundering pattern recognition; mixer-graph propagation | Strong US federal adoption. [verify 2026-04-26] |
-| Elliptic | Investigator — mixer-cluster identification; transaction-graph propagation through mixers | Strong UK / EU adoption. [verify 2026-04-26] |
-| Crystal Intelligence | Multi-chain mixer support; sanctions screening | [verify 2026-04-26] |
-| Merkle Science | Tracker — mixer cluster awareness | [verify 2026-04-26] |
+| Chainalysis | Reactor — mixer-cluster identification, Tornado-class deanonymization (proprietary heuristics), CoinJoin round identification | Heaviest LE adoption (analyst assessment). Reactor-based expert testimony admitted in Sterlingov; admission upheld by the D.C. Circuit 2026-09-25. [verify 2026-10-29] |
+| TRM Labs | Forensics — Tornado-class heuristics; cross-chain laundering pattern recognition; mixer-graph propagation | Strong US federal adoption (analyst assessment). Product page advertises automatic cross-chain tracing. [verify 2026-10-29] |
+| Elliptic | Investigator — mixer-cluster identification; transaction-graph propagation through mixers | Strong UK / EU adoption (analyst assessment). Product page advertises cross-chain investigations. [verify 2026-10-29] |
+| Crystal Intelligence | Multi-chain mixer support; sanctions screening | Vendor site advertises tracing across chains, bridges and mixers. [verify 2026-10-29] |
+| Merkle Science | Tracker — mixer cluster awareness | Tracker is the vendor's forensic-investigation product. [verify 2026-10-29] |
 | Arkham | Entity labels include some mixer / privacy-pool labels; user-bounty quality variable | Treat labels as crowdsourced; verify provenance. |
 
-Vendor methodology pages — search for "mixer", "Tornado Cash", "CoinJoin" terms on each vendor's blog / documentation. [verify 2026-04-26]
+Mixer-support descriptions above are vendor claims. Before citing one, search each vendor's blog / documentation for "mixer", "Tornado Cash", and "CoinJoin" methodology notes.
 
 ### 13.2 Open-source mixer-aware tooling
 
 | Tool | Purpose | URL / status |
 |------|---------|--------------|
-| Tutela | Tornado Cash deposit-withdrawal heuristic dashboard (Wu et al. 2022) | [tutela.xyz](https://tutela.xyz/) [verify 2026-04-26] — confirm operational status; original deployment may have lapsed |
-| GraphSense | Open-source multi-chain analytics with privacy-tool labels (BTC, BCH, LTC, ZEC, ETH) | [graphsense.info](https://graphsense.info/) [verify 2026-04-26] |
-| Breadcrumbs | Free blockchain visualization with some mixer cluster surfacing | [breadcrumbs.app](https://www.breadcrumbs.app/) [verify 2026-04-26] |
-| Etherscan | Tornado Cash contract event-log access; relayer-address view | [etherscan.io](https://etherscan.io/) |
-| Wallet Explorer | Bitcoin clustering UI; identifies known mixer clusters | [walletexplorer.com](https://www.walletexplorer.com/) |
+| Tutela | Tornado Cash deposit-withdrawal heuristic dashboard (Wu et al. 2022) | tutela.xyz offline (domain does not resolve, 2026-10-29); source at [github.com/pareto-xyz/tutela-app](https://github.com/pareto-xyz/tutela-app) (last commit 2024-01) — self-host or reimplement the heuristics [verify 2026-10-29] |
+| GraphSense | Open-source multi-chain analytics with privacy-tool labels (BTC, BCH, LTC, ZEC, ETH) | [graphsense.info](https://graphsense.info/) [verify 2026-10-29] |
+| Breadcrumbs | Free blockchain visualization with some mixer cluster surfacing | [breadcrumbs.app](https://www.breadcrumbs.app/) [verify 2026-10-29] |
+| Etherscan | Tornado Cash contract event-log access; relayer-address view | [etherscan.io](https://etherscan.io/) [verify 2026-10-29] |
+| Wallet Explorer | Bitcoin clustering UI; identifies known mixer clusters | [walletexplorer.com](https://www.walletexplorer.com/) [verify 2026-10-29] |
 | Custom Python notebooks | Direct RPC / BigQuery queries for protocol-specific heuristic implementation | n/a — analyst-built |
 
 ### 13.3 Bridge / cross-chain observation indexers
@@ -732,19 +741,19 @@ See [[sop-blockchain-investigation|Blockchain Investigation]] §15.3 — OFAC SD
 
 ### 13.5 Academic literature (canonical citations)
 
-- Möser et al. 2017 — *An Empirical Analysis of Traceability in the Monero Blockchain* (PoPETs 2018)
-- Kumar et al. 2017 — *A Traceability Analysis of Monero's Blockchain* (USENIX Security 2017)
-- Kappos, Yousaf, Maller, Meiklejohn 2018 — *An Empirical Analysis of Anonymity in Zcash* (USENIX Security 2018)
-- Quesnelle 2017 — *On the linkability of Zcash transactions* (preprint)
-- Wu et al. 2022 — *Tutela: An Open-Source Tool for Assessing User-Side Tornado Cash Privacy*
-- Beres et al. 2021 — *Blockchain is Watching You: Profiling and Deanonymizing Ethereum Users*
-- Seres et al. 2021 — *Mixeth, Tornado, Wasabi: A study of mixing services*
+- Möser et al. 2017 — *An Empirical Analysis of Traceability in the Monero Blockchain* (PoPETs 2018) [verify 2026-10-29]
+- Kumar et al. 2017 — *A Traceability Analysis of Monero's Blockchain* (ESORICS 2017; IACR ePrint 2017/338) [verify 2026-10-29]
+- Kappos, Yousaf, Maller, Meiklejohn 2018 — *An Empirical Analysis of Anonymity in Zcash* (USENIX Security 2018) [verify 2026-10-29]
+- Quesnelle 2017 — *On the linkability of Zcash transactions* (preprint) [verify 2026-10-29]
+- Wu et al. 2022 — *Tutela: An Open-Source Tool for Assessing User-Privacy on Ethereum and Tornado Cash* (arXiv:2201.06811, preprint) [verify 2026-10-29]
+- Beres et al. 2021 — *Blockchain is Watching You: Profiling and Deanonymizing Ethereum Users* (IEEE DAPPS 2021) [verify 2026-10-29]
+- Seres, Nagy, Buckland, Burcsi 2019 — *MixEth: efficient, trustless coin mixing service for Ethereum* (IACR ePrint 2019/341) — mixer protocol design, not a tracing study [verify 2026-10-29]
 - Meiklejohn et al. 2013 — *A Fistful of Bitcoins* (foundational clustering; not mixer-specific but methodology baseline)
 - Maxwell 2013 — original CoinJoin proposal (Bitcoin-talk)
 - Ficsór et al. 2017 — *ZeroLink: The Bitcoin Fungibility Framework*
-- Möser et al. 2018 — empirical analysis of JoinMarket usage patterns
+- Möser & Böhme 2016 — *Join Me on a Market for Anonymity* (WEIS 2016); journal version *The Price of Anonymity: Empirical Evidence from a Market for Bitcoin Anonymization* (Journal of Cybersecurity 3(2), 2017) — measurement study of JoinMarket usage [verify 2026-10-29]
 
-[verify 2026-04-26 — citation completeness; check for newer published follow-ups, especially on WabiSabi-era Wasabi and post-2024 Tornado Cash analysis.]
+This list is not exhaustive. At engagement time, check for newer published follow-ups, especially on WabiSabi-era Wasabi and post-2024 Tornado Cash analysis.
 
 ### 13.6 Forensics support
 
@@ -760,7 +769,7 @@ See [[sop-blockchain-investigation|Blockchain Investigation]] §15.3 — OFAC SD
 
 - **Mixer-defeat heuristics are probabilistic.** Each heuristic has counter-examples; combinations elevate confidence but never reach proof.
 - **Vendor heuristics are proprietary.** Reproducibility is limited to vendor-published methodology; courts have permitted vendor-tooling testimony but with documented cross-examination latitude (Sterlingov).
-- **Academic literature lags protocol changes.** Wasabi shifted from ZeroLink (fixed-denomination) to WabiSabi (arbitrary-denomination) in 2022; literature on WabiSabi-era heuristics is thinner. Tornado Cash front-end changes post-takedown affect metadata leakage. Verify literature recency at engagement time.
+- **Academic literature lags protocol changes.** Wasabi shifted from ZeroLink (fixed-denomination) to WabiSabi (arbitrary-denomination) in 2022 (Wasabi 2.0, June 2022); literature on WabiSabi-era heuristics is thinner. [verify 2026-10-29] Tornado Cash front-end changes post-takedown affect metadata leakage. Verify literature recency at engagement time.
 - **Address-poisoning of analyst** — dust attacks designed to surface in watch-only wallet UIs; documented technique against mixer-tracing analysts specifically.
 - **Heuristic drift.** Vendor-tool implementations of Tornado-class heuristics evolve; outputs from 2024 vs 2026 may differ on the same input.
 
@@ -773,7 +782,7 @@ See [[sop-blockchain-investigation|Blockchain Investigation]] §15.3 — OFAC SD
 ### 14.3 Cross-chain bridge obfuscation limitations
 
 - **Multi-hop laundering scales analyst time linearly.** Tooling that supports one chain at a time loses to chain-hopping operators.
-- **Bridge protocol churn.** Multichain (2023 collapse), Wormhole (2022 exploit), Ronin (2022 exploit), Nomad (2022 exploit), Multichain (2023 collapse) — bridge-protocol availability changes the trace landscape.
+- **Bridge protocol churn.** Multichain (2023 collapse), Wormhole (2022 exploit), Ronin (2022 exploit), Nomad (2022 exploit) — bridge-protocol availability changes the trace landscape.
 - **Aggregator decomposition.** A single aggregator-call transaction can hide a 5-hop trace; tooling that does not decompose internal events misses it.
 - **Time-spaced laundering** evades time-window correlation; longitudinal patient tracing is required.
 
@@ -781,7 +790,7 @@ See [[sop-blockchain-investigation|Blockchain Investigation]] §15.3 — OFAC SD
 
 - **Sanctions postures shift.** Tornado Cash 2022 → 2024 → 2025 trajectory; time-stamp every finding.
 - **Cross-jurisdiction divergence.** OFAC delisting does not bind EU / UK / UN. Check each regime separately.
-- **Prosecution-of-developer vs operator** lines are still being drawn (Pertsev appeal, Storm trial); the legal landscape will shift over the next 1-3 years.
+- **Prosecution-of-developer vs operator** lines are still being drawn (Pertsev appeal; Storm Rule 29 motion and the 2027-04-26 retrial of the hung counts); the legal landscape will shift over the next 1-3 years. [verify 2026-10-29]
 - **Academic-research / public-benefit defenses** are unsettled in the prosecution context for mixer-related research; consult counsel before publishing novel deanonymization research against active sanctioned mixers.
 
 ### 14.5 OPSEC risks (mixer-specific)
@@ -832,18 +841,18 @@ See [[sop-blockchain-investigation|Blockchain Investigation]] §15.3 — OFAC SD
 
 ### Scenario 1: Ransomware affiliate post-mixer trace
 
-**Situation:** A ransomware affiliate receives a ~$2M BTC payment from a victim. The affiliate immediately routes the funds through Wasabi CoinJoin (pre-zkSNACKs-shutdown, ~mid-2024). Incident response asks: where did the funds go?
+**Situation:** A ransomware affiliate receives a ~$2M BTC payment from a victim. The affiliate immediately routes the funds through Wasabi CoinJoin before the zkSNACKs coordinator shut down (2024-06-01). Incident response asks: where did the funds go? [verify 2026-10-29]
 
 **Approach:**
 
 1. Receive the mixer-entry hand-off from [[sop-blockchain-investigation|Blockchain Investigation]] §11.6 — deposit transaction(s) into a Wasabi round identified.
 2. Confirm Wasabi era — pre-zkSNACKs-shutdown (was the round coordinator-signed by zkSNACKs, or by a successor coordinator?).
-3. Identify the Tx0 (premix) transaction; capture the doxxic-change output linking pre-mix wallet to pool-entered UTXOs.
+3. Identify the pre-mix funding transaction(s) into the Wasabi round and capture the input-side source cluster. Wasabi has no Whirlpool-style Tx0 / doxxic-change output; use pre-mix taint propagation and address-reuse per §4.1.
 4. Capture the round transaction(s); document the structure.
 5. Apply post-mix consolidation analysis — search for re-merge of post-Wasabi outputs into single subsequent transactions consistent with affiliate-wallet patterns.
 6. Cross-corroborate with affiliate's known wallet patterns from prior incidents (if available — many affiliates reuse infrastructure).
 7. Report candidate post-mix wallet(s) with Medium confidence; route back to [[sop-blockchain-investigation|Blockchain Investigation]] §11 for downstream pursuit (sanctions screen, off-ramp identification).
-8. Time-stamp every sanctions finding — Wasabi coordinator (zkSNACKs) status changed mid-2024.
+8. Time-stamp every sanctions finding — the Wasabi coordinator (zkSNACKs) ceased CoinJoin coordination on 2024-06-01. [verify 2026-10-29]
 
 **Outcome:** Defensible mixer-stage candidate set with documented heuristic basis; downstream off-ramp identification proceeds with mixer-stage uncertainty annotated.
 
@@ -864,7 +873,7 @@ See [[sop-blockchain-investigation|Blockchain Investigation]] §15.3 — OFAC SD
 5. Trace candidates through the multi-bridge chain per §6 — pair every bridge event, reconcile value flow quantitatively.
 6. Identify the downstream off-ramp candidates; route to [[sop-blockchain-investigation|Blockchain Investigation]] §11.7 for VASP pivot.
 7. Coordinate with [[sop-smart-contract-audit|Smart Contract Audit]] on the exploit-class analysis if engagement scope includes pre-exploit reconstruction.
-8. Time-stamp Tornado-Cash sanctions context — was the activity within or outside the 2022-08-08 → 2025-03-21 listing window?
+8. Time-stamp Tornado-Cash sanctions context — was the activity within or outside the 2022-08-08 → 2025-03-21 listing window? [verify 2026-10-29]
 
 **Outcome:** Comprehensive mixer + multi-bridge laundering map supporting (a) coordinated exchange freezes if exit paths reach VASPs, (b) post-incident negotiation context, (c) basis for civil / criminal action if attribution succeeds.
 
@@ -877,10 +886,10 @@ See [[sop-blockchain-investigation|Blockchain Investigation]] §15.3 — OFAC SD
 1. Receive the mixer / bridge entry from [[sop-blockchain-investigation|Blockchain Investigation]] §11.6 / §6.
 2. Apply bridge-obfuscation defeat methodology (§6) — pair every THORChain inbound with outbound observation per Midgard.
 3. Reconcile value flow across all hops; identify any decoy fragments.
-4. Identify mixer entries — for current era (2026) likely Sinbad-successor [verify 2026-04-26] or Whirlpool-successor or a new pool.
+4. Identify mixer entries — for the current era (2026), expect a Sinbad-successor custodial mixer (see §3.1), a Whirlpool successor, or a new pool (analyst expectation).
 5. Apply protocol-specific heuristics per §4 / §5.
-6. **Pattern-fingerprint against prior Lazarus incidents** — Ronin 2022, Harmony 2022, Atomic Wallet 2023, Stake.com 2023, HTX 2023, DMM 2024, WazirX 2024, Radiant 2024 [verify 2026-04-26]. Address-cluster overlap, infrastructure-overlap, off-ramp-pattern overlap with these incidents elevates attribution confidence.
-7. Cross-corroborate against UN Panel of Experts on DPRK reporting, Chainalysis Crypto Crime Report, TRM Labs DPRK reports, joint FBI / CISA advisories. State-actor attribution requires multi-source corroboration.
+6. **Pattern-fingerprint against prior Lazarus incidents** — Ronin 2022, Harmony 2022, Atomic Wallet 2023, Stake.com 2023, HTX 2023, DMM 2024, WazirX 2024, Radiant 2024, Bybit 2025 (dates and attribution sources in §6.5). [verify 2026-10-29] Address-cluster overlap, infrastructure-overlap, off-ramp-pattern overlap with these incidents elevates attribution confidence.
+7. Cross-corroborate against Multilateral Sanctions Monitoring Team (MSMT) DPRK reporting (cyber report released 2025-10-22), the archived UN Panel of Experts reports (Panel disbanded April 2024), Chainalysis Crypto Crime Report, TRM Labs DPRK reports, joint FBI / CISA advisories. State-actor attribution requires multi-source corroboration. [verify 2026-10-29]
 8. Document the identified fingerprint elements; report any new infrastructure surfaces (new mixer, new off-ramp, new OTC desk) for ISAC sharing and LE referral.
 
 **Outcome:** Multi-source corroborated attribution finding; new-infrastructure intelligence for ongoing tracking. State-actor attribution has high political surface; double-corroborate before publishing.
@@ -914,7 +923,7 @@ Mixer-tracing investigations rarely involve immediate threat-to-life, but severa
 
 ### 17.3 Specific pathway examples
 
-- **US ransomware / sanctions exposure:** OFAC compliance hotline; FBI IC3 (`ic3.gov`); CISA `report@cisa.gov`.
+- **US ransomware / sanctions exposure:** OFAC Compliance Hotline; FBI IC3 (`ic3.gov`); CISA incident reporting — `https://www.cisa.gov/report` (redirects to CISA's incident reporting form at `myservices.cisa.gov/irf`), `report@cisa.gov`, 1-844-Say-CISA (1-844-729-2472). [verify 2026-10-29]
 - **EU:** Europol European Cybercrime Centre (EC3); national CERT; national FIU.
 - **UK:** Report Fraud (`reportfraud.police.uk`, 0300 123 2040; replaced Action Fraud 2025-12-04; Scotland: Police Scotland 101); NCA; FCA for regulated entities. [verify 2026-10-29]
 - **Trafficking / CSAM funding:** route per [[sop-sensitive-crime-intake-escalation|Sensitive Crime Intake & Escalation]].
@@ -928,7 +937,7 @@ Cross-link [[sop-sensitive-crime-intake-escalation|Sensitive Crime Intake & Esca
 
 - [[sop-legal-ethics|Legal & Ethics]] — canonical legal framework; review before every engagement
 - [[sop-opsec-plan|OPSEC Plan]] — investigator OPSEC, environment isolation, query-attribution discipline
-- [[sop-collection-log|Collection Log]] — chain-of-custody, hashing, timestamping, FRE 902(13)/(14) framing
+- [[sop-collection-log|Collection Log]] — chain-of-custody, hashing, timestamping, FRE 902(13)/(14) framing [verify 2026-10-29]
 - [[sop-entity-dossier|Entity Dossier]] — structured profiling for mixer-operator / post-mixer wallet attribution; confidence-rating framework
 - [[sop-blockchain-investigation|Blockchain Investigation]] — multi-chain transparent tracing methodology spine; routes mixer-entry observations here, receives post-mixer trace continuation
 - [[sop-financial-aml-osint|Financial & AML OSINT]] — fiat-side AML once post-mixer trace reaches an off-ramp
@@ -971,48 +980,49 @@ OPSEC for the investigator (cross-context separation, environment isolation, que
 
 See §13.5 for the canonical-citation list. Additional references:
 
-- **PoPETs (Proceedings on Privacy Enhancing Technologies)** — annual venue for privacy research including blockchain de-anonymization. [verify 2026-04-26]
-- **Financial Cryptography and Data Security (FC)** — annual conference; many CoinJoin / mixer / privacy-pool papers. [verify 2026-04-26]
-- **USENIX Security** — Kumar 2017, Kappos 2018, and ongoing privacy-coin / mixer research venue. [verify 2026-04-26]
-- **IEEE Symposium on Security and Privacy** — periodic blockchain-privacy publications. [verify 2026-04-26]
+- **PoPETs (Proceedings on Privacy Enhancing Technologies)** — annual venue for privacy research including blockchain de-anonymization. [verify 2026-10-29]
+- **Financial Cryptography and Data Security (FC)** — annual conference; many CoinJoin / mixer / privacy-pool papers. [verify 2026-10-29]
+- **USENIX Security** — Kappos 2018, and ongoing privacy-coin / mixer research venue. [verify 2026-10-29]
+- **ESORICS** — Kumar et al. 2017 (Monero traceability). [verify 2026-10-29]
+- **IEEE Symposium on Security and Privacy** — periodic blockchain-privacy publications. [verify 2026-10-29]
 
 ### Vendor methodology references
 
-- Chainalysis Reactor methodology pages — search for "Tornado Cash", "CoinJoin", "mixer". [chainalysis.com/blog](https://www.chainalysis.com/blog/) [verify 2026-04-26]
-- TRM Labs methodology — [trmlabs.com/resources](https://www.trmlabs.com/resources) [verify 2026-04-26]
-- Elliptic — [elliptic.co/learn](https://www.elliptic.co/learn) [verify 2026-04-26]
+- Chainalysis Reactor methodology pages — search for "Tornado Cash", "CoinJoin", "mixer". [chainalysis.com/blog](https://www.chainalysis.com/blog/) [verify 2026-10-29]
+- TRM Labs methodology — [trmlabs.com/resources](https://www.trmlabs.com/resources) [verify 2026-10-29]
+- Elliptic research and typologies — [elliptic.co/insights](https://www.elliptic.co/insights/) [verify 2026-10-29]
 
 ### Regulator and LE advisories
 
-- OFAC actions on mixers — [ofac.treasury.gov/recent-actions](https://ofac.treasury.gov/recent-actions) [verify 2026-04-26]
-- FinCEN advisories on convertible-virtual-currency mixers — [fincen.gov](https://www.fincen.gov/) [verify 2026-04-26]
-- DOJ press releases on mixer prosecutions (Helix, Bitcoin Fog, Tornado Cash, Samourai, ChipMixer) — [justice.gov](https://www.justice.gov/) [verify 2026-04-26]
-- UN Panel of Experts on DPRK — annual reports document Lazarus / state-actor mixer-laundering; available via UN Security Council documents portal. [verify 2026-04-26]
-- Europol IOCTA (annual Internet Organised Crime Threat Assessment) — [europol.europa.eu](https://www.europol.europa.eu/) [verify 2026-04-26]
+- OFAC actions on mixers — [ofac.treasury.gov/recent-actions](https://ofac.treasury.gov/recent-actions) [verify 2026-10-29]
+- FinCEN on convertible-virtual-currency (CVC) mixing — [fincen.gov](https://www.fincen.gov/). FinCEN withdrew its 2023 §311 finding and proposed special measure on international CVC mixing (88 FR 72701) as of 2026-10-06 (91 FR 63513), while stating it will keep monitoring mixer activity. [verify 2026-10-29]
+- DOJ press releases on mixer prosecutions (Helix, Bitcoin Fog, Tornado Cash, Samourai, ChipMixer) — [justice.gov](https://www.justice.gov/) [verify 2026-10-29]
+- DPRK sanctions monitoring — the UN 1718 Committee Panel of Experts was disbanded in April 2024 after Russia's March 2024 veto; its archived reports (final report S/2024/215, 2024-03-07) remain on the [1718 Committee reports page](https://main.un.org/securitycouncil/en/sanctions/1718/panel_experts/reports). The Multilateral Sanctions Monitoring Team (MSMT), a mechanism of 11 participating states established in October 2024 to address that monitoring gap, released a DPRK cyber and IT-worker report on 2025-10-22. [verify 2026-10-29]
+- Europol Internet Organised Crime Threat Assessment (IOCTA) — [europol.europa.eu IOCTA page](https://www.europol.europa.eu/publications-events/main-reports/iocta-report) [verify 2026-10-29]
 
 ### Court records and dockets
 
-- Sterlingov / Bitcoin Fog (SDNY) — public docket. [verify 2026-04-26]
-- Storm + Semenov (SDNY) — Tornado Cash co-founders; public docket. [verify 2026-04-26]
-- Pertsev (Netherlands) — Dutch court records; Court of 's-Hertogenbosch (trial), Dutch appellate courts (appeal pending). [verify 2026-04-26]
-- Rodriguez + Hill (SDNY) — Samourai founders; public docket. [verify 2026-04-26]
-- *Van Loon v. Treasury* (5th Circuit, 2024-11-26) — published opinion. [verify 2026-04-26]
+- Sterlingov / Bitcoin Fog (D.D.C. No. 1:21-cr-00399 (RDM); D.C. Cir. No. 24-3161, affirmed 2026-09-25) — public docket and published opinion. [verify 2026-10-29]
+- Storm + Semenov (SDNY No. 23-cr-430) — Tornado Cash co-founders; public docket. [verify 2026-10-29]
+- Pertsev (Netherlands) — Rechtbank Oost-Brabant, 's-Hertogenbosch (trial; ECLI:NL:RBOBR:2024:2069, 2024-05-14); appeal pending, no appellate judgment published as of 2026-10-29. [verify 2026-10-29]
+- Rodriguez + Hill (SDNY) — Samourai founders; public docket. [verify 2026-10-29]
+- *Van Loon v. Treasury* (5th Circuit, 2024-11-26) — published opinion. [verify 2026-10-29]
 
 ### Investigative journalism and research
 
-- Chainalysis Crypto Crime Report (annual) — [chainalysis.com/blog](https://www.chainalysis.com/blog/) [verify 2026-04-26]
-- TRM Labs annual report — [trmlabs.com/resources](https://www.trmlabs.com/resources) [verify 2026-04-26]
-- Elliptic Typologies report — [elliptic.co/resources](https://www.elliptic.co/resources) [verify 2026-04-26]
-- ZachXBT (open-source on-chain investigator) — Twitter/X feed; treat as crowdsourced intelligence with high signal but variable provenance. [verify 2026-04-26]
+- Chainalysis Crypto Crime Report (annual) — [chainalysis.com/blog](https://www.chainalysis.com/blog/) [verify 2026-10-29]
+- TRM Labs research reports — [trmlabs.com/resources](https://www.trmlabs.com/resources) [verify 2026-10-29]
+- Elliptic research and typologies — [elliptic.co/insights](https://www.elliptic.co/insights/) [verify 2026-10-29]
+- ZachXBT (open-source on-chain investigator) — X feed; treat as crowdsourced intelligence with high signal but variable provenance.
 - The Block, CoinDesk, Coin Telegraph — industry press; useful for context.
-- Krebs on Security — [krebsonsecurity.com](https://krebsonsecurity.com)
+- Krebs on Security — [krebsonsecurity.com](https://krebsonsecurity.com) [verify 2026-10-29]
 
 ### Standards and frameworks
 
-- FATF — Recommendation 16 (Travel Rule); Updated Guidance for a Risk-Based Approach to Virtual Assets and VASPs (2021). [fatf-gafi.org](https://www.fatf-gafi.org/) [verify 2026-04-26]
+- FATF — Recommendation 16 (Travel Rule); Updated Guidance for a Risk-Based Approach to Virtual Assets and VASPs (October 2021). [fatf-gafi.org](https://www.fatf-gafi.org/) [verify 2026-10-29]
 - Egmont Group — FIU coordination.
-- NIST SP 800-86 — Integrating Forensic Techniques into Incident Response (see [[sop-collection-log|Collection Log]] §"Standards & Frameworks").
-- Berkeley Protocol on Digital Open Source Investigations (UN OHCHR 2022) — see [[sop-legal-ethics|Legal & Ethics]] §"International framework."
+- NIST SP 800-86 — Guide to Integrating Forensic Techniques into Incident Response (2006) (see [[sop-collection-log|Collection Log]] §"Standards & Frameworks"). [verify 2026-10-29]
+- Berkeley Protocol on Digital Open Source Investigations (UN OHCHR 2022, HR/PUB/20/2) — see [[sop-legal-ethics|Legal & Ethics]] §"International framework." [verify 2026-10-29]
 
 ---
 

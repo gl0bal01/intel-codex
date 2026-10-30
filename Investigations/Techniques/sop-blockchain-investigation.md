@@ -131,21 +131,21 @@ From the first query, structure for downstream disclosure:
 | Family               | Examples                                                      | Model        | Privacy posture      | Tracing baseline                            |
 | -------------------- | ------------------------------------------------------------- | ------------ | -------------------- | ------------------------------------------- |
 | Bitcoin / UTXO       | Bitcoin, Litecoin, Bitcoin Cash, Dogecoin                      | UTXO         | Transparent          | Cluster via common-input + change heuristic |
-| Ethereum / EVM       | Ethereum, BSC, Polygon, Avalanche C-chain, Fantom              | Account      | Transparent          | Account-balance + internal-tx + token-tx   |
+| Ethereum / EVM       | Ethereum, BSC, Polygon, Avalanche C-chain, Sonic (ex-Fantom)   | Account      | Transparent          | Account-balance + internal-tx + token-tx [verify 2026-10-29] |
 | EVM L2 (optimistic)  | Arbitrum, Optimism, Base                                       | Account (L2) | Transparent          | Pair via L1 deposit / withdrawal contracts  |
 | EVM L2 (ZK)          | zkSync Era, Starknet, Scroll, Linea, Polygon zkEVM             | Account (L2) | Transparent          | Pair via L1 deposit / withdrawal contracts  |
 | Non-EVM L1           | Solana, Tron (TRC-20), Aptos, Sui, NEAR, Cosmos (IBC zones)    | Account      | Transparent          | Chain-specific explorers; varied API depth  |
-| Bitcoin-anchored     | XRPL, Stellar, Cardano, Polkadot relay + parachains            | Mixed        | Transparent          | Per-protocol explorer + ledger walk        |
+| Other non-EVM L1     | XRPL, Stellar, Cardano, Polkadot relay + parachains            | Mixed (Cardano: EUTXO) | Transparent          | Per-protocol explorer + ledger walk [verify 2026-10-29] |
 | Privacy-default      | Monero (XMR), Zcash (z-addresses)                              | Ring / shield | Opaque on-chain      | Off-chain pivots only — see §3.4            |
 | Optional-privacy     | Dash (PrivateSend), Decred (mixed)                             | UTXO + opt-in | Mixed                | Reduced clustering on opt-in, plain UTXO otherwise |
 
 ### 3.2 What changes when you switch chains
 
 - **UTXO vs account.** UTXO chains (BTC family) require multi-input clustering and change-address detection to merge addresses into a wallet. Account chains (ETH family) treat each address as a wallet by default — clustering merges *addresses controlled by the same actor*, not "outputs that came from the same wallet." Different heuristic toolkit.
-- **Token vs native value.** ERC-20 / TRC-20 / SPL token transfers are events emitted by token contracts, not native transfers. Etherscan's "Token Tracker" view, Tronscan's TRC-20 tab, and Solscan's SPL Token tab are required to see the value flow on tokenized chains. USDT (issued natively on TRC-20 and bridged to ETH, BSC, Solana, Polygon, Avalanche, etc.) is the dominant cross-chain stablecoin and frequent obfuscation vehicle.
+- **Token vs native value.** ERC-20 / TRC-20 / SPL token transfers are events emitted by token contracts, not native transfers. Etherscan's "Token Tracker" view, Tronscan's TRC-20 tab, and Solscan's SPL Token tab are required to see the value flow on tokenized chains. USDT (issued natively by Tether on Ethereum, Tron, Solana, Avalanche, TON, Aptos and others per [tether.to](https://tether.to/en/supported-protocols/); BSC and Polygon are not on Tether's USD₮ list, so USDT there is a bridged / pegged representation) is the dominant cross-chain stablecoin and frequent obfuscation vehicle. [verify 2026-10-29]
 - **Internal transactions.** EVM "internal" transactions are contract-call value transfers that do not appear in the top-level transaction list — they live in trace logs. Etherscan shows them under the "Internal Txns" tab; missing them misses contract-mediated flows.
-- **L2 finality and bridging.** Optimistic rollups have a 7-day challenge window before withdrawals finalize on L1; ZK rollups finalize on each proof submission. Withdrawal flows therefore have very different on-chain timing patterns.
-- **Block time and reorgs.** BTC ~10 min, ETH ~12 s, Solana ~400 ms, BSC ~3 s. Reorg risk for finality varies; for evidence purposes, wait for confirmations matching the chain's finality convention (BTC 6, ETH 32 / 2 epochs for finality, Solana 32 slots, etc.). [verify 2026-04-26]
+- **L2 finality and bridging.** Optimistic rollups have a 7-day challenge window before withdrawals finalize on L1; ZK rollups finalize on each proof submission. Withdrawal flows therefore have very different on-chain timing patterns. [verify 2026-10-29]
+- **Block time and reorgs.** BTC ~10 min, ETH ~12 s, Solana ~200 ms since 2026-10-09 (stepped down from 400 ms under SIMD-0525: 350 ms from 2026-08-21, 300 ms from 08-28, 250 ms from 09-18 — use the step dates when converting historical slots to wall-clock time), BSC ~0.45 s (down from 3 s via the Lorentz, Maxwell and Fermi hardforks). Reorg risk for finality varies; for evidence purposes, wait for confirmations matching the chain's finality convention (BTC 6, ETH 32 / 2 epochs for finality, Solana `finalized` = 31+ confirmed blocks built on top under Tower BFT — under Alpenglow `confirmed` and `finalized` are equivalent, etc.). [verify 2026-10-29]
 
 ### 3.3 Transparent vs privacy postures
 
@@ -153,8 +153,8 @@ Most chains are pseudonymous-but-transparent — every transaction, value, sende
 
 Privacy-default chains are the exception:
 
-- **Monero (XMR)** — RingCT (ring signatures + Pedersen commitments + stealth addresses). On-chain inputs ambiguous within a ring; values blinded; recipient one-time stealth addresses. Public reverse-engineering of Monero clustering has limited published success; assume on-chain tracing is **not** feasible for current ring sizes (16 by default, post-Bulletproofs+).  [verify 2026-04-26]
-- **Zcash (z-addresses)** — sapling / orchard shielded pool. Shielded → shielded transactions are private; the bulk of historical Zcash usage is transparent (t-addresses) or shielded-to-transparent (z→t), which leaks the egress. Research (Kappos et al. 2018, Quesnelle 2017) demonstrated that pool-internal-only-transferring users were a small minority. [verify 2026-04-26]
+- **Monero (XMR)** — RingCT (ring signatures + Pedersen commitments + stealth addresses). On-chain inputs ambiguous within a ring; values blinded; recipient one-time stealth addresses. Public reverse-engineering of Monero clustering has limited published success; assume on-chain tracing is **not** feasible for current ring sizes (16 by default, post-Bulletproofs+). [verify 2026-10-29]
+- **Zcash (z-addresses)** — sapling / orchard shielded pool. Shielded → shielded transactions are private; the bulk of historical Zcash usage is transparent (t-addresses) or shielded-to-transparent (z→t), which leaks the egress. Research (Quesnelle 2017; Kappos et al. 2018) showed that most coins sent to shielded addresses later return to transparent addresses and that simple usage-pattern heuristics shrink the shielded anonymity set considerably. [verify 2026-10-29]
 
 ### 3.4 When the chain itself is opaque
 
@@ -187,7 +187,7 @@ Off-chain pivots are the only practical path:
 | Arbitrum               | [arbiscan.io](https://arbiscan.io/)                    | Etherscan-family; check L1 deposit pairing                           |
 | Optimism               | [optimistic.etherscan.io](https://optimistic.etherscan.io/) | Etherscan-family                                                |
 | Base                   | [basescan.org](https://basescan.org/)                  | Etherscan-family                                                     |
-| Avalanche C-chain      | [snowtrace.io](https://snowtrace.io/)                  | Etherscan-family                                                     |
+| Avalanche C-chain      | [snowtrace.io](https://snowtrace.io/)                  | Routescan-operated (Etherscan deployment retired 2023-11-30); Etherscan V2 API covers chainid 43114 on paid plans only [verify 2026-10-29] |
 | Solana                 | [solscan.io](https://solscan.io/) / [solana.fm](https://solana.fm/) | SPL token + program-call surfaces                       |
 | Tron                   | [tronscan.org](https://tronscan.org/)                  | Critical for USDT-TRC20 flows                                        |
 | XRPL                   | [xrpscan.com](https://xrpscan.com/) / [bithomp.com](https://bithomp.com/) | Account flagging, destination-tag analysis           |
@@ -197,24 +197,24 @@ Off-chain pivots are the only practical path:
 | NEAR                   | [nearblocks.io](https://nearblocks.io/)                | Account-based                                                        |
 | Aptos / Sui            | [aptoscan.com](https://aptoscan.com/) / [suiscan.xyz](https://suiscan.xyz/) | Move-based chains                                       |
 
-[verify 2026-04-26 — explorer URL stability]
+[verify 2026-10-29 — explorer URL stability]
 
 ### 4.2 Multi-chain aggregators
 
 - **[Blockchair](https://blockchair.com/)** — universal search across BTC, ETH, BCH, LTC, DOGE, XLM, XRP, etc.; CSV export; query API (free tier rate-limited).
-- **[Etherscan family](https://etherscan.io/)** — single login covers most EVM chains (ETH, BSC, Polygon, Arbitrum, Optimism, Base, Avalanche, Fantom, Cronos, etc.); shared API key.
-- **[Arkham](https://platform.arkhamintelligence.com/)** — entity-labeled multi-chain explorer with profile pages on labeled wallets (DeFi protocols, exchanges, named individuals); free tier with login.
-- **[DeBank](https://debank.com/)** — DeFi-portfolio aggregation per address across EVM chains; useful for "what is this wallet exposed to?" surface.
-- **[Zapper](https://zapper.xyz/)** — similar DeFi aggregation surface.
-- **[OnChainFX](https://messari.io/)** / **Messari** — protocol-level metrics; complement transaction-level work.
+- **[Etherscan family](https://etherscan.io/)** — single login covers most EVM chains (ETH, BSC, Polygon, Arbitrum, Optimism, Base, Avalanche, Sonic, Linea, Gnosis, Mantle, etc.); V2 unified API — one key plus a `chainid` parameter on `https://api.etherscan.io/v2/api`; current chain list at [api.etherscan.io/v2/chainlist](https://api.etherscan.io/v2/chainlist) — the free tier covers only some chains (BSC, Base, OP, Avalanche and Gnosis need a paid plan; free keys get "Free API access is not supported for this chain"); check the tier column on [docs.etherscan.io/supported-chains](https://docs.etherscan.io/supported-chains). [verify 2026-10-29]
+- **[Arkham](https://platform.arkhamintelligence.com/)** — entity-labeled multi-chain explorer with profile pages on labeled wallets (DeFi protocols, exchanges, named individuals); login required — confirm current access tiers and terms per engagement.
+- **[DeBank](https://debank.com/)** — DeFi-portfolio aggregation per address across EVM chains; useful for "what is this wallet exposed to?" surface. [verify 2026-10-29]
+- **[Zapper](https://zapper.xyz/)** — similar DeFi aggregation surface. [verify 2026-10-29]
+- **[OnChainFX](https://messari.io/)** / **Messari** — protocol-level metrics; complement transaction-level work. [verify 2026-10-29]
 
 ### 4.3 Public data feeds
 
 - **Node-level RPC** — running a local archive node (Bitcoin Core full node + index, Erigon / Reth for Ethereum) gives query-side independence from explorers and removes the third-party log surface. High disk cost; appropriate for sustained investigation.
 - **Public RPC endpoints** — Infura, Alchemy, QuickNode, Ankr publish RPC for major chains; useful for ad-hoc queries; logs requests against API keys (treat as an attribution surface).
-- **Indexer APIs** — [The Graph](https://thegraph.com/), Subsquid, Goldsky for protocol-specific indexed data; less useful for raw tracing, more useful for protocol context.
-- **Bulk data dumps** — [Google BigQuery public datasets](https://console.cloud.google.com/marketplace/browse?filter=solution-type:dataset) host BTC, ETH, BCH, LTC, DOGE, ZEC, polygon datasets refreshed near-real-time; ideal for SQL-style analytics on years of history at low marginal cost. [verify 2026-04-26]
-- **Whale-alert / monitoring feeds** — [whale-alert.io](https://www.whale-alert.io) for large-transfer notifications; useful for situational awareness, not as primary evidence.
+- **Indexer APIs** — [The Graph](https://thegraph.com/), Subsquid, Goldsky for protocol-specific indexed data; less useful for raw tracing, more useful for protocol context. [verify 2026-10-29]
+- **Bulk data dumps** — [Google BigQuery blockchain datasets](https://docs.cloud.google.com/blockchain-analytics/docs/supported-datasets) host Bitcoin, Ethereum, Arbitrum, Avalanche, Base, Optimism, Polygon, Tron, Solana and others (BCH, LTC, DOGE, ZEC are not on the current list); ideal for SQL-style analytics on years of history at low marginal cost. Google publishes no refresh cadence — record the dataset snapshot date. [verify 2026-10-29]
+- **Whale-alert / monitoring feeds** — [whale-alert.io](https://www.whale-alert.io) for large-transfer notifications; useful for situational awareness, not as primary evidence. [verify 2026-10-29]
 
 ---
 
@@ -225,8 +225,8 @@ Clustering merges multiple on-chain addresses into a single hypothesized actor. 
 ### 5.1 Common-input ownership (BTC / UTXO)
 
 - **Heuristic:** addresses appearing as inputs in the same transaction are jointly controlled by the spender (common-input ownership).
-- **Origin:** Meiklejohn et al. 2013 ("A Fistful of Bitcoins") — foundational paper formalizing this and other Bitcoin heuristics. [verify 2026-04-26]
-- **Failure modes:** CoinJoin transactions (Wasabi, Samourai Whirlpool, JoinMarket) deliberately violate the assumption — multiple unrelated parties contribute inputs. Vendor tools mark CoinJoin transactions specifically; do not common-input-merge through them. PayJoin (BIP 78) similarly violates the heuristic.
+- **Origin:** Meiklejohn et al. 2013 ("A Fistful of Bitcoins") — foundational paper formalizing this and other Bitcoin heuristics. [verify 2026-10-29]
+- **Failure modes:** CoinJoin transactions (Wasabi, Samourai Whirlpool, JoinMarket) deliberately violate the assumption — multiple unrelated parties contribute inputs. Vendor tools mark CoinJoin transactions specifically; do not common-input-merge through them. PayJoin (BIP 78) similarly violates the heuristic. [verify 2026-10-29]
 - **Evidentiary weight:** moderate-to-high outside of CoinJoin contexts; commercial-tool clusters built on this assumption carry decades of operational confirmation but have been challenged in court (see §12).
 
 ### 5.2 Change-address detection (BTC / UTXO)
@@ -237,7 +237,7 @@ Clustering merges multiple on-chain addresses into a single hypothesized actor. 
   - **Script-type heuristic** — change matches the input script type (P2PKH inputs → P2PKH change; P2WPKH inputs → P2WPKH change). Wallet software preserves type for change.
   - **Output-position heuristic** — many wallets place change first or last consistently.
 - **Combination:** no single sub-heuristic is reliable in isolation; vendors combine multiple. Open-source frameworks (BlockSci, GraphSense) document their combinations.
-- **Failure modes:** mixers, batched payment processors, exchange-internal sweeps, and modern wallet software with deliberate change-pattern obfuscation (Wasabi, Samourai) all break individual sub-heuristics.
+- **Failure modes:** mixers, batched payment processors, exchange-internal sweeps, and modern wallet software with deliberate change-pattern obfuscation (Wasabi, Samourai) all break individual sub-heuristics. zkSNACKs closed Wasabi's default coinjoin coordinator 2024-06-01 and Samourai's servers were seized 2024-04-24; their historical transactions still break the heuristics. [verify 2026-10-29]
 
 ### 5.3 Peeling chains (BTC / ETH)
 
@@ -249,7 +249,7 @@ Clustering merges multiple on-chain addresses into a single hypothesized actor. 
 
 - **Heuristic:** EVM addresses controlled by the same EOA (externally owned account) cluster around interaction patterns:
   - **Common-funding heuristic** — a single funding source (often a CEX hot wallet) deposits into multiple addresses; if those addresses then transact among themselves, they likely share a controller.
-  - **Gas-payer heuristic** — a sponsor address pays gas for multiple recipients (especially with EIP-4337 account abstraction or sponsored-transaction patterns) — gas-payer is not necessarily the controller, but is a strong signal.
+  - **Gas-payer heuristic** — a sponsor address pays gas for multiple recipients (especially with EIP-4337 account abstraction or sponsored-transaction patterns) — gas-payer is not necessarily the controller, but is a strong signal. [verify 2026-10-29]
   - **Token-approval heuristic** — addresses that grant unlimited token approvals to the same contract pair are probably operationally linked.
   - **Reused method-call patterns** — wallet "fingerprints" via the sequence of contract calls (DeFi-protocol routing, NFT mint patterns).
 - **Cluster shape:** account chains rarely produce the dense merge you see on UTXO chains; clusters are often graph neighborhoods, not single super-clusters.
@@ -259,7 +259,7 @@ Clustering merges multiple on-chain addresses into a single hypothesized actor. 
 - **Pattern:** centralized exchanges issue per-customer deposit addresses. Funds deposited into a customer's address are swept into the exchange's hot-wallet system shortly after.
 - **Identification:** the deposit address has one or two inflows and a single outflow to a known exchange hot-wallet cluster.
 - **Use:** identifying that a target's funds entered via a specific exchange deposit address links the target to a (subpoena-able) exchange account. The exchange holds the KYC.
-- **Caveat:** some exchanges (especially those using shared addresses with destination tags — XRPL, Stellar, EOS, BSC-with-memo) do **not** issue per-customer addresses; the destination tag / memo carries customer routing.
+- **Caveat:** some exchanges (especially those using shared addresses with destination tags — XRPL, Stellar, EOS) do **not** issue per-customer addresses; the destination tag / memo carries customer routing.
 
 ### 5.6 Confidence framework
 
@@ -292,50 +292,50 @@ The investigator's job: pair the source `lock`/`burn` log with the destination `
 
 | Protocol               | Source-side event                                | Destination-side event                          | Pairing key                                       |
 | ---------------------- | ------------------------------------------------ | ----------------------------------------------- | ------------------------------------------------- |
-| Wormhole               | `LogMessagePublished` from core bridge            | `TransferRedeemed` on destination               | Sequence number + emitter chain + emitter addr    |
-| LayerZero (v1 / v2)    | `Packet` (v1) / `PacketSent` (v2)                | `PacketReceived` / executor delivery            | Nonce + src chain + dst chain + sender / receiver  |
-| Stargate (LayerZero-based) | OFT / pool token transfer                     | OFT mint on destination                         | LayerZero nonce + Stargate pool ID                |
-| Synapse                | `TokenDeposit` / `TokenRedeem` on bridge router  | `TokenMint` / `TokenWithdraw` on destination    | Nonce + kappa hash                                |
-| Across                 | `FundsDeposited` from spoke pool                  | `FilledRelay` (relayer fills)                  | Deposit ID + source chain + destination chain     |
+| Wormhole               | `LogMessagePublished` from core bridge            | `TransferRedeemed` on destination               | Sequence number + emitter chain + emitter addr [verify 2026-10-29] |
+| LayerZero (v1 / v2)    | `Packet` (v1) / `PacketSent` (v2)                | `PacketReceived` (v1) / `PacketVerified` → `PacketDelivered` (v2) | Nonce + src chain + dst chain + sender / receiver [verify 2026-10-29] |
+| Stargate (LayerZero-based) | OFT / pool token transfer                     | OFT mint on destination                         | LayerZero nonce + Stargate pool ID [verify 2026-10-29] |
+| Synapse                | `TokenDeposit` / `TokenRedeem` on bridge router  | `TokenMint` / `TokenWithdraw` on destination    | Nonce + kappa hash [verify 2026-10-29] |
+| Across                 | `FundsDeposited` from spoke pool                  | `FilledRelay` (relayer fills)                  | Deposit ID + source chain + destination chain [verify 2026-10-29] |
 | THORChain              | Inbound observation TX                            | Outbound observation TX                         | Inbound TX hash → outbound TX hash via Midgard / THORNode |
-| Hop                    | `TransferSent` on source                          | `TransferFromL1Completed` / bonder relay        | Transfer ID                                       |
-| cBridge (Celer)        | `Send` event                                      | `Relay` event                                   | Transfer ID                                       |
-| Multichain (deprecated) | `LogAnySwapOut`                                  | `LogAnySwapIn`                                  | Swap ID (multichain dissolved 2023; legacy bridges still queryable) [verify 2026-04-26] |
-| Ronin Bridge (Axie)    | `DepositRequested` on Ethereum                    | `Deposit` on Ronin                              | Receipt ID                                        |
-| Polygon PoS bridge     | `LockedERC20` on Ethereum                         | `Deposit` (state sync) on Polygon               | Deposit count + state sync ID                     |
-| Arbitrum native bridge | `OutboxTransactionExecuted` (withdrawal) / `MessageDelivered` (deposit) | matching L1 / L2 events             | Message index + sequencer batch                   |
-| Optimism native bridge | `SentMessage` / `RelayedMessage`                  | matching cross-domain message                  | Message hash                                      |
-| Hyperlane              | `Dispatch`                                        | `Process`                                       | Message ID + origin domain + destination domain   |
+| Hop                    | `TransferSent` on source                          | `TransferFromL1Completed` / bonder relay        | Transfer ID [verify 2026-10-29] |
+| cBridge (Celer)        | `Send` event                                      | `Relay` event                                   | Transfer ID [verify 2026-10-29] |
+| Multichain (deprecated) | `LogAnySwapOut`                                  | `LogAnySwapIn`                                  | Swap ID (multichain dissolved 2023; legacy bridges still queryable) [verify 2026-10-29] |
+| Ronin Bridge (Axie)    | `DepositRequested` on Ethereum                    | `Deposited` on Ronin                            | Receipt ID / `receiptHash` [verify 2026-10-29] |
+| Polygon PoS bridge     | `LockedERC20` + `StateSynced` on Ethereum         | `StateCommitted` (StateReceiver) + child-token `Transfer` from `0x0` on Polygon | State-sync ID (`StateSynced.id` = `StateCommitted.stateId`) [verify 2026-10-29] |
+| Arbitrum native bridge | `OutBoxTransactionExecuted` (withdrawal) / `MessageDelivered` (deposit) | matching L1 / L2 events             | Message index + sequencer batch [verify 2026-10-29] |
+| Optimism native bridge | `SentMessage` / `RelayedMessage`                  | matching cross-domain message                  | Message hash [verify 2026-10-29] |
+| Hyperlane              | `Dispatch`                                        | `Process`                                       | Message ID + origin domain + destination domain [verify 2026-10-29] |
 
-[verify 2026-04-26 — bridge contract addresses, event names, and protocol versions update frequently; treat the table as a starting point and verify event signature against the deployed contract before reporting.]
+[verify 2026-10-29 — bridge contract addresses, event names, and protocol versions update frequently; treat the table as a starting point and verify event signature against the deployed contract before reporting.]
 
 ### 6.3 Practical pairing workflow
 
 1. **Identify the bridge** by the source-side contract address. The bridge protocol's documentation lists official deployments per chain. Phishing / spoofed bridges exist; verify the contract address against the canonical list.
 2. **Decode the source event** — extract the recipient (destination chain + destination address), value, token, and unique sequence / nonce / deposit ID.
 3. **Locate the destination chain.** Bridge events typically encode the destination chain ID; look up the matching deployment.
-4. **Search the destination contract** for the matching event using the sequence / nonce / deposit ID. Most bridges expose an indexer (Wormhole's [wormholescan.io](https://wormholescan.io/), LayerZeroscan, Stargate's explorer, THORChain's [thorchain.net](https://thorchain.net/) or Midgard).
+4. **Search the destination contract** for the matching event using the sequence / nonce / deposit ID. Most bridges expose an indexer (Wormhole's [wormholescan.io](https://wormholescan.io/), LayerZeroscan (covers Stargate), THORChain's [thorchain.net](https://thorchain.net/) or Midgard).
 5. **Document both events** — source TX hash, destination TX hash, value, token, sequence ID. Capture the bridge indexer page if used.
 6. **Continue the trace on the destination chain.** The destination event identifies the receiving address; that address becomes the next clustering / pivot target.
 
 ### 6.4 Bridge-specific pitfalls
 
-- **Wormhole guardian-network compromise (2022-02-02):** ~120K wETH minted from a forged guardian signature; destination-side mint exists with no legitimate source-side event. Always confirm the source-side event actually exists. [verify 2026-04-26]
+- **Wormhole signature-verification exploit (2022-02-02):** a bug in the Solana core contract's guardian-signature check let the attacker mint 120,000 unbacked wETH on Solana; destination-side mint exists with no legitimate source-side event. Always confirm the source-side event actually exists. [verify 2026-10-29]
 - **Multichain (Anyswap) collapse (July 2023):** assets stranded; cross-references to legacy Multichain transfers may dead-end at the protocol's failure date. Note the protocol-status at observation time.
-- **Ronin validator compromise (2022-03-23):** $625M USD stolen via 5/9 validator key compromise; outbound bridge events on Ronin without inbound deposit confirmations on Ethereum. Treasury / FBI attributed to DPRK (Lazarus). [verify 2026-04-26]
-- **Nomad bridge exploit (2022-08-01):** "free-for-all" replay of a routine event after an initialization bug; subsequent in-and-out flows on both chains do not represent legitimate user transfers.
+- **Ronin validator compromise (2022-03-23):** 173,600 ETH + 25.5M USDC drained via compromised Sky Mavis and Axie DAO validator keys (≈$620M per the FBI); the drain transactions are bridge withdrawals signed with the stolen keys, with no legitimate withdrawal request behind them. FBI attributed the theft to DPRK (Lazarus / APT38); OFAC added the exploiter address to the Lazarus Group SDN entry 2022-04-14. [verify 2026-10-29]
+- **Nomad bridge exploit (2022-08-01):** "free-for-all" replay of a routine event after an initialization bug; subsequent in-and-out flows on both chains do not represent legitimate user transfers. [verify 2026-10-29]
 - **Bridge nonce collisions** (rare) — protocol versions or chain redeployments can produce duplicate sequence numbers; always disambiguate by chain-of-deployment + version.
 - **Wrapped-asset reuse.** A single user transferring `wBTC` on Ethereum, bridging to Polygon, swapping to USDC on Polygon, bridging USDC to Arbitrum — produces five contract-event pairs to follow. Tooling that stops at the first hop loses the trail.
 
 ### 6.5 Useful bridge indexers
 
-- [wormholescan.io](https://wormholescan.io/) — Wormhole transfers, queryable by sequence, token, address, chain pair. [verify 2026-04-26]
-- [layerzeroscan.com](https://layerzeroscan.com/) — LayerZero packets across deployed chains. [verify 2026-04-26]
-- [thorchain.net](https://thorchain.net/) / [Midgard API](https://midgard.ninerealms.com/) — THORChain swaps with inbound / outbound TX pairing. [verify 2026-04-26]
-- [bungee.exchange](https://www.bungee.exchange/) (Socket) and [li.fi explorer](https://li.fi/) — multi-bridge / multi-DEX route surfaces; useful for understanding which bridges a route used. [verify 2026-04-26]
-- [Across explorer](https://across.to/) — Across deposit / fill explorer.
-- [Hop explorer](https://explorer.hop.exchange/) — Hop transfers.
-- [Stargate explorer](https://stargate.finance/transfer) — Stargate (LayerZero) flows.
+- [wormholescan.io](https://wormholescan.io/) — Wormhole transfers, queryable by sequence, token, address, chain pair. [verify 2026-10-29]
+- [layerzeroscan.com](https://layerzeroscan.com/) — LayerZero packets across deployed chains. [verify 2026-10-29]
+- [thorchain.net](https://thorchain.net/) / [Midgard v2 API](https://gateway.liquify.com/chain/thorchain_midgard/v2/doc) — THORChain swaps with inbound / outbound TX pairing (Midgard endpoint as listed in docs.thorchain.org). [verify 2026-10-29]
+- [bungee.exchange](https://www.bungee.exchange/) (Socket) and [li.fi explorer](https://li.fi/) — multi-bridge / multi-DEX route surfaces; useful for understanding which bridges a route used. [verify 2026-10-29]
+- [Across explorer](https://across.to/) — Across deposit / fill explorer. [verify 2026-10-29]
+- [Hop](https://hop.exchange/) — Hop bridge UI; the hosted explorer (`explorer.hop.exchange`) returns 404 and its repo is archived — pair `TransferSent` / `TransferFromL1Completed` events directly. [verify 2026-10-29]
+- [Stargate](https://stargate.finance/) — Stargate (LayerZero) flows. [verify 2026-10-29]
 
 ---
 
@@ -343,38 +343,38 @@ The investigator's job: pair the source `lock`/`burn` log with the destination `
 
 ### 7.1 OFAC SDN Digital Currency Address (DCA) regime
 
-- **Authority:** US Treasury Office of Foreign Assets Control (OFAC) administers the Specially Designated Nationals (SDN) list. Since 2018, individual cryptocurrency addresses have been listed as DCA entries appended to SDN profiles, tagged by currency code (`XBT`, `ETH`, `USDT`, `USDC`, `XMR`, `BSV`, `ZEC`, `LTC`, `DASH`, `ETC`, `XRP`, etc.). [verify 2026-04-26]
+- **Authority:** US Treasury Office of Foreign Assets Control (OFAC) administers the Specially Designated Nationals (SDN) list. Since 2018, individual cryptocurrency addresses have been listed as DCA entries appended to SDN profiles, tagged by currency code (`XBT`, `TRX`, `ETH`, `USDT`, `USDC`, `XMR`, `BSV`, `ZEC`, `LTC`, `DASH`, `ETC`, `XRP`, etc.; long entries overflow into `SDN_COMMENTS.CSV`, so screen both files). [verify 2026-10-29]
 - **Source feeds:**
-  - HTML search: [sanctionssearch.ofac.treas.gov](https://sanctionssearch.ofac.treas.gov/)
+  - HTML search: [sanctionssearch.ofac.treas.gov](https://sanctionssearch.ofac.treas.gov/) [verify 2026-10-29]
   - Bulk data: [OFAC sanctions list service](https://sanctionslist.ofac.treas.gov/Home/SdnList) (XML / CSV / fixed-width / PDF) [verify 2026-10-29]
-  - File finder (legacy): [ofac.treasury.gov/file-finder](https://ofac.treasury.gov/file-finder)
+  - File finder (legacy): [ofac.treasury.gov/file-finder](https://ofac.treasury.gov/file-finder) [verify 2026-10-29]
 - **Investigative use:**
   - Screen every wallet observed in scope against the latest SDN feed (cache locally; refresh daily for active investigations).
   - Cluster screening — if any address in a cluster matches SDN, the **wallet** is sanctions-implicated; report cluster membership with evidence.
   - **Time-stamp every sanctions finding.** Designations are added and removed; the legal posture at the time of activity is what matters.
-- **Notable trajectory: Tornado Cash.** Listed 2022-08-08 (the first smart-contract address designations); contested in court; 5th Circuit *Van Loon v. Treasury* ruled 2024-11-26 that immutable smart contracts are not "property" subject to OFAC blocking; Treasury removed the Tornado Cash sanctions 2025-03-21. [verify 2026-04-26] Tornado Cash addresses post-delist are no longer SDN, but historical activity during the listed period remains a sanctions exposure.
+- **Notable trajectory: Tornado Cash.** Listed 2022-08-08 (the first smart-contract address designations); contested in court; 5th Circuit *Van Loon v. Treasury* ruled 2024-11-26 that immutable smart contracts are not "property" subject to OFAC blocking; Treasury removed the Tornado Cash sanctions 2025-03-21. Tornado Cash addresses post-delist are no longer SDN, but historical activity during the listed period remains a sanctions exposure. [verify 2026-10-29]
 
 ### 7.2 EU sanctions and TFR / MiCA
 
-- **EU consolidated list:** [sanctionsmap.eu](https://www.sanctionsmap.eu/) (consolidated EU restrictive measures); [EU Financial Sanctions Database](https://webgate.ec.europa.eu/fsd/fsf) (machine-readable).
-- **Transfer of Funds Regulation (TFR) / MiCA crypto-asset transfer rules:** since 2024-12-30, all crypto-asset transfers between Crypto-Asset Service Providers (CASPs) must carry originator and beneficiary information regardless of value (no de minimis). Self-hosted-wallet transfers above EUR 1,000 trigger additional verification by the CASP. [verify 2026-04-26]
-- **MiCA broader:** Markets in Crypto-Assets Regulation (Regulation (EU) 2023/1114); titles applicable to issuers from June 2024, to CASPs from December 2024. Cross-border CASP supervision is via the home-state regulator with EBA / ESMA oversight.
+- **EU consolidated list:** [sanctionsmap.eu](https://www.sanctionsmap.eu/) (consolidated EU restrictive measures); [EU Financial Sanctions Database](https://webgate.ec.europa.eu/fsd/fsf) (machine-readable). [verify 2026-10-29]
+- **Transfer of Funds Regulation (TFR) / MiCA crypto-asset transfer rules:** since 2024-12-30, all crypto-asset transfers between Crypto-Asset Service Providers (CASPs) must carry originator and beneficiary information regardless of value (no de minimis). Self-hosted-wallet transfers above EUR 1,000 trigger additional verification by the CASP. [verify 2026-10-29]
+- **MiCA broader:** Markets in Crypto-Assets Regulation (Regulation (EU) 2023/1114); Titles III–IV (asset-referenced and e-money token issuers) apply from 30 June 2024; everything else, including CASP authorisation, from December 2024. Cross-border CASP supervision is via the home-state regulator with EBA / ESMA oversight. [verify 2026-10-29]
 
 ### 7.3 UK OFSI and other regimes
 
 - **UK:** the [UK Sanctions List](https://www.gov.uk/government/publications/the-uk-sanctions-list) (FCDO) is the only source of UK designations since 2026-01-28, replacing the OFSI Consolidated List; FCA supervises crypto-AML registration under the Money Laundering Regulations 2017 (as amended). [verify 2026-10-29]
-- **UN:** UN Security Council [consolidated list](https://www.un.org/securitycouncil/sanctions/information).
-- **Other major regimes:** Canada (OSFI / Global Affairs), Australia (DFAT consolidated list), Switzerland (SECO), Japan (METI), Singapore (MAS), South Korea (FIU).
-- **OpenSanctions** ([opensanctions.org](https://www.opensanctions.org/)) aggregates the major lists and publishes a normalized data feed; useful for cross-jurisdiction screening.
+- **UN:** UN Security Council [consolidated list](https://main.un.org/securitycouncil/en/sanctions/information). [verify 2026-10-29]
+- **Other major regimes:** Canada (OSFI / Global Affairs), Australia (DFAT consolidated list), Switzerland (SECO), Japan (MOF), Singapore (MAS), South Korea (FIU).
+- **OpenSanctions** ([opensanctions.org](https://www.opensanctions.org/)) aggregates the major lists and publishes a normalized data feed; useful for cross-jurisdiction screening. [verify 2026-10-29]
 
 ### 7.4 FATF Travel Rule (Recommendation 16)
 
-- Virtual Asset Service Providers (VASPs) — exchanges, custodial wallets, OTC desks — are required by FATF Recommendation 16 to collect and transmit originator / beneficiary information for crypto transfers above a jurisdiction-specific threshold.
-  - **US (FinCEN):** USD 3,000 threshold; lower threshold proposals pending. [verify 2026-04-26]
-  - **EU (TFR / MiCA):** No de minimis on inter-CASP transfers from 2024-12-30; self-hosted threshold EUR 1,000. [verify 2026-04-26]
-  - **UK (FCA):** GBP 1,000 originator-side trigger.
+- Virtual Asset Service Providers (VASPs) — exchanges, custodial wallets, OTC desks — are required by FATF Recommendation 16 to collect and transmit originator / beneficiary information for crypto transfers above a jurisdiction-specific threshold. [verify 2026-10-29]
+  - **US (FinCEN):** USD 3,000 threshold (31 CFR 1010.410(f)); the 2020 FinCEN / Federal Reserve proposal to cut it to USD 250 for cross-border transfers (85 FR 68005, RIN 1506-AB41) is recorded as withdrawn 2025-04-16 in the Unified Agenda. [verify 2026-10-29]
+  - **EU (TFR / MiCA):** No de minimis on inter-CASP transfers from 2024-12-30; self-hosted threshold EUR 1,000. [verify 2026-10-29]
+  - **UK (FCA; MLRs 2017 reg. 64C):** no de minimis for the basic payload (originator / beneficiary names and account numbers, or a unique transaction identifier). Where any business in the chain is outside the UK, one further originator identifier must also accompany transfers ≥ £800 (linked transfers aggregated); £800 replaced EUR 1,000 from 2026-06-30 (SI 2026/621 reg. 32). [verify 2026-10-29]
   - **Singapore / Switzerland / Japan / South Korea:** thresholds and protocols vary; check the local FIU guidance.
-- **Implementations:** TRP, IVMS101 data standard, Sygna Bridge, Notabene, Veriscope, Shyft. Vendor lineup shifts; verify per engagement. [verify 2026-04-26]
+- **Implementations:** IVMS101 is the common data-model standard; open protocols include TRP; commercial networks include Sygna Bridge, Notabene and Shyft Veriscope. Vendor lineup shifts; verify per engagement. [verify 2026-10-29]
 - **Investigative use:** Travel Rule data is **not public** — it is held by participating VASPs. Subpoena / regulator request to a VASP can produce both the KYC record and the Travel Rule originator data. Knowing which VASPs participate in which networks shapes the request strategy.
 
 ### 7.5 Sanctions tradecraft
@@ -392,14 +392,13 @@ Commercial blockchain analytics tools provide cluster labels, entity attribution
 
 ### 8.1 Major vendors
 
-- **[Chainalysis](https://www.chainalysis.com/)** — market-leading; products include **Reactor** (case-based investigation interface), **KYT** (transaction monitoring for VASPs / banks), **Crypto Investigations Solution** (LE-tier), and **Storyline** (DeFi-flow visualization). Heaviest LE / regulator adoption. Defense bar has scrutinized Reactor heuristics in court (Sterlingov, §12).
-- **[TRM Labs](https://www.trmlabs.com/)** — TRM Forensics (investigation), TRM Risk APIs (compliance integration). Strong LE adoption, especially US federal.
-- **[Elliptic](https://www.elliptic.co/)** — Elliptic Investigator, Lens, Navigator. Strong UK / EU adoption.
-- **[Crystal Intelligence](https://crystalintelligence.com/)** — formerly Bitfury-affiliated; spun out 2023. Multi-chain analytics + sanctions screening.
-- **[Arkham](https://www.arkhamintelligence.com/)** — entity-labeled platform with bounty marketplace for attribution data; free tier available. Treat labels as crowdsourced intelligence (variable quality), not vendor-attested attribution.
-- **[Merkle Science](https://www.merklescience.com/)** — Tracker (investigation), Compass (VASP compliance).
-- **[Coinfirm](https://www.coinfirm.com/)** — AML Risk Reports.
-- **[Nansen](https://www.nansen.ai/)** — primarily DeFi analytics with smart-money labeling; useful for context, not core tracing.
+- **[Chainalysis](https://www.chainalysis.com/)** — market-leading; products include **Reactor** (case-based investigation interface), **Rapid** (triage), **Wallet Scan** (seed-phrase asset discovery), **KYT** (transaction monitoring for VASPs / banks), **Address Screening** / **VASP Risking** (compliance), and **Alterya** (fraud prevention). Heaviest LE / regulator adoption. Defense bar has scrutinized Reactor heuristics in court (Sterlingov, §12). [verify 2026-10-29]
+- **[TRM Labs](https://www.trmlabs.com/)** — TRM Forensics (investigation); wallet screening, real-time transaction monitoring and entity-risk products (compliance). Strong LE adoption, especially US federal. [verify 2026-10-29]
+- **[Elliptic](https://www.elliptic.co/)** — Elliptic Investigator, Lens, Discovery. Strong UK / EU adoption. [verify 2026-10-29]
+- **[Crystal Intelligence](https://crystalintelligence.com/)** — Bitfury-origin (developed inside Bitfury from 2015, public launch 2018); rebranded Crystal Intelligence 2024; Tether strategic investment 2025. Multi-chain analytics + sanctions screening. [verify 2026-10-29]
+- **[Arkham](https://www.arkhamintelligence.com/)** — entity-labeled platform with a bounty marketplace (Intel Exchange) for attribution data; login required — confirm current access tiers per engagement. Treat labels as crowdsourced intelligence (variable quality), not vendor-attested attribution.
+- **[Merkle Science](https://www.merklescience.com/)** — Tracker (investigation), Compass (VASP compliance). [verify 2026-10-29]
+- **[Nansen](https://www.nansen.ai/)** — primarily DeFi analytics with smart-money labeling; useful for context, not core tracing. [verify 2026-10-29]
 
 ### 8.2 What commercial tools are good at
 
@@ -426,9 +425,10 @@ Commercial blockchain analytics tools provide cluster labels, entity attribution
 
 ### 8.5 Discontinued / changed tools (situational awareness)
 
-- **CipherTrace** — acquired by Mastercard 2021; product effectively wound down by 2024. Replaced internally by Mastercard Crypto Secure / Crypto Credential. Treat any contemporary "CipherTrace" reference as legacy. [verify 2026-04-26]
-- **Wallet Explorer** — long-standing free Bitcoin clustering site by Aleš Janda; acquired by Chainalysis but still publicly accessible at [walletexplorer.com](https://www.walletexplorer.com/). [verify 2026-04-26]
-- **OXT.me** — Samourai-affiliated open Bitcoin analytics; status uncertain post-2024 enforcement against Samourai founders. [verify 2026-04-26]
+- **CipherTrace** — acquired by Mastercard 2021; Armada / Inspector / Sentry products discontinued March 2024. Treat any contemporary "CipherTrace" reference as legacy. [verify 2026-10-29]
+- **Wallet Explorer** — long-standing free Bitcoin clustering site by Aleš Janda, who later joined Chainalysis (the site itself was not acquired); still online at [walletexplorer.com](https://www.walletexplorer.com/), but its wallet-name database has not been updated since 2016 and chain data lags 1–2 days. [verify 2026-10-29]
+- **OXT.me** — Samourai-affiliated open Bitcoin analytics; offline (oxt.me does not respond) following the April 2024 Samourai enforcement action; Samourai's founders were sentenced November 2025. Treat as defunct. [verify 2026-10-29]
+- **Coinfirm** — acquired by Lukka (announced 2024-05-21); coinfirm.com no longer responds. Treat contemporary references as legacy. [verify 2026-10-29]
 
 ---
 
@@ -438,35 +438,35 @@ Open-source tooling does not match commercial coverage, but it is **independentl
 
 ### 9.1 GraphSense
 
-- **What it is:** Open-source crypto-asset analytics platform (AIT / Iknaio). Multi-chain support (BTC, BCH, LTC, ZEC, ETH).
+- **What it is:** Open-source crypto-asset analytics platform (AIT / Iknaio). Multi-chain support (BTC, BCH, LTC, ZEC, ETH). [verify 2026-10-29]
 - **What it gives you:** Clustering, attribution tags, transaction graph, neighborhood analytics — same conceptual model as commercial tools.
-- **Where:** [graphsense.info](https://graphsense.info/) [verify 2026-04-26]; documentation and self-hosted deployment guides available.
+- **Where:** [graphsense.info](https://graphsense.info/) [verify 2026-10-29]; documentation and self-hosted deployment guides available.
 - **Tradeoff:** Significant infrastructure overhead (full-node ingest, ETL pipeline). Pays off for sustained investigation; overkill for one-off lookups.
 
 ### 9.2 Breadcrumbs
 
 - **What it is:** Free-tier blockchain visualization with address labeling and graph navigation.
-- **Where:** [breadcrumbs.app](https://www.breadcrumbs.app/) [verify 2026-04-26]
+- **Where:** [breadcrumbs.app](https://www.breadcrumbs.app/) [verify 2026-10-29 — site bot-walled (HTTP 403); no shutdown notice found]
 - **Use case:** Quick visual investigation, sharing graphs with non-analyst stakeholders.
 
 ### 9.3 BlockSci-style direct ledger queries
 
-- **BlockSci** (Harrigan / Goldfeder / Narayanan, Princeton) — academic Bitcoin analytics framework. Project status post-2021 unclear; replaced in many workflows by direct BigQuery / Erigon-traces / Reth queries. [verify 2026-04-26]
+- **BlockSci** (Kalodner et al., Princeton; USENIX Security 2020 — full author list in §21) — academic Bitcoin analytics framework. GitHub repo inactive since 2021; replaced in many workflows by direct BigQuery / Erigon-traces / Reth queries. [verify 2026-10-29]
 - **Approach:** Run a full archive node (Bitcoin Core + index, Erigon for ETH) and query directly. Highest fidelity, highest setup cost.
-- **BigQuery alternative:** Google's [public datasets for crypto](https://console.cloud.google.com/marketplace/browse?filter=solution-type:dataset) (BTC, BCH, LTC, DOGE, ZEC, ETH, Polygon) refresh near-real-time and support SQL analytics over years of history. [verify 2026-04-26]
+- **BigQuery alternative:** Google's [blockchain datasets](https://docs.cloud.google.com/blockchain-analytics/docs/supported-datasets) (Bitcoin, Ethereum, Polygon, Arbitrum, Optimism, Base, Avalanche, Tron, Solana and others) support SQL analytics over years of history; no refresh cadence is published, so record the snapshot date. [verify 2026-10-29]
 
 ### 9.4 Manual workflow with explorers + scripts
 
 - For small investigations, the explorer-scrape + CSV-export + Python notebook workflow is sufficient.
 - Etherscan, Blockchair, Tronscan, Solscan all expose CSV export and / or API endpoints (rate-limited; key required for higher tiers).
-- Common library combinations: `web3.py` / `ethers.js` for EVM RPC, `python-bitcoinrpc` for Bitcoin RPC, `solana-py` for Solana, custom clients for Tron and others.
+- Common library combinations: `web3.py` / `ethers.js` for EVM RPC, `python-bitcoinrpc` for Bitcoin RPC, `solana-py` for Solana, custom clients for Tron and others. [verify 2026-10-29]
 - Notebook discipline: capture the input addresses, the queries, the responses, and the analytical reasoning. Notebooks are reproducible artifacts.
 
 ### 9.5 Address-labeling collaborative resources
 
-- **[OFAC SDN](https://sanctionssearch.ofac.treas.gov/)** — sanctions addresses (authoritative for sanctions; use bulk feed).
-- **[Chainabuse](https://www.chainabuse.com/)** — community scam / abuse reporting.
-- **[Etherscan label cloud](https://etherscan.io/labelcloud)** — public labels for ETH / EVM addresses.
+- **[OFAC SDN](https://sanctionssearch.ofac.treas.gov/)** — sanctions addresses (authoritative for sanctions; use bulk feed). [verify 2026-10-29]
+- **[Chainabuse](https://www.chainabuse.com/)** — community scam / abuse reporting. [verify 2026-10-29]
+- **[Etherscan label cloud](https://etherscan.io/labelcloud)** — public labels for ETH / EVM addresses. [verify 2026-10-29]
 - **[Arkham](https://platform.arkhamintelligence.com/)** — entity labels with crowdsourced bounty additions (variable provenance).
 - **[Solscan labels](https://solscan.io/)** — Solana entity labels.
 - **GitHub repos** — multiple analyst-maintained labeled-address lists (use with caution; vintage and provenance vary).
@@ -493,7 +493,7 @@ Most illicit crypto flows eventually touch a VASP — fiat off-ramps require reg
 - **Hot-wallet recognition:** centralized exchanges operate hot wallets that are heavily transacted. Vendor tools tag them; open-source clustering identifies them by transaction volume + characteristic transaction shapes.
 - **Deposit-address pattern:** per-customer deposit addresses receive one or two inflows then sweep to the exchange hot wallet within hours.
 - **Withdrawal-address pattern:** exchanges withdraw to user-specified addresses from hot-wallet treasury; withdrawals carry the exchange's signature transaction shape.
-- **Memo / tag chains** (XRPL, Stellar, EOS, Cosmos, BSC-with-memo): single shared address with destination tag / memo per customer. Tag-based pivots require subpoena to the VASP for tag-to-customer mapping.
+- **Memo / tag chains** (XRPL, Stellar, EOS, Cosmos): single shared address with destination tag / memo per customer. Tag-based pivots require subpoena to the VASP for tag-to-customer mapping.
 
 ### 10.2 Documenting an exchange pivot
 
@@ -507,8 +507,8 @@ For each exchange-side finding:
 
 ### 10.3 Subpoena / regulator pathway
 
-- **US:** FinCEN MSB registration (banks / VASPs); subpoena via DOJ, IRS-CI, FBI; international via MLAT.
-- **EU:** CASP registration under MiCA; data requests via national FIU + Europol; cross-border via judicial cooperation regulations.
+- **US:** FinCEN MSB registration (money transmitters incl. VASPs; banks are excluded from the MSB definition); subpoena via DOJ, IRS-CI, FBI; international via MLAT. [verify 2026-10-29]
+- **EU:** CASP authorisation under MiCA (ESMA register of authorised CASPs); data requests via national FIU + Europol; cross-border via judicial cooperation regulations. [verify 2026-10-29]
 - **UK:** FCA register; SAR via NCA; international via MLAT.
 - **Process discipline:** the analyst's job is to package the technical evidence cleanly so the requester (LE, regulator, civil litigator, MLRO) can issue a well-scoped request. Over-broad requests get refused; under-scoped ones miss.
 
@@ -524,11 +524,11 @@ When transfers cross participating VASPs:
 
 ### 10.5 Non-VASP off-ramps
 
-- **P2P platforms** (LocalBitcoins-successor sites, Paxful, Bisq, RoboSats) — variable KYC; some require none.
+- **P2P platforms** (LocalBitcoins-successor sites, Bisq, RoboSats; Paxful wound down operations by 2025-11-01 and is now withdrawal-only) — variable KYC; some require none. [verify 2026-10-29]
 - **OTC desks** — high-value, often light-KYC; jurisdiction-dependent.
 - **Crypto ATMs** — KYC requirements vary by jurisdiction (US BSA-registered; EU MiCA-aligned; many jurisdictions inconsistent enforcement).
-- **No-KYC swap services** — FixedFloat, ChangeNOW, SimpleSwap; aggressive disclaimers that they do not collect identity data. (Some have been compelled to produce records under legal process anyway.)
-- **DEX aggregators** — 1inch, ParaSwap, OpenOcean, CoW Swap; pure on-chain swaps with no KYC. Trace continues on-chain.
+- **No-KYC swap services** — FixedFloat (now at ff.io), ChangeNOW, SimpleSwap; aggressive disclaimers that they do not collect identity data. (Some have been compelled to produce records under legal process anyway.) [verify 2026-10-29]
+- **DEX aggregators** — 1inch, ParaSwap (rebranded Velora), OpenOcean, CoW Swap; pure on-chain swaps with no KYC. Trace continues on-chain. [verify 2026-10-29]
 
 ---
 
@@ -587,7 +587,7 @@ A representative case lifecycle. Adapt to the specific engagement (LE investigat
 
 ### 11.9 Step 9 — Cluster mapping and visualization
 
-- Build the entity-relationship graph (Maltego, Neo4j, draw.io, Breadcrumbs, Arkham, Chainalysis Reactor — match the deliverable).
+- Build the entity-relationship graph (Maltego, Neo4j, draw.io, Breadcrumbs, Arkham, Chainalysis Reactor — match the deliverable). [verify 2026-10-29]
 - Annotate edges with TX evidence and confidence labels.
 
 ### 11.10 Step 10 — Reporting
@@ -606,13 +606,13 @@ Blockchain findings increasingly appear in court — sanctions enforcement, mone
 
 ### 12.1 The Sterlingov / Bitcoin Fog case
 
-- **Defendant:** Roman Sterlingov (Russian-Swedish dual national).
-- **Charge:** Operating Bitcoin Fog mixer 2011-2021; money laundering, conspiracy, sanctions, unlicensed money-transmission counts.
-- **Arrest:** 2021-04-27 at LAX. [verify 2026-04-26]
-- **Conviction:** 2024-03-12, SDNY federal jury verdict on all counts. [verify 2026-04-26]
-- **Sentence:** 2024-11-08, 12 years 6 months imprisonment. [verify 2026-04-26]
-- **Defense thesis:** Government's identification of Sterlingov as the Bitcoin Fog operator rested heavily on Chainalysis Reactor's heuristic clustering. Defense argued (with expert testimony and academic critique) that the clustering heuristics were probabilistic, error-prone, and inadequate to meet the criminal-conviction bar without independent corroboration.
-- **Court posture:** Pre-trial Daubert challenge to Chainalysis Reactor admissibility was largely resolved in the government's favor, with the court permitting Reactor analysis but allowing defense cross-examination on heuristic limitations. The conviction proceeded.
+- **Defendant:** Roman Sterlingov (Russian-Swedish dual national). [verify 2026-10-29]
+- **Charges:** Operating Bitcoin Fog mixer 2011-2021; money-laundering conspiracy, money laundering, operating an unlicensed money transmitting business, and money transmission without a D.C. license (four counts; no sanctions count). [verify 2026-10-29]
+- **Arrest:** 2021-04-27 at LAX. [verify 2026-10-29]
+- **Conviction:** 2024-03-12, jury verdict on all four counts in the U.S. District Court for the District of Columbia (Judge Randolph D. Moss). [verify 2026-10-29]
+- **Sentence:** 2024-11-08, 12 years 6 months imprisonment. [verify 2026-10-29]
+- **Defense thesis:** Government's identification of Sterlingov as the Bitcoin Fog operator rested heavily on Chainalysis Reactor's heuristic clustering. Defense argued (with expert testimony and academic critique) that the clustering heuristics were probabilistic, error-prone, and inadequate to meet the criminal-conviction bar without independent corroboration. [verify 2026-10-29]
+- **Court posture:** Pre-trial Daubert challenge to Chainalysis Reactor admissibility was largely resolved in the government's favor, with the court permitting Reactor analysis but allowing defense cross-examination on heuristic limitations (*United States v. Sterlingov*, 719 F. Supp. 3d 65 (D.D.C. 2024)). The conviction proceeded and was affirmed by the D.C. Circuit on 2026-09-25 (No. 24-3161), which held that admitting the Reactor-based expert testimony was not an abuse of discretion. [verify 2026-10-29]
 - **What it changed:** Subsequent prosecutions and asset-recovery actions face a documented playbook for attacking heuristic-based clustering. Practitioners building court-bound findings should expect every cluster, label, and inference to be challenged on:
   - The specific heuristic applied
   - The vendor's documented error rate (where published)
@@ -622,7 +622,7 @@ Blockchain findings increasingly appear in court — sanctions enforcement, mone
 
 ### 12.2 Daubert posture
 
-Under *Daubert v. Merrell Dow Pharmaceuticals* (US federal courts) and analogous standards (UK Civil Evidence Act / R v Bonython criteria; EU Member State equivalents), expert testimony must rest on:
+Under *Daubert v. Merrell Dow Pharmaceuticals* (US federal courts) and analogous standards (England & Wales: Civil Evidence Act 1972 s.3, Criminal Procedure Rules Part 19; Australia: *R v Bonython* (1984) 38 SASR 45; EU Member State equivalents), expert testimony must rest on: [verify 2026-10-29]
 
 - Methodology that is testable.
 - Methodology that has been peer-reviewed.
@@ -630,7 +630,7 @@ Under *Daubert v. Merrell Dow Pharmaceuticals* (US federal courts) and analogous
 - Standards governing operation.
 - General acceptance in the relevant scientific community.
 
-Open-source heuristics (Meiklejohn 2013 and subsequent academic literature) satisfy peer-review criteria. Proprietary vendor heuristics are weaker on peer-review but satisfy general-acceptance via wide LE / regulator adoption. The gap is **error rate** — published vendor error rates are sparse, and that is where defense challenges concentrate.
+Open-source heuristics (Meiklejohn 2013 and subsequent academic literature) satisfy peer-review criteria. Proprietary vendor heuristics are weaker on peer-review but satisfy general-acceptance via wide LE / regulator adoption. The gap is **error rate** — published vendor error rates are sparse, and that is where defense challenges concentrate. [verify 2026-10-29]
 
 ### 12.3 Tradecraft for court-bound findings
 
@@ -644,13 +644,13 @@ Open-source heuristics (Meiklejohn 2013 and subsequent academic literature) sati
 
 ### 12.4 Expert-witness considerations
 
-- The analyst preparing court-bound findings should be qualified to testify if called. Vendor-tool training and certifications (Chainalysis Cryptocurrency Investigations Certification, TRM Labs Cryptocurrency Investigator Certification, CryptoCurrency Security Standard) carry weight; academic publications and operational case-history more.
+- The analyst preparing court-bound findings should be qualified to testify if called. Vendor-tool certifications (Chainalysis Certified Investigator / Certified Advanced Investigator; TRM Certified Investigator) carry weight; academic publications and operational case-history more. The CryptoCurrency Security Standard (CCSS) is a custody-security standard, not an investigator credential. [verify 2026-10-29]
 - Know the methodology you are presenting. Cross-examination will probe the heuristic; "the tool said so" is a weak position.
 - Distinguish between what the data shows and what the cluster label asserts. Conflating them is a recurring cross-examination opening.
 
 ### 12.5 Other notable cases (situational awareness)
 
-- **Bitfinex 2016 hack — Heather Morgan / Ilya Lichtenstein:** $4.5B BTC seized 2022-02-08 in connection with the 2016 Bitfinex hack of 119,754 BTC. Both pleaded guilty August 2023; Lichtenstein sentenced 2024-11 to 5 years; Morgan sentenced 2024-11 to 18 months. [verify 2026-04-26] Demonstrates years-long tracing across address-laundering and exchange interactions.
+- **Bitfinex 2016 hack — Heather Morgan / Ilya Lichtenstein:** ~$3.6B in BTC seized 2022-02-08, from the 119,754 BTC stolen in the 2016 Bitfinex hack (the full haul was valued at ~$4.5B at the time of the 2022 arrests). Both pleaded guilty August 2023; Lichtenstein sentenced 2024-11 to 5 years; Morgan sentenced 2024-11 to 18 months. [verify 2026-10-29] Demonstrates years-long tracing across address-laundering and exchange interactions.
 - **Silk Road / Ulbricht:** 2013 takedown; subsequent civil forfeiture of seized BTC. Foundational case for crypto-asset forfeiture procedure.
 - **DOJ asset-forfeiture proceedings** — civil and criminal forfeiture of crypto assets has become routine, with pleadings citing blockchain analytics as primary evidence.
 
@@ -702,7 +702,7 @@ This SOP **stops** at the following boundaries. Each hand-off targets the canoni
 
 | Observation                                                                              | Stops here. Routes to:                                                                                                                                                          |
 | ---------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Mixer entry (Tornado Cash, Wasabi CoinJoin, JoinMarket, Whirlpool, Sinbad, etc.)         | [[sop-mixer-tracing|Mixer & Privacy-Pool Tracing]]                                                                                                                              |
+| Mixer entry (Tornado Cash, Wasabi CoinJoin, JoinMarket, Whirlpool, Sinbad, etc.) [verify 2026-10-29] | [[sop-mixer-tracing|Mixer & Privacy-Pool Tracing]]                                                                                                                              |
 | Cross-chain bridge **obfuscation defeat** (round-tripping, fragmentation, decoy bridges) | [[sop-mixer-tracing|Mixer & Privacy-Pool Tracing]]. Bridge **read-flow** is in scope here (§6).                                                                                  |
 | Smart-contract source / bytecode review, vulnerability-class analysis                    | [[sop-smart-contract-audit|Smart Contract Audit]]. Post-exploit fund tracing is in scope here.                                                                                   |
 | Ransomware payload analysis                                                              | [[../../Security/Analysis/sop-malware-analysis|Malware Analysis]]                                                                                                                |
@@ -735,49 +735,49 @@ See §6.5 — major bridge indexers (wormholescan, layerzeroscan, Midgard, Acros
 
 | Source                           | Feed                                                       | Notes                                        |
 | -------------------------------- | ---------------------------------------------------------- | -------------------------------------------- |
-| OFAC SDN search (HTML)           | [sanctionssearch.ofac.treas.gov](https://sanctionssearch.ofac.treas.gov/) | Daily-refresh interactive search             |
+| OFAC SDN search (HTML)           | [sanctionssearch.ofac.treas.gov](https://sanctionssearch.ofac.treas.gov/) | Interactive search; page shows SDN / Non-SDN "last updated" timestamps — record them [verify 2026-10-29] |
 | OFAC sanctions list service      | [sanctionslist.ofac.treas.gov](https://sanctionslist.ofac.treas.gov/Home/SdnList) | XML / CSV / fixed-width / PDF bulk files [verify 2026-10-29] |
-| EU Sanctions Map                 | [sanctionsmap.eu](https://www.sanctionsmap.eu/)             | EU consolidated                              |
-| EU Financial Sanctions DB        | [webgate.ec.europa.eu/fsd/fsf](https://webgate.ec.europa.eu/fsd/fsf) | Machine-readable                             |
+| EU Sanctions Map                 | [sanctionsmap.eu](https://www.sanctionsmap.eu/)             | EU consolidated [verify 2026-10-29] |
+| EU Financial Sanctions DB        | [webgate.ec.europa.eu/fsd/fsf](https://webgate.ec.europa.eu/fsd/fsf) | Machine-readable [verify 2026-10-29] |
 | UK Sanctions List                | [gov.uk/government/publications/the-uk-sanctions-list](https://www.gov.uk/government/publications/the-uk-sanctions-list) | UK designations; sole source since 2026-01-28 (OFSI Consolidated List closed) [verify 2026-10-29] |
-| UN Security Council Sanctions    | [un.org/securitycouncil/sanctions/information](https://www.un.org/securitycouncil/sanctions/information) | UN consolidated                              |
-| OpenSanctions                    | [opensanctions.org](https://www.opensanctions.org/)         | Aggregated multi-jurisdiction; open data     |
+| UN Security Council Sanctions    | [main.un.org/securitycouncil/en/sanctions/information](https://main.un.org/securitycouncil/en/sanctions/information) | UN consolidated [verify 2026-10-29] |
+| OpenSanctions                    | [opensanctions.org](https://www.opensanctions.org/)         | Aggregated multi-jurisdiction; CC BY-NC 4.0 — commercial use (incl. client screening) needs a paid data license [verify 2026-10-29] |
 
 ### 15.4 Commercial analytics
 
 | Vendor            | Primary product               | URL                                                        |
 | ----------------- | ----------------------------- | ---------------------------------------------------------- |
-| Chainalysis       | Reactor / KYT                 | [chainalysis.com](https://www.chainalysis.com/)             |
-| TRM Labs          | Forensics / Risk APIs         | [trmlabs.com](https://www.trmlabs.com/)                     |
-| Elliptic          | Investigator / Lens           | [elliptic.co](https://www.elliptic.co/)                     |
-| Crystal Intelligence | Multi-chain analytics      | [crystalintelligence.com](https://crystalintelligence.com/) |
-| Arkham            | Entity-labeled platform       | [arkhamintelligence.com](https://www.arkhamintelligence.com/) |
-| Merkle Science    | Tracker / Compass             | [merklescience.com](https://www.merklescience.com/)         |
-| Coinfirm          | AML Risk Reports              | [coinfirm.com](https://www.coinfirm.com/)                   |
-| Nansen            | DeFi smart-money labels       | [nansen.ai](https://www.nansen.ai/)                         |
+| Chainalysis       | Reactor / KYT                 | [chainalysis.com](https://www.chainalysis.com/) [verify 2026-10-29] |
+| TRM Labs          | Forensics / screening & monitoring | [trmlabs.com](https://www.trmlabs.com/) [verify 2026-10-29] |
+| Elliptic          | Investigator / Lens           | [elliptic.co](https://www.elliptic.co/) [verify 2026-10-29] |
+| Crystal Intelligence | Multi-chain analytics      | [crystalintelligence.com](https://crystalintelligence.com/) [verify 2026-10-29] |
+| Arkham            | Entity-labeled platform       | [arkhamintelligence.com](https://www.arkhamintelligence.com/) (redirects to info.arkm.com) [verify 2026-10-29] |
+| Merkle Science    | Tracker / Compass             | [merklescience.com](https://www.merklescience.com/) [verify 2026-10-29] |
+| Lukka (acquired Coinfirm 2024; see §8.5) | Blockchain Analytics & Compliance | [lukka.tech](https://lukka.tech/) [verify 2026-10-29] |
+| Nansen            | DeFi smart-money labels       | [nansen.ai](https://www.nansen.ai/) [verify 2026-10-29] |
 
 ### 15.5 Open-source analytics
 
 | Tool / Resource     | Purpose                                          | URL                                                |
 | ------------------- | ------------------------------------------------ | -------------------------------------------------- |
-| GraphSense          | Open-source multi-chain analytics + clustering   | [graphsense.info](https://graphsense.info/) [verify 2026-04-26] |
-| Breadcrumbs         | Free blockchain visualization                    | [breadcrumbs.app](https://www.breadcrumbs.app/)     |
-| Wallet Explorer     | Bitcoin clustering UI                            | [walletexplorer.com](https://www.walletexplorer.com/) |
-| OXT.me              | Bitcoin analytics (Samourai-affiliated; status uncertain) | [oxt.me](https://oxt.me/) [verify 2026-04-26]    |
-| BigQuery public crypto datasets | Bulk SQL analytics over BTC/ETH/etc.    | [console.cloud.google.com](https://console.cloud.google.com/marketplace/browse?filter=solution-type:dataset) |
-| The Graph           | Subgraph indexing for protocol context           | [thegraph.com](https://thegraph.com/)                |
-| Chainabuse          | Community scam/abuse reporting                   | [chainabuse.com](https://www.chainabuse.com/)        |
+| GraphSense          | Open-source multi-chain analytics + clustering   | [graphsense.info](https://graphsense.info/) [verify 2026-10-29] |
+| Breadcrumbs         | Blockchain visualization (confirm current access tiers) | [breadcrumbs.app](https://www.breadcrumbs.app/) [verify 2026-10-29 — site bot-walled; access tiers not confirmed] |
+| Wallet Explorer     | Bitcoin clustering UI (wallet-name DB frozen since 2016; see §8.5) | [walletexplorer.com](https://www.walletexplorer.com/) [verify 2026-10-29] |
+| OXT.me              | Bitcoin analytics (Samourai-affiliated); defunct — see §8.5 | oxt.me does not respond (no live link) [verify 2026-10-29] |
+| BigQuery public crypto datasets | Bulk SQL analytics over BTC/ETH/etc.    | [console.cloud.google.com](https://console.cloud.google.com/marketplace/browse?filter=solution-type:dataset) [verify 2026-10-29] |
+| The Graph           | Subgraph indexing for protocol context           | [thegraph.com](https://thegraph.com/) [verify 2026-10-29] |
+| Chainabuse          | Community scam/abuse reporting                   | [chainabuse.com](https://www.chainabuse.com/) [verify 2026-10-29] |
 
 ### 15.6 Node software (self-hosted RPC)
 
 | Software        | Chain    | Notes                                                |
 | --------------- | -------- | ---------------------------------------------------- |
-| Bitcoin Core    | BTC      | Full node + `txindex=1` for arbitrary TX queries     |
-| Erigon          | ETH      | Archive node with traces                             |
-| Reth            | ETH      | Rust-implemented archive node (newer)                |
-| Geth            | ETH      | Reference EVM client                                 |
+| Bitcoin Core    | BTC      | Full node + `txindex=1` for arbitrary TX queries [verify 2026-10-29] |
+| Erigon          | ETH      | Archive node with traces [verify 2026-10-29] |
+| Reth            | ETH      | Rust-implemented archive node (newer) [verify 2026-10-29] |
+| Geth            | ETH      | Reference EVM client [verify 2026-10-29] |
 | Solana validator| Solana   | High disk I/O; consider RPC providers                |
-| TRON node       | Tron     | `java-tron`                                          |
+| TRON node       | Tron     | `java-tron` [verify 2026-10-29] |
 
 ### 15.7 Forensics support
 
@@ -818,10 +818,10 @@ See §6.5 — major bridge indexers (wormholescan, layerzeroscan, Midgard, Acros
 
 ### 16.5 Volatility and rot
 
-- **Sanctions trajectories shift** — Tornado Cash 2022→2024→2025 illustrates that the legal posture of a single contract has changed three times. Always time-stamp.
+- **Sanctions trajectories shift** — Tornado Cash 2022→2024→2025 illustrates that the legal posture of a single contract has changed three times. Always time-stamp. [verify 2026-10-29]
 - **Vendor product lineup shifts** — CipherTrace acquired and wound down; other vendors merge / re-brand. Tool capability at engagement time must be confirmed.
 - **Bridge protocol updates** — event names and contract addresses change between versions; always verify against the current canonical deployment.
-- **Exchange / VASP status** — exchanges fail, get sanctioned (Garantex), get acquired, exit jurisdictions. Relationships at the time of activity are what matter.
+- **Exchange / VASP status** — exchanges fail, get sanctioned (Garantex), get acquired, exit jurisdictions. Relationships at the time of activity are what matter. [verify 2026-10-29]
 
 ### 16.6 Evidentiary fragility
 
@@ -842,7 +842,7 @@ See §6.5 — major bridge indexers (wormholescan, layerzeroscan, Midgard, Acros
 - ❌ **Transacting with target addresses** ("just a 1-satoshi probe to check"). Taints the cluster, alerts the subject, may be illegal.
 - ❌ **Validating leaked credentials** for an exchange account tied to a target. Unauthorized access. Subpoena instead.
 - ❌ **Reporting sanctions status without time-stamping.** Tornado Cash status changed three times; the legal posture at time of activity is what matters, not at time of report.
-- ❌ **Attributing clusters to nation-state groups based on vendor labels alone.** Lazarus / APT38 / DPRK-cluster attribution typically requires multiple corroborating sources (Chainalysis + TRM + UN PoE reporting + FBI/CISA joint advisories).
+- ❌ **Attributing clusters to nation-state groups based on vendor labels alone.** Lazarus / APT38 / DPRK-cluster attribution typically requires multiple corroborating sources (Chainalysis + TRM + UN Panel of Experts reports to April 2024 / MSMT reports since + FBI/CISA joint advisories). [verify 2026-10-29]
 - ❌ **Trusting Etherscan / explorer "comment" labels** on contracts — they can be user-submitted; verify provenance.
 - ❌ **Ignoring internal transactions** on EVM chains. Many illicit flows are contract-mediated and invisible in the top-level TX list.
 - ❌ **Confusing ENS / Lens / Farcaster handles with ownership proof.** ENS resolution at time T does not prove ownership at time T-1.
@@ -868,7 +868,7 @@ See §6.5 — major bridge indexers (wormholescan, layerzeroscan, Midgard, Acros
 4. Trace the outflow forward — exchange deposit? Mixer entry (hand off to [[sop-mixer-tracing|Mixer & Privacy-Pool Tracing]])? Bridge to another chain (pair per §6 and continue)?
 5. If outflow reaches a known VASP, package the evidence per §10.2 and route to LE for legal-process pursuit.
 6. Coordinate with [[../../Security/Analysis/sop-malware-analysis|Malware Analysis]] on the binary IOCs — same actor, complementary evidence.
-7. Time-stamp every sanctions finding — was the destination cluster SDN-listed at time of payment? OFAC has issued advisories on ransomware payments to designated groups (2020 OFAC ransomware advisory, updated 2021 and beyond). [verify 2026-04-26]
+7. Time-stamp every sanctions finding — was the destination cluster SDN-listed at time of payment? OFAC has issued advisories on ransomware payments to designated groups (2020-10-01 advisory, superseded by the 2021-09-21 Updated Advisory). [verify 2026-10-29]
 
 **Outcome:** Defensible evidence package supporting (a) potential sanctions exposure determination, (b) LE referral for asset recovery, (c) regulator notification if the payor is regulated.
 
@@ -895,14 +895,13 @@ See §6.5 — major bridge indexers (wormholescan, layerzeroscan, Midgard, Acros
 
 **Approach:**
 
-1. Confirm the SDN designation and the address-to-group attribution (vendor labels + open-source corroboration + UN PoE / OFAC documentation).
+1. Confirm the SDN designation and the address-to-group attribution (vendor labels + open-source corroboration + UN Panel of Experts (to April 2024) / MSMT / OFAC documentation). [verify 2026-10-29]
 2. Cluster the address; identify the broader operational wallet.
 3. Trace inflows — victim payments (each victim payment is an investigative thread), affiliate splits, conversion paths.
 4. Trace outflows — identify the exit pattern. State-actor groups have historically used:
-   - Cross-chain bridges (often THORChain) to Bitcoin
+   - Cross-chain bridges (often THORChain) to Bitcoin [verify 2026-10-29]
    - OTC desks in jurisdictions with weak enforcement
    - DEX-only paths to avoid VASPs
-   - Privacy-coin conversion (Monero) [verify 2026-04-26]
 5. For each non-mixer outflow, document. For mixer outflows, hand off to [[sop-mixer-tracing|Mixer & Privacy-Pool Tracing]].
 6. Cross-check victim payments against ISAC / sector-specific advisories; identify victims who may not have publicly disclosed.
 7. Package per [[sop-reporting-packaging-disclosure|Reporting, Packaging & Disclosure]]; route to OFAC / FIU / LE per the engagement scope.
@@ -938,8 +937,8 @@ Blockchain investigations rarely involve immediate threat-to-life, but several s
 
 ### 19.3 Specific pathway examples
 
-- **US ransomware / sanctions exposure:** OFAC compliance hotline; FBI IC3 (`ic3.gov`); CISA `report@cisa.gov`.
-- **EU:** Europol European Cybercrime Centre (EC3); national CERT; national FIU.
+- **US ransomware / sanctions exposure:** OFAC compliance hotline; FBI IC3 (`ic3.gov`); CISA incident reporting — `https://www.cisa.gov/report` (redirects to CISA's incident reporting form at `myservices.cisa.gov/irf`), `report@cisa.gov`, 1-844-Say-CISA (1-844-729-2472). [verify 2026-10-29]
+- **EU:** Europol European Cybercrime Centre (EC3); national CERT; national FIU. [verify 2026-10-29]
 - **UK:** Report Fraud (`reportfraud.police.uk`, 0300 123 2040; replaced Action Fraud 2025-12-04; Scotland: Police Scotland 101); NCA NCSC Reporting; FCA for regulated entities. [verify 2026-10-29]
 - **Trafficking / CSAM funding:** route per [[sop-sensitive-crime-intake-escalation|Sensitive Crime Intake & Escalation]].
 - **Exchange freeze requests:** maintain a contact list of active exchange LE-channels for the engagement; many require pre-existing relationships.
@@ -952,7 +951,7 @@ Cross-link [[sop-sensitive-crime-intake-escalation|Sensitive Crime Intake & Esca
 
 - [[sop-legal-ethics|Legal & Ethics]] — canonical legal framework; review before every engagement
 - [[sop-opsec-plan|OPSEC Plan]] — investigator OPSEC, environment isolation, query-attribution discipline
-- [[sop-collection-log|Collection Log]] — chain-of-custody, hashing, timestamping, FRE 902(13)/(14) framing
+- [[sop-collection-log|Collection Log]] — chain-of-custody, hashing, timestamping, FRE 902(13)/(14) framing [verify 2026-10-29]
 - [[sop-entity-dossier|Entity Dossier]] — structured profiling for wallet operator / cluster owner attribution; confidence-rating framework
 - [[sop-financial-aml-osint|Financial & AML OSINT]] — fiat-side AML, corporate UBO, sanctions screening, PEP / adverse-media; current `§5 Cryptocurrency Tracing` is the migration source for this SOP and will be trimmed to AML-analyst quick-reference once #5 also lands
 - [[sop-darkweb-investigation|Darkweb Investigation]] — receives wallet observations from this SOP; sends wallet observations to it (§13)
@@ -1004,47 +1003,47 @@ See §6.5 (wormholescan, layerzeroscan, Midgard, Across, Hop, Stargate, bungee /
 
 ### Academic foundations
 
-- Meiklejohn et al. 2013 — *A Fistful of Bitcoins: Characterizing Payments Among Men with No Names* (foundational clustering-heuristic paper). [verify 2026-04-26]
-- Ron & Shamir 2013 — *Quantitative Analysis of the Full Bitcoin Transaction Graph*.
-- Kappos, Yousaf, Maller, Meiklejohn 2018 — *An Empirical Analysis of Anonymity in Zcash*.
-- Quesnelle 2017 — *On the linkability of Zcash transactions*.
-- Möser et al. 2017 — *An Empirical Analysis of Traceability in the Monero Blockchain*.
-- BlockSci (Harrigan / Kalodner / Moser / Goldfeder / Narayanan, Princeton) — academic Bitcoin analytics framework; project status post-2021 unclear. [verify 2026-04-26]
+- Meiklejohn et al. 2013 — *A Fistful of Bitcoins: Characterizing Payments Among Men with No Names* (foundational clustering-heuristic paper). [verify 2026-10-29]
+- Ron & Shamir 2013 — *Quantitative Analysis of the Full Bitcoin Transaction Graph*. [verify 2026-10-29]
+- Kappos, Yousaf, Maller, Meiklejohn 2018 — *An Empirical Analysis of Anonymity in Zcash* (USENIX Security). [verify 2026-10-29]
+- Quesnelle 2017 — *On the linkability of Zcash transactions*. [verify 2026-10-29]
+- Möser et al. 2017 — *An Empirical Analysis of Traceability in the Monero Blockchain*. [verify 2026-10-29]
+- Kalodner, Möser, Lee, Goldfeder, Plattner, Chator, Narayanan 2020 — *BlockSci: Design and applications of a blockchain analysis platform* (USENIX Security 2020; arXiv 1709.02489). GitHub repo inactive since 2021. [verify 2026-10-29]
 
 ### Standards and frameworks
 
-- FATF — Recommendation 16 (Travel Rule); Updated Guidance for a Risk-Based Approach to Virtual Assets and VASPs (2021). [fatf-gafi.org](https://www.fatf-gafi.org/) [verify 2026-04-26]
-- Egmont Group — FIU coordination.
-- Wolfsberg Group — financial-institution AML guidance.
-- IVMS101 — Travel Rule data interchange standard.
-- CCSS (CryptoCurrency Security Standard) — enterprise crypto security baseline.
-- NIST SP 800-86 — Integrating Forensic Techniques into Incident Response (see [[sop-collection-log|Collection Log]] §"Standards & Frameworks").
-- Berkeley Protocol on Digital Open Source Investigations (UN OHCHR 2022) — see [[sop-legal-ethics|Legal & Ethics]] §"International framework."
+- FATF — Recommendation 16 (Travel Rule; revised payment-transparency text adopted at the June 2025 Plenary); Updated Guidance for a Risk-Based Approach to Virtual Assets and VASPs (October 2021, predates the R.16 revision). [fatf-gafi.org](https://www.fatf-gafi.org/) [verify 2026-10-29]
+- Egmont Group — FIU coordination. [verify 2026-10-29]
+- Wolfsberg Group — financial-institution AML guidance. [verify 2026-10-29]
+- IVMS101 — Travel Rule data interchange standard. [verify 2026-10-29]
+- CCSS (CryptoCurrency Security Standard) — enterprise crypto security baseline. [verify 2026-10-29]
+- NIST SP 800-86 — Integrating Forensic Techniques into Incident Response (see [[sop-collection-log|Collection Log]] §"Standards & Frameworks"). [verify 2026-10-29]
+- Berkeley Protocol on Digital Open Source Investigations (UN OHCHR 2022) — see [[sop-legal-ethics|Legal & Ethics]] §"International framework." [verify 2026-10-29]
 
 ### Investigative journalism and research
 
-- Chainalysis Crypto Crime Report (annual) — [chainalysis.com/blog](https://www.chainalysis.com/blog/) [verify 2026-04-26]
-- TRM Labs annual report — [trmlabs.com/resources](https://www.trmlabs.com/resources) [verify 2026-04-26]
-- Elliptic Typologies report — [elliptic.co/resources](https://www.elliptic.co/resources) [verify 2026-04-26]
-- UN Panel of Experts on DPRK — annual reports document Lazarus / state-actor crypto activity; available via UN Security Council documents portal. [verify 2026-04-26]
-- Krebs on Security — [krebsonsecurity.com](https://krebsonsecurity.com)
-- ZachXBT (open-source on-chain investigator) — Twitter/X feed; treat as crowdsourced intelligence with high signal but variable provenance. [verify 2026-04-26]
+- Chainalysis Crypto Crime Report (annual) — [chainalysis.com/blog](https://www.chainalysis.com/blog/) [verify 2026-10-29]
+- TRM Labs annual report — [trmlabs.com/resources](https://www.trmlabs.com/resources) [verify 2026-10-29]
+- Elliptic Typologies Report — [elliptic.co/insights/the-typologies-report](https://www.elliptic.co/insights/the-typologies-report/) [verify 2026-10-29]
+- UN 1718 Committee Panel of Experts on DPRK — reports up to April 2024, when its mandate ended, document Lazarus / state-actor crypto activity (UN Security Council documents portal); since October 2024 the 11-state Multilateral Sanctions Monitoring Team (MSMT) monitors and reports DPRK sanctions evasion. [verify 2026-10-29]
+- Krebs on Security — [krebsonsecurity.com](https://krebsonsecurity.com) [verify 2026-10-29]
+- ZachXBT (open-source on-chain investigator) — Twitter/X feed; treat as crowdsourced intelligence with high signal but variable provenance. [verify 2026-10-29]
 - The Block, CoinDesk, Coin Telegraph — industry press; useful for context.
 
 ### LE / regulator advisories
 
-- OFAC ransomware advisory (2020; updated 2021 and beyond) — sanctions risk for ransomware payments. [verify 2026-04-26]
-- CISA #StopRansomware advisories — [cisa.gov/stopransomware](https://www.cisa.gov/stopransomware) [verify 2026-04-26]
-- FinCEN advisories on convertible-virtual-currency — [fincen.gov](https://www.fincen.gov/)
-- FBI IC3 — [ic3.gov](https://www.ic3.gov/)
-- Europol IOCTA (annual Internet Organised Crime Threat Assessment) — [europol.europa.eu](https://www.europol.europa.eu/) [verify 2026-04-26]
+- OFAC Updated Advisory on Potential Sanctions Risks for Facilitating Ransomware Payments (2021-09-21; supersedes the 2020-10-01 advisory). [verify 2026-10-29]
+- CISA #StopRansomware advisories — [cisa.gov/stopransomware](https://www.cisa.gov/stopransomware) [verify 2026-10-29]
+- FinCEN advisories on convertible-virtual-currency — [fincen.gov](https://www.fincen.gov/) [verify 2026-10-29]
+- FBI IC3 — [ic3.gov](https://www.ic3.gov/) [verify 2026-10-29]
+- Europol IOCTA (annual Internet Organised Crime Threat Assessment) — [europol.europa.eu](https://www.europol.europa.eu/publications-events/main-reports/iocta-report) [verify 2026-10-29]
 - NCA / NCSC UK — periodic advisories on crypto-asset crime.
 
 ### Vendor methodology references
 
-- Chainalysis Reactor methodology pages — [chainalysis.com/blog](https://www.chainalysis.com/blog/) (search for "heuristics" and "clustering"). [verify 2026-04-26]
-- TRM Labs methodology — [trmlabs.com/resources](https://www.trmlabs.com/resources) [verify 2026-04-26]
-- Elliptic — [elliptic.co/learn](https://www.elliptic.co/learn) [verify 2026-04-26]
+- Chainalysis Reactor methodology pages — [chainalysis.com/blog](https://www.chainalysis.com/blog/) (search for "heuristics" and "clustering"). [verify 2026-10-29]
+- TRM Labs methodology — [trmlabs.com/resources](https://www.trmlabs.com/resources) [verify 2026-10-29]
+- Elliptic research and insights — [elliptic.co/insights](https://www.elliptic.co/insights/) [verify 2026-10-29]
 
 ---
 

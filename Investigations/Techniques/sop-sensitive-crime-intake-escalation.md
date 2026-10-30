@@ -678,7 +678,7 @@ My contact: [your phone number for follow-up]"
 
 **Cybercrime:**
 - **IC3 (Internet Crime Complaint Center):** https://www.ic3.gov/ `[verify 2026-10-29]`
-- **CISA Reporting:** report@cisa.gov | 1-844-Say-CISA (1-844-729-2472) | https://www.cisa.gov/report `[verify 2026-10-29]`
+- **CISA Reporting:** https://www.cisa.gov/report (redirects to CISA's incident reporting form at myservices.cisa.gov/irf) | report@cisa.gov | 1-844-Say-CISA (1-844-729-2472) `[verify 2026-10-29]`
 
 **Crisis / Mental Health:**
 - **988 Suicide & Crisis Lifeline:** 988 (call or text), `988lifeline.org` (live since 2022-07-16; legacy 1-800-273-TALK still in service) `[verify 2026-10-29]`

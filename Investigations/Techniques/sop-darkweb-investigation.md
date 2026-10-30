@@ -14,13 +14,13 @@ tags:
   - osint
   - investigation
 created: 2026-04-26
-updated: 2026-09-20
+updated: 2026-10-29
 template_version: 2026-09-20
 ---
 
 # Darkweb Investigation
 
-> **Authorized environments only.** This SOP covers open-source observation of publicly reachable hidden services for lawful investigative, journalistic, threat-intelligence, or research purposes. It is **not** a buyer's guide, a vendor manual, or a deanonymization playbook. Several jurisdictions (UK Computer Misuse Act 1990, US 18 U.S.C. §1030, EU Cybercrime Directive 2013/40/EU, AU Criminal Code Part 10.7, CA s.342.1) criminalize unauthorized access — operating an "investigation" account without written authorization, paying for goods, or registering on closed forums to gather intelligence can each cross the line from observation into participation. Read [[sop-legal-ethics|Legal & Ethics]] before every engagement and [[sop-opsec-plan|OPSEC Plan]] before configuring the environment. CSAM and trafficking findings are escalated immediately per [[sop-sensitive-crime-intake-escalation|Sensitive Crime Intake & Escalation]] — not preserved locally, not analyzed in-line, not cross-referenced.
+> **Authorized environments only.** This SOP covers open-source observation of publicly reachable hidden services for lawful investigative, journalistic, threat-intelligence, or research purposes. It is **not** a buyer's guide, a vendor manual, or a deanonymization playbook. Several jurisdictions (UK Computer Misuse Act 1990, US 18 U.S.C. §1030, EU Cybercrime Directive 2013/40/EU, AU Criminal Code Part 10.7, CA s.342.1) criminalize unauthorized access — operating an "investigation" account without written authorization, paying for goods, or registering on closed forums to gather intelligence can each cross the line from observation into participation [verify 2026-10-29]. Read [[sop-legal-ethics|Legal & Ethics]] before every engagement and [[sop-opsec-plan|OPSEC Plan]] before configuring the environment. CSAM and trafficking findings are escalated immediately per [[sop-sensitive-crime-intake-escalation|Sensitive Crime Intake & Escalation]] — not preserved locally, not analyzed in-line, not cross-referenced.
 
 ---
 
@@ -143,17 +143,17 @@ Before any onion fetch, complete the canonical pre-engagement triad:
 
 ### 3.1 Tor
 
-- **What it is:** the dominant anonymity overlay; the only one with broad criminal-marketplace, leak-site, and forum coverage. Source-of-truth: [Tor Project](https://www.torproject.org/) [verify 2026-04-26].
-- **Address format:** v3 onion services use 56-character base32 addresses ending in `.onion` (e.g. `xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx.onion`). **v2 onions (16-char) were deprecated 2021-07-15 and disabled in Tor 0.4.6+ on 2021-10-15** [verify 2026-04-26]; any v2 reference in 2026 is dead infrastructure. If a v2 address is the only artifact, it survives only as a historical fingerprint.
-- **Tor Browser:** default access tool. Patched Firefox ESR fork. Three security levels (Standard / Safer / Safest) — Safer disables JavaScript on non-HTTPS sites; Safest disables it everywhere. Default to **Safer or Safest** for darkweb work; the marginal site that requires JavaScript is rarely worth the deanonymization risk.
-- **Mullvad Browser:** Tor Project + Mullvad joint project (April 2023) — Tor Browser hardening **without** the Tor network, intended for use over a trusted VPN. Not a darkweb-access tool; useful for clearnet pivots from the same hardened-browser fingerprint.
+- **What it is:** the dominant anonymity overlay; the only one with broad criminal-marketplace, leak-site, and forum coverage. Source-of-truth: [Tor Project](https://www.torproject.org/) [verify 2026-10-29].
+- **Address format:** v3 onion services use 56-character base32 addresses ending in `.onion` (e.g. `xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx.onion`). **v2 onions (16-char) were deprecated 2021-07-15 and disabled in Tor 0.4.6+ on 2021-10-15**; any v2 reference in 2026 is dead infrastructure [verify 2026-10-29]. If a v2 address is the only artifact, it survives only as a historical fingerprint.
+- **Tor Browser:** default access tool. Patched Firefox ESR fork. Three security levels (Standard / Safer / Safest) — Safer disables JavaScript on non-HTTPS sites; Safest disables it everywhere. Default to **Safest** for darkweb work: Tor Browser treats `.onion` origins as secure contexts, so Safer still runs JavaScript on onion services (see §10.3); the marginal site that requires JavaScript is rarely worth the deanonymization risk [verify 2026-10-29].
+- **Mullvad Browser:** Tor Project + Mullvad joint project (April 2023) — Tor Browser hardening **without** the Tor network, intended for use over a trusted VPN. Not a darkweb-access tool; useful for clearnet pivots from the same hardened-browser fingerprint [verify 2026-10-29].
 
 ### 3.2 Operating environments
 
 | Environment       | Pattern                                          | Strength                                                                    | Trade-off                                                            |
 | ----------------- | ------------------------------------------------ | --------------------------------------------------------------------------- | -------------------------------------------------------------------- |
 | **Tails**         | Live USB, amnesic, all traffic via Tor           | No persistence ⇒ no host artifacts; widely audited                          | Persistence requires explicit volume; not suited for long campaigns  |
-| **Whonix**        | Two-VM split (Gateway + Workstation), Tor-forced | Strong network isolation; Workstation cannot leak its IP even if root-owned | Heavier; requires VirtualBox / KVM / Qubes host                      |
+| **Whonix**        | Two-VM split (Gateway + Workstation), Tor-forced | Strong network isolation; Workstation cannot leak its IP even if root-owned | Heavier; requires VirtualBox / KVM / Qubes host [verify 2026-10-29] |
 | **Qubes + Whonix**| Qubes OS template-based AppVMs                   | Best-in-class compartmentalization (per-investigation `whonix-ws` AppVM)    | Steep learning curve; recommended for sustained darkweb workload     |
 | **Tor Browser on host OS** | TBB on macOS / Linux / Windows          | Quick start                                                                 | Host artifacts persist; cross-context linkability risk; **not recommended** for sensitive work |
 
@@ -161,10 +161,10 @@ Cross-link: [[sop-opsec-plan|OPSEC Plan]] §3 for the canonical environment buil
 
 ### 3.3 Other anonymity networks
 
-- **I2P** (Invisible Internet Project) — `.i2p` eepsites; smaller user base; some marketplace and forum traffic migrated post-Hydra (2022). Access via `i2pd` (C++) or `i2p` (Java) router. Not interchangeable with Tor — separate browser profile.
-- **Lokinet** — Oxen-network onion routing; small user base, niche marketplace presence [verify 2026-04-26].
-- **Freenet / Hyphanet** — file-sharing-oriented; Hyphanet is the 2023 rebrand of Freenet [verify 2026-04-26]. Limited current investigative relevance outside specific forum migrations.
-- **ZeroNet** — peer-to-peer site network using Bitcoin keys; effectively dormant after 2021 [verify 2026-04-26]; historical artifacts only.
+- **I2P** (Invisible Internet Project) — `.i2p` eepsites; smaller user base; some marketplace and forum traffic reportedly migrated post-Hydra (2022). Access via `i2pd` (C++) or `i2p` (Java) router. Not interchangeable with Tor — separate browser profile [verify 2026-10-29].
+- **Lokinet** — Oxen-network onion routing; the Oxen project wound down development in May 2024 to focus on Session Token. Small user base; treat as a low-priority legacy network [verify 2026-10-29].
+- **Freenet / Hyphanet** — file-sharing-oriented; Hyphanet is the 2023 rebrand of Freenet. Limited current investigative relevance outside specific forum migrations [verify 2026-10-29].
+- **ZeroNet** — peer-to-peer site network using Bitcoin keys; effectively dormant after 2021; historical artifacts only [verify 2026-10-29].
 - **Yggdrasil** / cjdns — mesh networks, not anonymity tools; not in scope.
 
 Default network is Tor unless the target is known I2P-only.
@@ -179,17 +179,17 @@ These sites publish curated `.onion` lists. Treat each as a starting point for *
 
 | Resource                      | Purpose                                            | URL pattern                            | Notes                                                       |
 | ----------------------------- | -------------------------------------------------- | -------------------------------------- | ----------------------------------------------------------- |
-| **Ahmia**                     | Search engine for indexed Tor hidden services      | `https://ahmia.fi`                     | Legitimate, hosted by Juha Nurmi; filters CSAM by policy [verify 2026-04-26] |
-| **Tor.taxi**                  | Curated list of currently-online onions            | `https://tor.taxi`                     | Active aggregator; phishing-aware; status varies [verify 2026-04-26] |
-| **dark.fail**                 | Marketplace status / canonical-mirror tracker      | `https://dark.fail`                    | Tracks marketplace uptime + signed mirror fingerprints [verify 2026-04-26] |
-| **Daunt**                     | Curated index                                      | clearnet + onion                       | Volatile; verify on session [verify 2026-04-26]              |
-| **Onion.live / OnionLive**    | Onion uptime monitor                                | clearnet                               | Multiple impersonators; verify [verify 2026-04-26]            |
+| **Ahmia**                     | Search engine for indexed Tor hidden services      | `https://ahmia.fi`                     | Legitimate, hosted by Juha Nurmi; filters CSAM by policy [verify 2026-10-29] |
+| **Tor.taxi**                  | Curated list of currently-online onions            | `https://tor.taxi`                     | Active aggregator; phishing-aware; status varies [verify 2026-10-29] |
+| **dark.fail**                 | Marketplace status / canonical-mirror tracker      | `https://dark.fail`                    | Tracks marketplace uptime + signed mirror fingerprints [verify 2026-10-29] |
+| **Daunt**                     | Curated index                                      | clearnet + onion                       | Volatile; verify on session [verify 2026-10-29]              |
+| **Onion.live / OnionLive**    | Onion uptime monitor                                | clearnet                               | Multiple impersonators; verify [verify 2026-10-29]            |
 | **Hidden Wiki (canonical)**   | Historical wiki-style index                         | many forks / impersonators              | Most public Hidden Wiki copies are scam-laden; treat as adversarial source |
 
 **Rules of thumb:**
 
 - Cross-check at least two indexes before treating an onion as canonical.
-- Mirror-list signing (PGP-signed canonical-URL list, e.g. dark.fail's signed `pgp.txt`) is the strongest defense against phishing-mirror traps.
+- Mirror-list signing (PGP-signed canonical-URL list, e.g. dark.fail's signed `pgp.txt`) is the strongest defense against phishing-mirror traps [verify 2026-10-29].
 - Several indexes themselves have v2/v3 history; an index's own onion address has a canonical version maintained by its operator — pin it once and verify the PGP-signed canonical list at every refresh.
 
 ### 4.2 Discovery from clearnet pivots
@@ -245,9 +245,9 @@ For each candidate onion:
 
 Marketplaces fail in three patterns. Knowing the lifecycle helps interpret current snapshots:
 
-- **Law-enforcement takedown.** Silk Road (FBI 2013), Silk Road 2 (2014), AlphaBay + Hansa (Operation Bayonet, July 2017), Wall Street (2019), DarkMarket (2021), Hydra (German BKA + DOJ, 2022-04-05) [verify 2026-04-26], Genesis Market (Operation Cookie Monster, April 2023) [verify 2026-04-26].
-- **Exit scam** (operators disappear with escrow). Evolution (2015), Empire Market (August 2020) [verify 2026-04-26], Dark0de Reborn (2022) [verify 2026-04-26], several smaller markets per quarter.
-- **Voluntary closure.** Dream Market (2019), occasional principled shutdowns; rare relative to the first two patterns.
+- **Law-enforcement takedown.** Silk Road (FBI 2013), Silk Road 2 (2014), AlphaBay + Hansa (Operation Bayonet, July 2017), Wall Street (2019), DarkMarket (2021), Hydra (German BKA + DOJ, 2022-04-05), Genesis Market (Operation Cookie Monster, April 2023) [verify 2026-10-29].
+- **Exit scam** (operators disappear with escrow). Evolution (2015), Empire Market (closed 2020-08-22 per DOJ; exit-scam label from community reporting), Dark0de Reborn (2022), several smaller markets per quarter [verify 2026-10-29].
+- **Voluntary closure.** Dream Market (2019), occasional principled shutdowns; rare relative to the first two patterns [verify 2026-10-29].
 
 A current marketplace observation is always relative to this lifecycle. If a market was seized last week and the same name is still listed on an aggregator, that listing is either (a) a phishing mirror, (b) an LE-controlled honeypot continuation, or (c) an unrelated namesquatter. Document accordingly.
 
@@ -258,14 +258,14 @@ The category taxonomy itself is investigative signal:
 | Category                          | Investigative relevance                                                            | Hand-off                                                |
 | --------------------------------- | ---------------------------------------------------------------------------------- | ------------------------------------------------------- |
 | Narcotics                         | LE & journalist scope; vendor PGP pivots, pricing trends, regional clustering      | LE referral via [[sop-sensitive-crime-intake-escalation|Sensitive Crime Escalation]] |
-| Fraud / carding (BidenCash, lineage of Joker's Stash, Brian's Club) | Identity-theft and BIN-attack defense; victim notification                  | FIU / FBI IC3 / national equivalent                     |
+| Fraud / carding (BidenCash — ~145 domains seized June 2025 — lineage of Joker's Stash, Brian's Club) [verify 2026-10-29] | Identity-theft and BIN-attack defense; victim notification                  | FIU / FBI IC3 / national equivalent                     |
 | Stolen credentials / combo lists  | Account-takeover defense; victim-population scoping                                 | DPO / breach-notification authority                     |
 | Hacking tools / 0-days / RaaS     | Threat-intel; capability assessment                                                  | [[../../Security/Analysis/sop-malware-analysis|Malware Analysis]] for any sample |
 | Counterfeit documents             | Identity-fraud defense; geographic clustering                                        | LE referral                                              |
 | Data brokers (PII / KYC bypass)    | Privacy-violation evidence; victim identification                                    | DPO + LE                                                 |
 | Weapons                           | Rare on darkweb (most listings are scams); LE-priority when authentic               | LE referral immediate                                    |
 | Trafficking / forced services     | **Immediate escalation** — do not "verify"                                          | [[sop-sensitive-crime-intake-escalation|Sensitive Crime Escalation]] |
-| CSAM categories                   | **Hard-stop. Preserve URL + timestamp only. Do not browse. Escalate.**             | [[sop-sensitive-crime-intake-escalation|Sensitive Crime Escalation]] (NCMEC / Project Arachnid / national CSE unit) |
+| CSAM categories                   | **Hard-stop. Preserve URL + timestamp only. Do not browse. Escalate.**             | [[sop-sensitive-crime-intake-escalation|Sensitive Crime Escalation]] (NCMEC / Cybertip.ca / national CSE unit) [verify 2026-10-29] |
 
 ### 5.4 Per-listing capture pattern
 
@@ -287,23 +287,23 @@ PGP keys are the most durable vendor fingerprint on the darkweb. Vendors frequen
 
 For every published vendor PGP block:
 
-- **40-character SHA-1 fingerprint** (e.g. `1234 5678 90AB CDEF 1234 5678 90AB CDEF 1234 5678`). Treat as the primary key.
-- **Long key ID** (last 16 hex chars of the fingerprint). Short 8-char IDs are collision-vulnerable (the [Evil 32](https://evil32.com) demonstration generated colliding short IDs for the entire Web of Trust strong set in 2014); never pivot on short IDs alone.
+- **Fingerprint** — 40-hex SHA-1 for v4 keys (e.g. `1234 5678 90AB CDEF 1234 5678 90AB CDEF 1234 5678`); 64-hex SHA2-256 for v6 keys (RFC 9580). Treat as the primary key [verify 2026-10-29].
+- **Long key ID** (last 16 hex chars of a v4 fingerprint; first 16 of a v6 fingerprint). Short 8-char IDs are collision-vulnerable (the [Evil 32](https://evil32.com) demonstration generated colliding short IDs for the entire Web of Trust strong set in 2014); never pivot on short IDs alone [verify 2026-10-29].
 - **Algorithm and key size** (RSA-2048 / RSA-4096 / ed25519 / ecdsa).
 - **Creation date** (UID self-signature timestamp).
 - **UID strings** — name, email, comment fields. Frequently contain handle, marketplace, or operational hints.
 - **Subkeys** — separate signing / encryption subkeys, each with their own creation and expiry timestamps.
 
-Tools: GnuPG (`gpg --import`, `gpg --list-packets`, `gpg --fingerprint`), Sequoia PGP (`sq inspect`), kbpgp, pgpdump.
+Tools: GnuPG (`gpg --import`, `gpg --list-packets`, `gpg --fingerprint`), Sequoia PGP (`sq inspect`), kbpgp, pgpdump [verify 2026-10-29].
 
 ### 6.2 Pivot surfaces
 
 | Surface                                        | What it tells you                                                                | Notes                                                                                |
 | ---------------------------------------------- | -------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------ |
-| **keys.openpgp.org**                           | Verified-email keyserver (Hagrid). Returns only keys whose owners verified the UID email | Limited returns for darkweb actors; valuable when present                            |
-| **keyserver.ubuntu.com / pgp.mit.edu**         | Legacy SKS-protocol keyservers                                                    | SKS keyserver pool effectively shut down in 2019; remaining servers run Hockeypuck. Many 2010s vendor keys live here [verify 2026-04-26] |
-| **keybase.io**                                  | Identity-bound keys (now Zoom-owned, dev paused circa 2022) [verify 2026-04-26] | Useful for clearnet identity → key cross-reference                                   |
-| **WKD (Web Key Directory)**                    | Domain-bound keys served via `.well-known/openpgpkey/`                            | Less common in darkweb context but worth checking for clearnet pivots                |
+| **keys.openpgp.org**                           | Verified-email keyserver (Hagrid). Returns only keys whose owners verified the UID email | Limited returns for darkweb actors; valuable when present [verify 2026-10-29] |
+| **keyserver.ubuntu.com / pgp.mit.edu**         | Legacy SKS-protocol keyservers                                                    | SKS keyserver pool (sks-keyservers.net) shut down June 2021; keyserver.ubuntu.com runs Hockeypuck. Many 2010s vendor keys live here [verify 2026-10-29] |
+| **keybase.io**                                  | Identity-bound keys (Zoom-owned since May 2020; client still receives releases — v6.6.3, June 2026) [verify 2026-10-29] | Useful for clearnet identity → key cross-reference                                   |
+| **WKD (Web Key Directory)**                    | Domain-bound keys served via `.well-known/openpgpkey/`                            | Less common in darkweb context but worth checking for clearnet pivots [verify 2026-10-29] |
 | **Marketplace "vendor profile" pages**         | Multiple keys per vendor across marketplaces                                       | Capture each, hash each, track creation-date cluster                                 |
 | **Forum signature lines and welcome posts**    | Key advertised at account creation                                                 | Often the highest-confidence "this account belongs to that key" link                  |
 | **PGP-signed canonical-URL lists** (dark.fail) | Operator's own fingerprint                                                         | Strong attribution signal for marketplace operators                                   |
@@ -312,7 +312,7 @@ Tools: GnuPG (`gpg --import`, `gpg --list-packets`, `gpg --fingerprint`), Sequoi
 
 1. **Collect** all PGP blocks for the target handle (across marketplaces, forums, mirrors).
 2. **Compare fingerprints** — same fingerprint across markets is strong evidence of the same operator. Different fingerprints with overlapping UID metadata is weaker but still useful.
-3. **Search public keyservers** for the fingerprint to find clearnet UIDs (real-name leaks via early Web-of-Trust cross-signatures, common). The 2018 academic paper "[The Russian Twin: A Social-Engineering Attack on the Web of Trust](https://example.invalid)" type of analysis is overkill for OSINT — fingerprint match plus UID is usually enough [verify 2026-04-26].
+3. **Search public keyservers** for the fingerprint to find clearnet UIDs (real-name leaks via early Web-of-Trust cross-signatures, common). Full Web-of-Trust graph analysis is overkill for OSINT — fingerprint match plus UID is usually enough.
 4. **Check key creation dates** — vendors who use a "fresh" key created the day before first listing are signalling either (a) operational discipline or (b) fronting for a takedown-survivor. Compare against the vendor's claimed join date.
 5. **Subkey rotation** — vendors who rotated encryption subkeys after a known LE event are likely aware of the takedown; correlate subkey creation timestamps against public LE-event timeline.
 6. **Cross-link** the vendor PGP record into the entity dossier — see [[sop-entity-dossier|Entity Dossier]] for the schema.
@@ -320,7 +320,7 @@ Tools: GnuPG (`gpg --import`, `gpg --list-packets`, `gpg --fingerprint`), Sequoi
 ### 6.4 Preservation
 
 - Save the full ASCII-armored block as a `.asc` file under `/Evidence/{case_id}/Darkweb/pgp/`.
-- Run `gpg --import --import-options show-only` to verify parseability without polluting the local keyring (or use a disposable keyring with `--keyring`).
+- Run `gpg --import --import-options show-only` to verify parseability without polluting the local keyring (or use a disposable keyring with `--keyring`) [verify 2026-10-29].
 - Hash the `.asc` (SHA-256) and log with the source URL, capture timestamp, and observed UID.
 - Never sign or encrypt with the captured key — generates evidentiary noise and may signal observation to the operator.
 
@@ -331,9 +331,9 @@ Tools: GnuPG (`gpg --import`, `gpg --list-packets`, `gpg --fingerprint`), Sequoi
 ### 7.1 Forum types
 
 - **Marketplace forums** — vendor-customer disputes, market-status discussion (e.g. "is XMarket exit-scamming?"). Often readable without an account.
-- **Hacking forums** — Exploit, XSS, RAMP, BreachForums lineage. BreachForums history: **founder Conor Brian Fitzpatrick ("pompompurin") arrested 2023-03-15** [verify 2026-04-26]; site re-launched under new admin lineage (Baphomet, then ShinyHunters / Anastasia clusters); FBI seized successor instances multiple times through 2024–2025. Each re-launch is its own investigation — capture canonical URL state at observation, do not assume continuity.
+- **Hacking forums** — Exploit, XSS, RAMP, BreachForums lineage. RAMP: seized by the FBI with USAO S.D. Fla. and DOJ CCIPS per the seizure banner on its clearnet domain (Wayback capture 2026-01-28; nameservers now `fbi.seized.gov`); no DOJ press release located. XSS: suspected administrator arrested in Kyiv 2025-07-22 (French-led, with Ukrainian police and Europol). BreachForums history: **founder Conor Brian Fitzpatrick ("pompompurin") arrested 2023-03-15**, resentenced to three years in September 2025; site re-launched under new admin lineage (Baphomet, then ShinyHunters / Anastasia clusters) — the FBI dates the ShinyHunters-run instance (breachforums.st / .cx / .is / .vc) June 2023 – May 2024; LeakBase, which DOJ frames as the successor to RaidForums and BreachForums, was dismantled 2026-03-04 [verify 2026-10-29]. Each re-launch is its own investigation — capture canonical URL state at observation, do not assume continuity.
 - **State-actor recruitment / disinformation forums** — RaidForums lineage, language-specific forums (Russian, Chinese, Persian, Arabic). Often invitation-only; treat invitation as an authorization escalation.
-- **Whistleblower drops** — SecureDrop instances (newsroom-operated, lawful) are not in the same risk class as illicit forums. Collect canonical SecureDrop list at [securedrop.org/directory](https://securedrop.org/directory/) [verify 2026-04-26].
+- **Whistleblower drops** — SecureDrop instances (newsroom-operated, lawful) are not in the same risk class as illicit forums. Collect canonical SecureDrop list at [securedrop.org/directory](https://securedrop.org/directory/) [verify 2026-10-29].
 - **CSAM-adjacent forums** — **hard-stop.** No instructions; immediate escalation via [[sop-sensitive-crime-intake-escalation|Sensitive Crime Intake & Escalation]].
 
 ### 7.2 Pseudonym fingerprinting
@@ -366,15 +366,15 @@ Ransomware leak-site monitoring serves **defensive** ends: victim early-warning 
 
 ### 8.2 Active groups (fast-rot — verify at every refresh)
 
-The leak-site landscape rotates on a months-to-quarters cadence. Treat any list as a snapshot. As of 2026-04-26 [verify 2026-04-26]:
+The leak-site landscape rotates on a months-to-quarters cadence. Treat any list as a snapshot. As of 2026-10-29 [verify 2026-10-29]:
 
-- **LockBit** — Operation Cronos disruption 2024-02-19 (NCA / FBI / Europol; takedown of infrastructure, recovery of decryptors); residual operations and re-launched leak sites surfaced through 2024–2025. Canonical group cluster but materially weaker post-Cronos.
-- **BlackCat / ALPHV** — FBI takedown 2023-12-19 (decryption tool released); apparent operator exit-scam against affiliates in March 2024 (Change Healthcare ransom retained, affiliates unpaid). Effectively defunct as an operating brand by mid-2024.
-- **Cl0p (Clop)** — recurrent zero-day-exploitation pattern (MOVEit 2023, GoAnywhere 2023, Cleo 2024). Long-running, infrastructure-resilient.
-- **Black Basta** — active through 2024–2025; internal "BlackBastaLeaks" chat-log dump February 2025 surfaced operational detail.
-- **Akira** — active; cross-platform (Windows + Linux/ESXi).
-- **RansomHub** — emerged early 2024 as a major BlackCat-affiliate destination.
-- **Play, Hunters International, Medusa, Qilin, 8Base, Cactus, INC Ransom** — active leak-site operators across 2024–2025.
+- **LockBit** — Operation Cronos disruption announced 2024-02-20 (NCA / FBI / Europol; takedown of infrastructure, recovery of decryptors); residual operations and re-launched leak sites surfaced through 2024–2025. Canonical group cluster but materially weaker post-Cronos [verify 2026-10-29].
+- **BlackCat / ALPHV** — FBI takedown 2023-12-19 (decryption tool released); reported operator exit-scam against affiliates in March 2024 (Change Healthcare ransom retained, affiliates unpaid). Effectively defunct as an operating brand by mid-2024 [verify 2026-10-29].
+- **Cl0p (Clop)** — recurrent zero-day-exploitation pattern (MOVEit 2023, GoAnywhere 2023, Cleo 2024 — Cleo attribution per vendor reporting). Long-running, infrastructure-resilient [verify 2026-10-29].
+- **Black Basta** — active March 2022 – February 2025 per BKA; internal Matrix chat logs leaked 2025-02-11 by "ExploitWhispers" (per PRODAFT) surfaced operational detail; suspected leader publicly wanted by BKA / ZIT since 2026-01-15 [verify 2026-10-29].
+- **Akira** — active; cross-platform (Windows + Linux/ESXi) [verify 2026-10-29].
+- **RansomHub** — emerged early 2024 as a major BlackCat-affiliate destination; infrastructure reportedly went dark around 2025-04-01 — treat as defunct (affiliates reported dispersing to Qilin / DragonForce; unverified).
+- **Play, Medusa, Qilin, Cactus, INC Ransom** — active leak-site operators across 2024–2025. Hunters International reportedly announced its closure 2025-07-03 (World Leaks rebrand suspected, unconfirmed). 8Base is gone: hidden site seized by the Bavarian LKA, announced by DOJ 2025-02-10 with the Phobos affiliate arrests [verify 2026-10-29].
 
 This list is illustrative, not authoritative. Verify against the aggregators below at every session start.
 
@@ -382,15 +382,15 @@ This list is illustrative, not authoritative. Verify against the aggregators bel
 
 | Resource                   | Maintainer                                  | URL                                | Notes                                                       |
 | -------------------------- | ------------------------------------------- | ---------------------------------- | ----------------------------------------------------------- |
-| **ransomwatch**            | Joshua Penny et al. (open source)            | `https://ransomwatch.telemetry.ltd` | Auto-collected; commit history is itself an IOC source [verify 2026-04-26] |
-| **ransomware.live**        | Julien Mousqueton                            | `https://www.ransomware.live`        | Active dashboard + JSON API [verify 2026-04-26]              |
-| **ransomlook.io**          | RansomLook project                           | `https://www.ransomlook.io`          | Group catalog + post archive [verify 2026-04-26]             |
-| **ecrime.ch**              | eCrime.ch                                    | `https://ecrime.ch`                  | Eastern-Europe-aware analyst feed [verify 2026-04-26]        |
-| **DarkFeed (commercial)**  | DarkFeed                                     | `https://darkfeed.io`                | Commercial threat-intel; cross-refs leak posts to known groups [verify 2026-04-26] |
+| **ransomwatch**            | joshhighet (open source, **archived 2026-03-03**) | `https://github.com/joshhighet/ransomwatch` | Historical only — no longer collecting; commit history remains a dated IOC source. Use ransomware.live / ransomlook.io for current data [verify 2026-10-29] |
+| **ransomware.live**        | Julien Mousqueton                            | `https://www.ransomware.live`        | Active dashboard + JSON API [verify 2026-10-29]              |
+| **ransomlook.io**          | RansomLook project                           | `https://www.ransomlook.io`          | Group catalog + post archive [verify 2026-10-29]             |
+| **ecrime.ch**              | Camichel Ventures (CH)                       | `https://ecrime.ch`                  | Extortion / leak-site exposure monitoring; API + alerts (paid tiers) [verify 2026-10-29] |
+| **DarkFeed (commercial)**  | DarkFeed                                     | `https://darkfeed.io`                | Commercial threat-intel; cross-refs leak posts to known groups [verify 2026-10-29] |
 | **Recorded Future / Mandiant / CrowdStrike / Group-IB** | Vendor reports               | subscription                        | Per-quarter retrospectives; canonical group lineage          |
-| **MITRE ATT&CK Groups**    | MITRE                                        | `https://attack.mitre.org/groups/`   | Group → TTP mapping                                          |
+| **MITRE ATT&CK Groups**    | MITRE                                        | `https://attack.mitre.org/groups/`   | Group → TTP mapping [verify 2026-10-29]                                          |
 | **MISP / OpenCTI feeds**   | self-hosted                                   | local                                | For organizations that ingest IOCs operationally             |
-| **CISA #StopRansomware**   | CISA                                          | `https://www.cisa.gov/stopransomware` | Authoritative US advisory series with IOCs and mitigations [verify 2026-04-26] |
+| **CISA #StopRansomware**   | CISA                                          | `https://www.cisa.gov/stopransomware` | Authoritative US advisory series with IOCs and mitigations [verify 2026-10-29] |
 
 ### 8.4 Capture procedure
 
@@ -406,7 +406,7 @@ For each leak post observed:
 
 ### 8.5 Operational hygiene specific to leak-site work
 
-- Leak-site landing pages have historically hosted browser-exploit JavaScript. **Run with Tor Browser at "Safer" or "Safest"** (JavaScript disabled).
+- Leak-site landing pages may host browser-exploit JavaScript. **Run Tor Browser at "Safest"** (JavaScript disabled on all sites). Safer only disables JavaScript on non-HTTPS sites, and Tor Browser treats `.onion` origins as secure contexts, so Safer does not block scripts on onion services or HTTPS mirrors [verify 2026-10-29].
 - Several leak sites fingerprint visitors and rate-limit aggressively; use fresh circuits and back off on 429s.
 - Multi-tab leak-site browsing in a single Tor Browser instance can cross-correlate sites — one tab per session is the discipline for sensitive observations.
 
@@ -418,10 +418,10 @@ For each leak post observed:
 
 State-actor and sanctions-evasion overlap is a known darkweb-side pattern:
 
-- **OFAC SDN crypto entries** that resolve to darkweb-advertised wallet addresses. The OFAC SDN list includes Digital Currency Address (DCA) entries by chain (XBT, ETH, USDT, XMR); a DCA hit in a marketplace listing or leak-site dump is a high-priority sanctions-evasion pivot. See [[sop-financial-aml-osint|Financial & AML OSINT]] §3 for the canonical sanctions catalog.
-- **DPRK-cluster activity** — Lazarus Group, APT38 — historically tied to Sinbad.io (seized 2023-11-29) and predecessor Blender.io (2022). Mixer use observed downstream of a verified DPRK-cluster wallet is a strong sanctions-evasion signal; routed to [[sop-mixer-tracing|Mixer & Privacy-Pool Tracing]].
+- **OFAC SDN crypto entries** that resolve to darkweb-advertised wallet addresses. The OFAC SDN list includes Digital Currency Address (DCA) entries by chain (XBT, ETH, USDT, XMR); a DCA hit in a marketplace listing or leak-site dump is a high-priority sanctions-evasion pivot. See [[sop-financial-aml-osint|Financial & AML OSINT]] §3 for the canonical sanctions catalog [verify 2026-10-29].
+- **DPRK-cluster activity** — Lazarus Group, APT38 — historically tied to Sinbad.io (servers seized by the Dutch FIOD 2023-11-27; OFAC-sanctioned 2023-11-29) and predecessor Blender.io (OFAC-sanctioned 2022-05-06) [verify 2026-10-29]. Mixer use observed downstream of a verified DPRK-cluster wallet is a strong sanctions-evasion signal; routed to [[sop-mixer-tracing|Mixer & Privacy-Pool Tracing]].
 - **GRU / IRGC / MSS** indicators — disinformation-forum recruitment, leaked-data resale, ransomware-group affiliation. Open-source attribution is contested; defer to vendor and government attribution rather than in-line analyst conclusions.
-- **Ransomware groups under sanctions** — Treasury OFAC has designated specific ransomware groups (Evil Corp 2019; varied since). Paying a sanctioned group is a US sanctions violation; capture observation may inform victim-side legal posture.
+- **Ransomware groups under sanctions** — Treasury OFAC has designated specific ransomware groups (Evil Corp 2019; varied since). Paying a sanctioned group is a US sanctions violation; capture observation may inform victim-side legal posture [verify 2026-10-29].
 
 ### 9.2 Defensive scope
 
@@ -447,15 +447,15 @@ If a clearnet pivot is required mid-investigation (e.g. cross-reference a leak p
 ### 10.2 Per-investigation circuit and identity
 
 - One investigation per Tor Browser session (or per Whonix Workstation snapshot).
-- Use **New Identity** (Ctrl+Shift+U in Tor Browser) between unrelated investigations.
-- Use **New Tor Circuit for this Site** when a target rate-limits or fingerprints.
+- Use **New Identity** (Ctrl+Shift+U in Tor Browser) between unrelated investigations [verify 2026-10-29].
+- Use **New Tor Circuit for this Site** when a target rate-limits or fingerprints [verify 2026-10-29].
 - Restart Tails between sustained campaigns; for Whonix, restore from clean snapshot.
 
 ### 10.3 Browser security level
 
-- **Safer or Safest** is the default for darkweb work. JavaScript is the leading client-side exploit vector and is rarely worth the deanonymization risk on hostile sites.
+- **Safest** is the default for darkweb work. JavaScript is the leading client-side exploit vector and is rarely worth the deanonymization risk on hostile sites. Safer is not a substitute: it only disables JavaScript on non-HTTPS sites, and Tor Browser treats `.onion` origins as secure contexts, so Safer still runs scripts on onion services. If a site will not render at Safest, back out; lower the level only where the scope document explicitly authorises it, and record the exception in the session log [verify 2026-10-29].
 - **Standard** is acceptable only on clearnet pivots from a Mullvad-Browser session, never on a marketplace or leak-site.
-- Never install Tor Browser extensions beyond the bundled NoScript / HTTPS-Everywhere — extensions are fingerprintable.
+- Never install Tor Browser extensions beyond the bundled NoScript (HTTPS-Everywhere was dropped in Tor Browser 11.5, July 2022, in favour of built-in HTTPS-Only Mode) — extensions are fingerprintable [verify 2026-10-29].
 
 ### 10.4 Download discipline
 
@@ -481,7 +481,7 @@ Per [[sop-collection-log|Collection Log]] format, record per session:
 
 Many marketplaces use captcha to deter scraping. Captchas are not in themselves OPSEC concerns, but:
 
-- Some "captchas" are JavaScript-fingerprinting traps; if a captcha requires JavaScript and Tor-Browser-Safer fails, **do not** drop to Standard to bypass it — back out and reconsider the target.
+- Some "captchas" are JavaScript-fingerprinting traps; if a captcha will not work at Safest (i.e. it needs JavaScript), **do not** lower the security level to bypass it — Safer runs JavaScript on onion services just as Standard does. Back out and reconsider the target [verify 2026-10-29].
 - Repeated failures fingerprint the analyst across circuits if shared cookie state leaks; use New Identity between attempts.
 
 ### 10.7 Wellness
@@ -491,7 +491,7 @@ Sustained darkweb observation exposes analysts to graphic content, threats, and 
 - Two-person rule on any session that may contain CSAM, trafficking, or extreme violence.
 - Mandatory rotation off sustained leak-site duty (weeks-not-quarters scale).
 - No after-hours review of sensitive-content cases.
-- Access to clinical support (employer EAP, sector-specific programs — Tech Coalition, Headington Institute, Dart Center, UK NCA wellbeing).
+- Access to clinical support (employer EAP or a sector-specific trauma-support programme).
 
 ---
 
@@ -501,11 +501,11 @@ Sustained darkweb observation exposes analysts to graphic content, threats, and 
 
 | Tool                       | Use                                                       | Notes                                                        |
 | -------------------------- | --------------------------------------------------------- | ------------------------------------------------------------ |
-| **SingleFile** (extension) | Full-DOM HTML snapshot                                    | Works in Tor Browser; preserves CSS / JS-rendered content    |
-| **Tor Browser screenshot** | Visual artifact                                           | Built-in screenshot tool; captures viewport + full-page      |
-| **wget + torsocks**        | WARC-format archival of a single page or recursive crawl  | `torsocks wget --warc-file=out --recursive --level=1 <url>` |
-| **ArchiveBox**             | Heavy-duty archive (HTML + WARC + screenshot + media)     | Routes through Tor with `CHROME_USER_AGENT` and SOCKS proxy  |
-| **GnuPG**                  | PGP-key parse / fingerprint                               | `gpg --import --import-options show-only`                    |
+| **Save Page As** (built-in) | HTML snapshot + supporting files                         | *Web Page, complete*. Do **not** install SingleFile or any other add-on in Tor Browser — Tor Project strongly discourages add-ons (unique fingerprint, larger attack surface). Re-open saved pages only inside the Tor-forced workstation, or inspect them as text; a saved page can still request remote resources when opened [verify 2026-10-29] |
+| **Tor Browser screenshot** | Visual artifact                                           | Built-in screenshots component (re-enabled in Tor Browser 14.0, tor-browser#41309); viewport or full page [verify 2026-10-29] |
+| **wget + torsocks**        | WARC-format archival of a single page or recursive crawl  | `torsocks wget --warc-file=out --recursive --level=1 <url>` [verify 2026-10-29] |
+| **ArchiveBox**             | Heavy-duty archive (HTML + WARC + screenshot + media)     | No documented Tor / SOCKS option (`CHROME_USER_AGENT` only overrides the User-Agent); run it inside a Whonix Workstation so all traffic is Tor-forced [verify 2026-10-29] |
+| **GnuPG**                  | PGP-key parse / fingerprint                               | `gpg --import --import-options show-only` [verify 2026-10-29]                    |
 | **ExifTool**               | Strip / inspect listing-photo metadata                    | After download to airgap                                     |
 | **sha256sum / shasum -a 256** | Hash artifacts immediately on capture                  | Per [[../../Security/Analysis/sop-hash-generation-methods|Hash Generation Methods]] |
 | **gpg --detach-sign / OpenTimestamps** | Timestamp manifests                            | Court-relevant; see [[sop-collection-log|Collection Log]] §"Qualified Timestamping" |
@@ -538,10 +538,10 @@ Notes:
 sha256sum darkweb_capture_*.warc darkweb_capture_*.png darkweb_capture_*.html \
   > MANIFEST_$(date -u +%Y%m%dT%H%M%SZ).sha256
 
-# Optional GPG-detach-sign the manifest with the analyst's investigation key
+# Optional GPG-detach-sign the manifest with the analyst's investigation key [verify 2026-10-29]
 gpg --detach-sign --armor MANIFEST_*.sha256
 
-# Optional OpenTimestamps (free, RFC 3161-compatible third-party anchor)
+# Optional OpenTimestamps (free; Bitcoin-anchored proof via public calendar servers, not an RFC 3161 TSA) [verify 2026-10-29]
 ots stamp MANIFEST_*.sha256
 ```
 
@@ -549,18 +549,18 @@ Per [[sop-collection-log|Collection Log]] §"Algorithm-selection," SHA-256 is th
 
 ### 11.4 File structure
 
-```
+```text
 /Evidence/{case_id}/Darkweb/
 ├── YYYYMMDD-HHMM/
 │   ├── session.log                          # session metadata (env, TB version, circuit notes)
 │   ├── onion-targets.csv                    # URLs visited, timestamps, status
 │   ├── pages/
-│   │   ├── <onion-host>_<path>_<ts>.html    # SingleFile / wget output
+│   │   ├── <onion-host>_<path>_<ts>.html    # Save Page As / wget output
 │   │   ├── <onion-host>_<path>_<ts>.warc    # WARC archive
 │   │   └── <onion-host>_<path>_<ts>.png     # screenshot
 │   ├── pgp/
 │   │   ├── <vendor>_<fpr>_<ts>.asc          # ASCII-armored block
-│   │   └── <vendor>_<fpr>_<ts>.txt          # gpg --list-packets parsed output
+│   │   └── <vendor>_<fpr>_<ts>.txt          # gpg --list-packets parsed output [verify 2026-10-29]
 │   ├── leak-sites/
 │   │   └── <group>/<post-id>_<ts>.{html,warc,png}
 │   ├── listings/
@@ -570,7 +570,7 @@ Per [[sop-collection-log|Collection Log]] §"Algorithm-selection," SHA-256 is th
 │   └── MANIFEST_<ts>.sha256.ots             # OpenTimestamps anchor
 ```
 
-Cross-link to [[sop-collection-log|Collection Log]] §"Self-Authenticating Electronic Records (FRE 902(13) and 902(14))" for US-court admissibility framing.
+Cross-link to [[sop-collection-log|Collection Log]] §"Self-Authenticating Electronic Records (FRE 902(13) and 902(14))" for US-court admissibility framing [verify 2026-10-29].
 
 ### 11.5 What you do **not** collect
 
@@ -609,7 +609,7 @@ Cross-link to [[sop-collection-log|Collection Log]] §"Self-Authenticating Elect
 ### 12.5 Pivot-chain hygiene
 
 - Document every pivot step — onion → clearnet → blockchain → off-ramp — with timestamps and capture hashes. Admissibility requires an unbroken chain.
-- Avoid "pivoting through analytics services that resell queries" — pasting an onion or wallet into a free analytics service can leak the investigation. Prefer self-hosted tools (e.g. local mempool.space, local etherscan-equivalent, GraphSense-on-prem) for high-stakes work; see [[sop-financial-aml-osint|Financial & AML OSINT]] §"Common Pitfalls."
+- Avoid "pivoting through analytics services that resell queries" — pasting an onion or wallet into a free analytics service can leak the investigation. Prefer self-hosted tools (e.g. local mempool.space, local etherscan-equivalent, GraphSense-on-prem) for high-stakes work; see [[sop-financial-aml-osint|Financial & AML OSINT]] §"Common Pitfalls." [verify 2026-10-29]
 
 ---
 
@@ -623,7 +623,7 @@ This SOP **stops** at the following boundaries. Each hand-off targets the canoni
 | Mixer / privacy-pool / cross-chain-bridge usage observed            | [[sop-mixer-tracing|Mixer & Privacy-Pool Tracing]] (depends on [[sop-blockchain-investigation|Blockchain Investigation]] for upstream transparent tracing). |
 | Ransomware payload / sample binary collected                        | [[../../Security/Analysis/sop-malware-analysis|Malware Analysis]]                                       |
 | Leaked credentials, card data, or PII samples                       | **Do not validate**. Route to [[sop-sensitive-crime-intake-escalation|Sensitive Crime Intake & Escalation]] for victim notification; do not "test login." |
-| CSAM observation (any)                                              | **Hard-stop.** URL + timestamp only. Immediate route to [[sop-sensitive-crime-intake-escalation|Sensitive Crime Intake & Escalation]] (NCMEC CyberTipline / Project Arachnid / national CSE unit). |
+| CSAM observation (any)                                              | **Hard-stop.** URL + timestamp only. Immediate route to [[sop-sensitive-crime-intake-escalation|Sensitive Crime Intake & Escalation]] (NCMEC CyberTipline / Cybertip.ca / national CSE unit) [verify 2026-10-29]. |
 | Trafficking listing / forced-services indicator                      | Immediate route to [[sop-sensitive-crime-intake-escalation|Sensitive Crime Intake & Escalation]]         |
 | Active extortion / wire transfer in progress                        | Immediate route to [[sop-sensitive-crime-intake-escalation|Sensitive Crime Intake & Escalation]]         |
 | Imminent threat-to-life (specific target / time / weapon)            | Immediate route to [[sop-sensitive-crime-intake-escalation|Sensitive Crime Intake & Escalation]] + local emergency service |
@@ -643,55 +643,55 @@ The contract is bidirectional: when those owner SOPs reach a darkweb-side observ
 
 | Tool                     | Purpose                                  | Source                                           |
 | ------------------------ | ---------------------------------------- | ------------------------------------------------ |
-| **Tor Browser**          | Patched Firefox ESR for Tor              | [torproject.org](https://www.torproject.org/) [verify 2026-04-26] |
-| **Mullvad Browser**      | Tor-Browser hardening over VPN           | [mullvad.net/browser](https://mullvad.net/en/browser) [verify 2026-04-26] |
-| **Tails**                | Amnesic live OS, all-Tor                 | [tails.net](https://tails.net) [verify 2026-04-26] |
-| **Whonix**               | Two-VM Tor-forced workstation            | [whonix.org](https://www.whonix.org) [verify 2026-04-26] |
-| **Qubes OS**             | Compartmentalized OS (host for Whonix templates) | [qubes-os.org](https://www.qubes-os.org) [verify 2026-04-26] |
-| **i2pd / i2p**           | I2P router (C++ / Java)                  | [i2pd.website](https://i2pd.website) / [geti2p.net](https://geti2p.net) [verify 2026-04-26] |
-| **Lokinet**              | Oxen onion routing                       | [lokinet.org](https://lokinet.org) [verify 2026-04-26] |
+| **Tor Browser**          | Patched Firefox ESR for Tor              | [torproject.org](https://www.torproject.org/) [verify 2026-10-29] |
+| **Mullvad Browser**      | Tor-Browser hardening over VPN           | [mullvad.net/browser](https://mullvad.net/en/browser) [verify 2026-10-29] |
+| **Tails**                | Amnesic live OS, all-Tor                 | [tails.net](https://tails.net) [verify 2026-10-29] |
+| **Whonix**               | Two-VM Tor-forced workstation            | [whonix.org](https://www.whonix.org) [verify 2026-10-29] |
+| **Qubes OS**             | Compartmentalized OS (host for Whonix templates) | [qubes-os.org](https://www.qubes-os.org) [verify 2026-10-29] |
+| **i2pd / i2p**           | I2P router (C++ / Java)                  | [i2pd.website](https://i2pd.website) / [i2p.net](https://i2p.net) [verify 2026-10-29] |
+| **Lokinet**              | Oxen onion routing                       | [lokinet.org](https://lokinet.org) [verify 2026-10-29] |
 
 ### 14.2 Discovery and aggregation
 
 | Tool                      | Purpose                                   | URL                                                |
 | ------------------------- | ----------------------------------------- | -------------------------------------------------- |
-| **Ahmia**                 | Indexed Tor search                         | `https://ahmia.fi` [verify 2026-04-26]              |
-| **dark.fail**             | Marketplace canonical-URL tracker          | `https://dark.fail` [verify 2026-04-26]             |
-| **Tor.taxi**              | Curated onion list                         | `https://tor.taxi` [verify 2026-04-26]              |
-| **OnionSearch**           | Open-source CLI meta-search (megadose)    | [github.com/megadose/OnionSearch](https://github.com/megadose/OnionSearch) [verify 2026-04-26] |
-| **OnionScan**             | Onion-service auditing tool               | [github.com/s-rah/onionscan](https://github.com/s-rah/onionscan) [verify 2026-04-26]; long-unmaintained — historical reference |
+| **Ahmia**                 | Indexed Tor search                         | `https://ahmia.fi` [verify 2026-10-29]              |
+| **dark.fail**             | Marketplace canonical-URL tracker          | `https://dark.fail` [verify 2026-10-29]             |
+| **Tor.taxi**              | Curated onion list                         | `https://tor.taxi` [verify 2026-10-29]              |
+| **OnionSearch**           | Open-source CLI meta-search (megadose)    | [github.com/megadose/OnionSearch](https://github.com/megadose/OnionSearch) [verify 2026-10-29] |
+| **OnionScan**             | Onion-service auditing tool               | [github.com/s-rah/onionscan](https://github.com/s-rah/onionscan) [verify 2026-10-29]; long-unmaintained — historical reference |
 | **Onioff / OnionLink**    | Onion link checkers                        | various — verify per session                        |
 
 ### 14.3 Capture and archival
 
 | Tool             | Purpose                                  | Notes                                            |
 | ---------------- | ---------------------------------------- | ------------------------------------------------ |
-| **SingleFile**   | Full-DOM HTML snapshot extension         | Browser extension; works in Tor Browser          |
-| **wget + torsocks** | WARC archival via SOCKS                | `torsocks wget --warc-file=...`                   |
-| **ArchiveBox**   | Bulk archival with Tor routing            | Self-hosted; supports WARC + screenshot          |
-| **warcio / pywb**| WARC inspection and replay              | [github.com/webrecorder](https://github.com/webrecorder) |
+| **SingleFile**   | Full-DOM HTML snapshot extension         | **Not** in Tor Browser (Tor Project discourages add-ons); separate clearnet-pivot browser only [verify 2026-10-29] |
+| **wget + torsocks** | WARC archival via SOCKS                | `torsocks wget --warc-file=...` [verify 2026-10-29]                   |
+| **ArchiveBox**   | Bulk archival                             | Self-hosted; WARC + screenshot; no native Tor routing — run inside Whonix [verify 2026-10-29] |
+| **warcio / pywb**| WARC inspection and replay              | [github.com/webrecorder](https://github.com/webrecorder) [verify 2026-10-29] |
 | **ExifTool**     | Metadata extraction from images / docs    | After airgap quarantine                          |
 
 ### 14.4 PGP and identity
 
 | Tool             | Purpose                                  | Notes                                            |
 | ---------------- | ---------------------------------------- | ------------------------------------------------ |
-| **GnuPG**        | PGP parsing, fingerprint, verification    | `gpg --import-options show-only`                  |
-| **Sequoia PGP** | Modern Rust PGP implementation            | `sq inspect`                                      |
-| **pgpdump**      | Packet-level PGP inspection               | `pgpdump file.asc`                                |
-| **Keybase**      | Identity-bound key directory              | Acquired by Zoom 2020; development paused circa 2022 [verify 2026-04-26] |
+| **GnuPG**        | PGP parsing, fingerprint, verification    | `gpg --import-options show-only` [verify 2026-10-29]                  |
+| **Sequoia PGP** | Modern Rust PGP implementation            | `sq inspect` [verify 2026-10-29]                                      |
+| **pgpdump**      | Packet-level PGP inspection               | `pgpdump file.asc` [verify 2026-10-29]                                |
+| **Keybase**      | Identity-bound key directory              | Acquired by Zoom (May 2020); client still receives releases — v6.6.3, June 2026 [verify 2026-10-29] |
 
 ### 14.5 Threat-intel and monitoring
 
 | Tool                  | Purpose                                | URL                                                      |
 | --------------------- | -------------------------------------- | -------------------------------------------------------- |
-| **ransomwatch**       | Open-source leak-site aggregator        | `https://ransomwatch.telemetry.ltd` [verify 2026-04-26]  |
-| **ransomware.live**   | Leak-site dashboard + JSON API          | `https://www.ransomware.live` [verify 2026-04-26]        |
-| **ransomlook.io**     | Group catalog + post archive             | `https://www.ransomlook.io` [verify 2026-04-26]          |
-| **MITRE ATT&CK Groups** | Group → TTP mapping                   | `https://attack.mitre.org/groups/`                       |
-| **MISP**              | Open threat-intel sharing platform      | [misp-project.org](https://www.misp-project.org)         |
-| **OpenCTI**           | Threat-intel platform (Filigran)         | [filigran.io](https://www.filigran.io) [verify 2026-04-26] |
-| **CISA #StopRansomware** | US government advisory series        | `https://www.cisa.gov/stopransomware` [verify 2026-04-26] |
+| **ransomwatch**       | Leak-site aggregator (joshhighet; **archived 2026-03-03**, historical only) | `https://github.com/joshhighet/ransomwatch` [verify 2026-10-29]  |
+| **ransomware.live**   | Leak-site dashboard + JSON API          | `https://www.ransomware.live` [verify 2026-10-29]        |
+| **ransomlook.io**     | Group catalog + post archive             | `https://www.ransomlook.io` [verify 2026-10-29]          |
+| **MITRE ATT&CK Groups** | Group → TTP mapping                   | `https://attack.mitre.org/groups/` [verify 2026-10-29]                       |
+| **MISP**              | Open threat-intel sharing platform      | [misp-project.org](https://www.misp-project.org) [verify 2026-10-29]         |
+| **OpenCTI**           | Threat-intel platform (Filigran)         | [filigran.io](https://filigran.io) [verify 2026-10-29] |
+| **CISA #StopRansomware** | US government advisory series        | `https://www.cisa.gov/stopransomware` [verify 2026-10-29] |
 
 ### 14.6 Forensics support
 
@@ -705,14 +705,14 @@ The contract is bidirectional: when those owner SOPs reach a darkweb-side observ
 
 ### 15.1 Operational risks
 
-- **Browser exploits.** Tor Browser inherits Firefox-ESR vulnerabilities; historical Tor-Browser-targeted exploits (2013 FBI NIT against Freedom Hosting, 2016 NIT against Playpen, 2020s commercial exploits) are public record. Run with JavaScript disabled and patch promptly. See [[sop-opsec-plan|OPSEC Plan]] §6.
+- **Browser exploits.** Tor Browser inherits Firefox-ESR vulnerabilities, and Tor-Browser-targeted exploits have been used in practice: the FBI's 2015 NIT against Playpen is documented in *United States v. Levin* (1st Cir. 2017) [verify 2026-10-29]. The 2013 Freedom Hosting exploit and 2020s commercial exploits are press-reported; no primary source located. Run with JavaScript disabled and patch promptly. See [[sop-opsec-plan|OPSEC Plan]] §6.
 - **Fingerprinting.** Even with Tor Browser, screen size, font availability, language preference, and time-zone leak fingerprint signal. Tails default and Whonix-Workstation default minimize this; do not customize.
-- **Honeypots.** Several major marketplace and forum takedowns (Hansa 2017, AlphaBay 2017, Genesis 2023) included LE-controlled continuations during which observation was monitored. Assume any sustained engagement is logged.
+- **Honeypots.** Dutch police ran Hansa covertly from June 2017 until its takedown on 2017-07-20, and kept the FBI's AlphaBay takedown earlier that month secret so the Hansa operation could continue (Dutch OM); AlphaBay and Genesis (taken offline 2023-04-04, NCA) were straight takedowns. Assume any post-seizure mirror may be LE-controlled and any sustained engagement is logged [verify 2026-10-29].
 - **Active-content traps.** Leak sites have hosted browser-exploit JavaScript and fake-captcha SOCKS-leakers; cf. §10.3.
 
 ### 15.2 Legal risks
 
-- **Mere viewing of a hidden service** is not universally lawful in every jurisdiction. The canonical legal framework — including unauthorized-access statutes (UK CMA, US 18 U.S.C. §1030, EU Directive 2013/40, AU Criminal Code Part 10.7), CSAM possession statutes (18 U.S.C. §2252, UK Protection of Children Act 1978, EU Directive 2011/93), sanctions (OFAC, EU TFR, UK OFSI), and cross-border data transfer regimes — is in [[sop-legal-ethics|Legal & Ethics]]. Review before the engagement begins.
+- **Mere viewing of a hidden service** is not universally lawful in every jurisdiction. The canonical legal framework — including unauthorized-access statutes (UK CMA, US 18 U.S.C. §1030, EU Directive 2013/40, AU Criminal Code Part 10.7), CSAM possession statutes (18 U.S.C. §2252, UK Protection of Children Act 1978, EU Directive 2011/93), sanctions (OFAC, EU restrictive measures under Council regulations, UK OFSI), and cross-border data transfer regimes — is in [[sop-legal-ethics|Legal & Ethics]]. Review before the engagement begins [verify 2026-10-29].
 - **CSAM-adjacent observation** is one of the highest-risk categories in OSINT. Even momentary inadvertent download can be a strict-liability offense. The discipline in this SOP (URL + timestamp only, immediate escalation) exists to avoid that exposure.
 - **Stolen-credential validation** is unauthorized access — a "test login" is a CFAA / CMA offense.
 - **Crypto-asset payment** to designated groups is a sanctions violation regardless of investigative intent.
@@ -731,7 +731,7 @@ The contract is bidirectional: when those owner SOPs reach a darkweb-side observ
 
 ### 15.5 Attribution limits
 
-- **Tor does not protect against global passive adversaries** — traffic-correlation attacks are theoretically and practically demonstrated (academic literature: Murdoch & Danezis 2005; Johnson et al. 2013; multiple post-2015 papers). Investigators should not rely on Tor for protection against nation-state-tier adversaries.
+- **Tor does not protect against global passive adversaries** — traffic-correlation attacks are theoretically and practically demonstrated (academic literature: Murdoch & Danezis 2005; Johnson et al. 2013; multiple post-2015 papers). Investigators should not rely on Tor for protection against nation-state-tier adversaries [verify 2026-10-29].
 - **OPSEC failures attribute, not the network.** Most public deanonymizations (Silk Road's Ulbricht, Hutchins, Yastremskiy, Reality Winner, several BreachForums admins) trace to operator-side OPSEC mistakes, not Tor breaks. The same applies inversely to investigators — see [[sop-opsec-plan|OPSEC Plan]] §"Operator OPSEC failure case studies."
 
 ### 15.6 Researcher wellness
@@ -750,14 +750,14 @@ The contract is bidirectional: when those owner SOPs reach a darkweb-side observ
 - ❌ **Pasting an onion URL into a clearnet analytics service.** Logs at exit; some services share queries with third parties; investigation leak.
 - ❌ **Using Tor on a host that holds the analyst's clearnet identity.** Use Tails or Whonix on a clean host; not a habit-stack-on-top-of-personal-laptop.
 - ❌ **Treating darkweb-listed prices, quantities, or claims as ground truth.** Most listings are fraudulent; many are LE-controlled.
-- ❌ **Failing to time-stamp sanctions / takedown / lifecycle state at observation.** Tornado Cash designation status changed three times 2022–2025; Hydra status is "seized 2022-04-05"; LockBit is "Operation Cronos 2024-02-19, partial reconstitution after." Record what was true when.
+- ❌ **Failing to time-stamp sanctions / takedown / lifecycle state at observation.** Tornado Cash designation status changed three times 2022–2025; Hydra status is "seized 2022-04-05"; LockBit is "Operation Cronos, announced 2024-02-20 (NCA); reportedly resurfaced after." Record what was true when [verify 2026-10-29].
 - ❌ **Self-validating credentials, card BINs, or PII samples.** Unauthorized access. Do not.
 - ❌ **Investigating CSAM platforms.** Hard-stop. URL + timestamp + escalation per [[sop-sensitive-crime-intake-escalation|Sensitive Crime Intake & Escalation]]. Do not "verify."
 - ❌ **Failing to document the .onion → clearnet pivot chain.** Admissibility requires an unbroken evidentiary chain.
 - ❌ **Cross-mixing investigations in one Tor session.** Cross-investigation linkability via shared cookies / HTTP-cache / browser-history side channels.
 - ❌ **Trusting any single index.** Hidden Wiki forks, scrap-aggregator clones, and mirror impersonators dominate the discovery layer; cross-check.
 - ❌ **Re-using a "burner" persona across investigations.** A persona is single-investigation-scoped; reusing one creates a linkage-by-tradecraft fingerprint.
-- ❌ **Treating Tor as protection against a global passive adversary.** It is not; see §14.5.
+- ❌ **Treating Tor as protection against a global passive adversary.** It is not; see §15.5.
 
 ---
 
@@ -770,7 +770,7 @@ The contract is bidirectional: when those owner SOPs reach a darkweb-side observ
 **Approach:**
 
 1. From a clean Whonix Workstation snapshot, navigate to the leak post via the canonical onion (verified against `dark.fail` PGP-signed list).
-2. Capture the post (SingleFile + screenshot + WARC); hash the artifacts; log timestamp UTC.
+2. Capture the post (Save Page As + screenshot + WARC); hash the artifacts; log timestamp UTC.
 3. Extract: claimed-victim name, listed sample-data filenames, countdown timer, ransom amount if visible, payment-wallet hint, contact channel.
 4. Cross-reference the victim claim against the victim's public status page, SEC 8-K filings (if applicable), and state breach-notification portals. Lead time exists when claim precedes disclosure.
 5. **Notify** through the victim's incident-response chain or a sector-specific feed (H-ISAC for healthcare); do **not** cold-email the victim with leaked data.
@@ -789,7 +789,7 @@ The contract is bidirectional: when those owner SOPs reach a darkweb-side observ
 2. Extract the 40-char fingerprint and note the key creation date.
 3. On each candidate successor market, capture vendor-profile pages for handles within the same product category and approximate price-tier; capture each PGP block.
 4. Compare fingerprints — fingerprint match is high-confidence operator-continuity evidence. Different fingerprint with overlapping UID metadata (same comment string, same email-domain pattern) is medium-confidence.
-5. Search public keyservers (`keys.openpgp.org`, `keyserver.ubuntu.com`) for the canonical fingerprint — older keys frequently have legacy clearnet UIDs.
+5. Search public keyservers (`keys.openpgp.org`, `keyserver.ubuntu.com`) for the canonical fingerprint — older keys frequently have legacy clearnet UIDs [verify 2026-10-29].
 6. Cross-link operator handle and clearnet-UID candidate into [[sop-entity-dossier|Entity Dossier]] with confidence levels per [[sop-entity-dossier|Entity Dossier]] §"Confidence Rating."
 7. Do **not** message the vendor to "verify" — observation only.
 
@@ -805,7 +805,7 @@ The contract is bidirectional: when those owner SOPs reach a darkweb-side observ
 2. Extract: poster handle, post timestamp, claimed dataset description, sample-file hashes if listed, asking price, currency, contact method.
 3. **Do not download the sample.** Capture the post metadata only.
 4. Cross-reference the poster handle against historical forum archives (RaidForums lineage if applicable), Telegram, and Tor-side aggregators.
-5. Check observed wallet (if any) against OFAC SDN and `chainabuse.com` — hand off blockchain trace to [[sop-blockchain-investigation|Blockchain Investigation]].
+5. Check observed wallet (if any) against OFAC SDN and `chainabuse.com` — hand off blockchain trace to [[sop-blockchain-investigation|Blockchain Investigation]] [verify 2026-10-29].
 6. Notify the affected company via its responsible-disclosure channel, CERT, or sector ISAC. The notification is the defensive value; the investigation does not scrape the corpus.
 7. Document the routing: who was notified, when, with what artifacts.
 
@@ -829,16 +829,16 @@ The contract is bidirectional: when those owner SOPs reach a darkweb-side observ
 1. **Stop browsing.** Do not "follow the lead" deeper; further observation can become evidentiary contamination or investigator exposure.
 2. **Preserve session evidence** — current capture, session log, hash manifest. Sign and timestamp the manifest.
 3. **Do not download** illicit content. URL + timestamp + minimal context only.
-4. **Escalate** per [[sop-sensitive-crime-intake-escalation|Sensitive Crime Intake & Escalation]] for the canonical reporting routes (NCMEC CyberTipline, Project Arachnid, NCA / FBI / Europol / national CERT, regulated-entity MLRO + FIU SAR).
+4. **Escalate** per [[sop-sensitive-crime-intake-escalation|Sensitive Crime Intake & Escalation]] for the canonical reporting routes (NCMEC CyberTipline, Cybertip.ca, NCA / FBI / Europol / national CERT, regulated-entity MLRO + FIU SAR) [verify 2026-10-29].
 5. **Document the routing** — who, when, what artifacts, response received.
 6. **Wellness check** — analyst rotation, two-person debrief, time off the queue.
 
 ### 18.3 Specific pathway examples
 
-- **CSAM:** US — NCMEC CyberTipline (`report.cybertip.org`); CA — Cybertip.ca; Canada/global — Project Arachnid; EU — INHOPE network member hotline; UK — IWF + NCA CEOP. Do not preserve content locally; preserve URL + timestamp only.
-- **Terrorism:** UK — Anti-Terrorist Hotline 0800 789 321 + `gov.uk/ACT`; US — FBI tips.fbi.gov + 1-800-CALL-FBI; AU — National Security Hotline 1800 123 400.
-- **Trafficking:** US — NHTRC 1-888-373-7888; UK — Modern Slavery NRM (First Responder duty) per Modern Slavery Act 2015 §52; INTERPOL trafficking unit via local LE.
-- **Sanctions evasion (US):** OFAC Reporting at `sanctions_actions@ofac.treas.gov`; FinCEN SAR via regulated-entity routing.
+- **CSAM:** US — NCMEC CyberTipline (`report.cybertip.org`); CA — Cybertip.ca (C3P; its Project Arachnid is a detection and removal-notice programme, not a public tipline); EU — INHOPE network member hotline; UK — IWF + NCA CEOP. Do not preserve content locally; preserve URL + timestamp only [verify 2026-10-29].
+- **Terrorism:** UK — Anti-Terrorist Hotline 0800 789 321 + `gov.uk/ACT`; US — FBI tips.fbi.gov + 1-800-CALL-FBI; AU — National Security Hotline 1800 123 400 [verify 2026-10-29].
+- **Trafficking:** US — National Human Trafficking Hotline 1-888-373-7888 (text 233733); UK — police 101 (999 in an emergency) or the Modern Slavery & Exploitation Helpline 08000 121 700 — only designated First Responder organisations can refer into the NRM, and the Modern Slavery Act 2015 s.52 duty to notify binds specified public authorities (police, NCA, local authorities), not private investigators; INTERPOL trafficking unit via local LE [verify 2026-10-29].
+- **Sanctions evasion (US):** potential violations via OFAC's disclosure portal (`ofac.treasury.gov/disclosure` — OFAC invites "anyone who is aware of potential violations"); blocked-property and rejected-transaction reports via the OFAC Reporting System (`ors.ofac.treas.gov`); `OFACReport@treasury.gov` is only for ORS registration, alternative-filing requests and specific forms; FinCEN SAR via regulated-entity routing [verify 2026-10-29].
 - **Emergency (any):** local emergency number first if life is at imminent risk.
 
 Cross-link [[sop-sensitive-crime-intake-escalation|Sensitive Crime Intake & Escalation]] for the full canonical routing matrix; this section is a pointer, not the source of truth.
@@ -850,7 +850,7 @@ Cross-link [[sop-sensitive-crime-intake-escalation|Sensitive Crime Intake & Esca
 - [[sop-legal-ethics|Legal & Ethics]] — canonical legal framework; review before every engagement
 - [[sop-opsec-plan|OPSEC Plan]] — investigator OPSEC, environment build (Tails / Whonix / Qubes), browser hardening
 - [[sop-sensitive-crime-intake-escalation|Sensitive Crime Intake & Escalation]] — escalation routes for CSAM, trafficking, terrorism, threats-to-life
-- [[sop-collection-log|Collection Log]] — chain-of-custody, hashing, timestamping, FRE 902(13)/(14) framing
+- [[sop-collection-log|Collection Log]] — chain-of-custody, hashing, timestamping, FRE 902(13)/(14) framing [verify 2026-10-29]
 - [[sop-entity-dossier|Entity Dossier]] — structured profiling for operator / vendor / actor records
 - [[sop-blockchain-investigation|Blockchain Investigation]] — multi-chain wallet tracing target for §13 hand-offs (wallet observation → trace)
 - [[sop-financial-aml-osint|Financial & AML OSINT]] — fiat-side AML, corporate UBO, sanctions / SDN / DCA framework, AML-analyst quick-reference for crypto context
@@ -888,36 +888,36 @@ OPSEC for the investigator (cross-context separation, environment isolation, bro
 
 ### Tor and anonymity-network documentation
 
-- Tor Project — [torproject.org](https://www.torproject.org/) [verify 2026-04-26]
-- Tor Browser Manual — [tb-manual.torproject.org](https://tb-manual.torproject.org) [verify 2026-04-26]
-- Tor Specifications — [spec.torproject.org](https://spec.torproject.org) [verify 2026-04-26]
-- Tails — [tails.net](https://tails.net) [verify 2026-04-26]
-- Whonix — [whonix.org](https://www.whonix.org) [verify 2026-04-26]
-- Qubes OS — [qubes-os.org](https://www.qubes-os.org) [verify 2026-04-26]
-- I2P — [geti2p.net](https://geti2p.net) [verify 2026-04-26]
-- I2Pd — [i2pd.website](https://i2pd.website) [verify 2026-04-26]
+- Tor Project — [torproject.org](https://www.torproject.org/) [verify 2026-10-29]
+- Tor Browser user documentation (manual merged into the support portal; tb-manual.torproject.org redirects) — [support.torproject.org](https://support.torproject.org) [verify 2026-10-29]
+- Tor Specifications — [spec.torproject.org](https://spec.torproject.org) [verify 2026-10-29]
+- Tails — [tails.net](https://tails.net) [verify 2026-10-29]
+- Whonix — [whonix.org](https://www.whonix.org) [verify 2026-10-29]
+- Qubes OS — [qubes-os.org](https://www.qubes-os.org) [verify 2026-10-29]
+- I2P — [i2p.net](https://i2p.net) [verify 2026-10-29]
+- I2Pd — [i2pd.website](https://i2pd.website) [verify 2026-10-29]
 
 ### Discovery indexes (fast-rot — verify per session)
 
-- Ahmia — `https://ahmia.fi` [verify 2026-04-26]
-- dark.fail — `https://dark.fail` [verify 2026-04-26]
-- Tor.taxi — `https://tor.taxi` [verify 2026-04-26]
+- Ahmia — `https://ahmia.fi` [verify 2026-10-29]
+- dark.fail — `https://dark.fail` [verify 2026-10-29]
+- Tor.taxi — `https://tor.taxi` [verify 2026-10-29]
 
 ### Ransomware-tracking resources
 
-- ransomwatch — `https://ransomwatch.telemetry.ltd` [verify 2026-04-26]
-- ransomware.live — `https://www.ransomware.live` [verify 2026-04-26]
-- ransomlook.io — `https://www.ransomlook.io` [verify 2026-04-26]
-- CISA #StopRansomware — `https://www.cisa.gov/stopransomware` [verify 2026-04-26]
-- Europol IOCTA — `https://www.europol.europa.eu/cms/sites/default/files/documents/IOCTA` (annual report) [verify 2026-04-26]
+- ransomwatch (archived 2026-03-03; historical only) — `https://github.com/joshhighet/ransomwatch` [verify 2026-10-29]
+- ransomware.live — `https://www.ransomware.live` [verify 2026-10-29]
+- ransomlook.io — `https://www.ransomlook.io` [verify 2026-10-29]
+- CISA #StopRansomware — `https://www.cisa.gov/stopransomware` [verify 2026-10-29]
+- Europol IOCTA — `https://www.europol.europa.eu/publications-events/main-reports/iocta-report` (annual report) [verify 2026-10-29]
 
 ### Investigative journalism and research
 
-- Bellingcat — [bellingcat.com](https://www.bellingcat.com)
+- Bellingcat — [bellingcat.com](https://www.bellingcat.com) [verify 2026-10-29]
 - OCCRP — [occrp.org](https://www.occrp.org); Aleph (document graph) [aleph.occrp.org](https://aleph.occrp.org)
-- DFRLab (Atlantic Council) — [dfrlab.org](https://dfrlab.org) [verify 2026-04-26]
-- Krebs on Security — [krebsonsecurity.com](https://krebsonsecurity.com)
-- The DFIR Report — [thedfirreport.com](https://thedfirreport.com) [verify 2026-04-26]
+- DFRLab (Atlantic Council) — [dfrlab.org](https://dfrlab.org) [verify 2026-10-29]
+- Krebs on Security — [krebsonsecurity.com](https://krebsonsecurity.com) [verify 2026-10-29]
+- The DFIR Report — [thedfirreport.com](https://thedfirreport.com) [verify 2026-10-29]
 
 ### Vendor / commercial threat-intel (subscription)
 
@@ -929,16 +929,16 @@ OPSEC for the investigator (cross-context separation, environment isolation, bro
 
 ### Standards and frameworks
 
-- MITRE ATT&CK — `https://attack.mitre.org`
-- MITRE D3FEND — `https://d3fend.mitre.org`
-- NIST SP 800-86 (Integrating Forensic Techniques) — see [[sop-collection-log|Collection Log]] §"Standards & Frameworks"
-- Berkeley Protocol on Digital Open Source Investigations (UN OHCHR 2022) — see [[sop-legal-ethics|Legal & Ethics]] §"International framework"
+- MITRE ATT&CK — `https://attack.mitre.org` [verify 2026-10-29]
+- MITRE D3FEND — `https://d3fend.mitre.org` [verify 2026-10-29]
+- NIST SP 800-86 (Integrating Forensic Techniques) — see [[sop-collection-log|Collection Log]] §"Standards & Frameworks" [verify 2026-10-29]
+- Berkeley Protocol on Digital Open Source Investigations (UN OHCHR 2022) — see [[sop-legal-ethics|Legal & Ethics]] §"International framework" [verify 2026-10-29]
 
 ### Academic anonymity / Tor research
 
-- Murdoch & Danezis 2005 — *Low-cost Traffic Analysis of Tor*
-- Johnson et al. 2013 — *Users Get Routed: Traffic Correlation on Tor by Realistic Adversaries*
-- The Free Haven anonymity bibliography — [freehaven.net/anonbib/](https://www.freehaven.net/anonbib/) [verify 2026-04-26]
+- Murdoch & Danezis 2005 — *Low-cost Traffic Analysis of Tor* [verify 2026-10-29]
+- Johnson et al. 2013 — *Users Get Routed: Traffic Correlation on Tor by Realistic Adversaries* [verify 2026-10-29]
+- The Free Haven anonymity bibliography — [freehaven.net/anonbib/](https://www.freehaven.net/anonbib/) [verify 2026-10-29]
 
 ### Operator OPSEC failure case studies (public record)
 
@@ -947,5 +947,5 @@ See [[sop-opsec-plan|OPSEC Plan]] §"Operator OPSEC failure case studies" for th
 ---
 
 **Version:** 1.0 (Initial)
-**Last Updated:** 2026-09-20
+**Last Updated:** 2026-10-29
 **Review Frequency:** Quarterly (fast-rot — leak-site landscape, marketplace lifecycle, takedown timeline)

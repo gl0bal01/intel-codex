@@ -32,9 +32,9 @@ file, so a SOP is only as fresh as its stalest claim.
 
 | State | SOPs |
 |-------|------|
-| current (≤ 150 days) | 19 |
+| current (≤ 150 days) | 22 |
 | due soon (151–180 days) | 0 |
-| overdue (> 180 days) | 22 |
+| overdue (> 180 days) | 19 |
 | no source checks recorded | 0 |
 | **Total** | **41** |
 
@@ -55,14 +55,14 @@ file, so a SOP is only as fresh as its stalest claim.
 
 | SOP | File | Updated | Checks | Oldest check | Age (days) | State |
 |-----|------|---------|-------:|--------------|-----------:|-------|
-| Blockchain Investigation | [[sop-blockchain-investigation]] | 2026-10-29 | 55 | 2026-04-26 | 186 | overdue |
+| Blockchain Investigation | [[sop-blockchain-investigation]] | 2026-10-29 | 160 | 2026-10-29 | 0 | current |
 | OSINT Collection Log & Chain of Custody | [[sop-collection-log]] | 2026-10-29 | 86 | 2026-10-29 | 0 | current |
-| Darkweb Investigation | [[sop-darkweb-investigation]] | 2026-09-20 | 63 | 2026-04-26 | 186 | overdue |
+| Darkweb Investigation | [[sop-darkweb-investigation]] | 2026-10-29 | 132 | 2026-10-29 | 0 | current |
 | Entity Dossier Guide | [[sop-entity-dossier]] | 2026-10-29 | 58 | 2026-10-18 | 11 | current |
 | Financial Crime & AML OSINT | [[sop-financial-aml-osint]] | 2026-10-29 | 51 | 2026-10-29 | 0 | current |
 | Image & Video OSINT | [[sop-image-video-osint]] | 2026-10-29 | 145 | 2026-10-29 | 0 | current |
 | Legal, Ethics & Data Governance for OSINT | [[sop-legal-ethics]] | 2026-10-29 | 131 | 2026-10-25 | 4 | current |
-| Mixer & Privacy-Pool Tracing | [[sop-mixer-tracing]] | 2026-10-29 | 120 | 2026-04-26 | 186 | overdue |
+| Mixer & Privacy-Pool Tracing | [[sop-mixer-tracing]] | 2026-10-29 | 139 | 2026-10-29 | 0 | current |
 | OPSEC Planning for OSINT Investigations | [[sop-opsec-plan]] | 2026-10-29 | 187 | 2026-10-25 | 4 | current |
 | Reporting, Packaging & Disclosure | [[sop-reporting-packaging-disclosure]] | 2026-10-29 | 47 | 2026-10-18 | 11 | current |
 | Sensitive Crime Intake & Escalation | [[sop-sensitive-crime-intake-escalation]] | 2026-10-29 | 128 | 2026-10-29 | 0 | current |

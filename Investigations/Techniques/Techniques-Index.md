@@ -119,7 +119,7 @@ This directory contains detailed SOPs covering core investigation techniques, ev
   - Marketplace observation-only methodology and lifecycle (LE takedowns, exit scams)
   - Vendor PGP key pivots and operator-continuity attribution
   - Forum and community investigation (BreachForums lineage, hacking forums)
-  - Ransomware leak-site tracking (LockBit, Cl0p, BlackCat lineage; ransomwatch / ransomware.live aggregators)
+  - Ransomware leak-site tracking (LockBit, Cl0p, BlackCat lineage; ransomware.live / ransomlook.io aggregators; ransomwatch archived 2026-03, historical only)
   - State-actor and sanctions-evasion indicators
   - Cross-context separation, session discipline, researcher wellness
   - Hand-off boundaries: stops at "wallet address X observed" → blockchain-investigation; CSAM hard-stop → sensitive-crime-escalation
