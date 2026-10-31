@@ -65,7 +65,7 @@ generator: tools/build-vault-state.sh
 - `sop-firmware-reverse-engineering` — Firmware Reverse Engineering (updated 2026-04-26)
 - `sop-linux-pentest` — Linux Pentesting SOP (Authorized) (updated 2026-04-25)
 - `sop-mobile-security` — Mobile Security (iOS & Android) (updated 2026-09-20)
-- `sop-vulnerability-research` — Vulnerability Research SOP (updated 2026-04-25)
+- `sop-vulnerability-research` — Vulnerability Research SOP (updated 2026-10-31)
 - `sop-web-application-security` — Web Application Security Testing SOP (updated 2026-09-20)
 - `sop-wireless-rf-pentest` — Wireless & RF Pentesting (Authorized) (updated 2026-04-26)
 

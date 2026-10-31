@@ -1,7 +1,7 @@
 ---
 type: sop
 title: Reverse Engineering
-description: "Binary reverse engineering: Ghidra, IDA Pro, disassembly, decompilation, debugging & exploit development for security research and CTF challenges."
+description: "Binary reverse engineering: Ghidra, IDA Pro, disassembly, decompilation, debugging & crash triage for security research and CTF challenges."
 created: 2025-10-11
 updated: 2026-10-31
 template_version: 2026-09-20
@@ -18,7 +18,7 @@ tags:
 
 > **Authorized environments only.** Reverse, debug, and patch only your own binaries, CTF/crackme challenges, malware samples handled inside an isolated, disposable lab VM, and software you have written authorization to analyze. Never run samples on an analyst host or with a route to production. Cross-references: [[../../Investigations/Techniques/sop-legal-ethics|Legal & Ethics]] for the legal framework, [[../../Investigations/Techniques/sop-opsec-plan|OPSEC Plan]] for lab isolation and sample-handling discipline.
 
-> **Purpose:** Comprehensive guide to reverse engineering binaries, understanding assembly code, bypassing protections, and developing exploits for security research, malware analysis, and CTF competitions.
+> **Purpose:** Comprehensive guide to reverse engineering binaries, understanding assembly code, bypassing anti-analysis protections, and triaging crashes for security research, malware analysis, and CTF competitions.
 
 ---
 
@@ -1904,149 +1904,15 @@ VM_RET              ; Return
 
 ## Exploit Development
 
-### Buffer Overflows
+> **Lab / CTF / authorized research only.** See [[../../Investigations/Techniques/sop-legal-ethics|Legal & Ethics]].
 
-**Stack-based buffer overflow:**
+Exploitation methodology lives in [[../Pentesting/sop-vulnerability-research|Vulnerability Research]]: lab build flags, crash triage and root cause, the mitigation inventory, exploitability assessment, glibc version limits for heap techniques, the minimal-PoC standard for the report, and disclosure / CVE. From the reversing side, the hand-off is:
 
-**Vulnerable code:**
-```c
-#include <stdio.h>
-#include <string.h>
-
-void vulnerable_function(char *input) {
-    char buffer[64];
-    strcpy(buffer, input);  // No bounds checking!
-    printf("Buffer: %s\n", buffer);
-}
-
-int main(int argc, char **argv) {
-    if (argc > 1) {
-        vulnerable_function(argv[1]);
-    }
-    return 0;
-}
-```
-
-**Lab build (x86-64, deliberately unhardened, own VM only):** `gcc -O0 -g -fno-stack-protector -no-pie -o vulnerable vulnerable.c`. Run with `setarch -R ./vulnerable …` to disable ASLR for that one process. Distro defaults add the mitigations back (Ubuntu 24.04's GCC 13.3 gives canary, PIE, Full RELRO and CET property notes by default), so confirm the build with `pwn checksec` before you start.
-
-**Finding the offset to the saved return address:**
-
-```bash
-# 1. Generate a cyclic pattern. The pwntools CLI prints raw bytes; in Python 3,
-#    print(cyclic(200)) writes the b'...' repr and shifts every offset by 2.
-pwn cyclic 200
-
-# 2. Run under GDB with the pattern as argv[1]. On x86-64 the smashed return address
-#    is non-canonical, so the CPU faults AT the ret instruction and RIP never holds
-#    the pattern. Read the saved-return-address slot at [rsp] instead:
-gdb -q --args ./vulnerable "$(pwn cyclic 200)"
-#   (gdb) run
-#   => 0x401196 <vulnerable_function+64>:  ret
-#   (gdb) x/gx $rsp
-#   0x7fffffffd1c8: 0x6161617461616173      ("saaataaa")
-
-# 3. Look up the lower 4 bytes with the same tool that generated the pattern:
-pwn cyclic -l 0x61616173
-# 72   (64-byte buffer + 8-byte saved RBP)
-```
-
-On Kali, Metasploit's `msf-pattern_create -l 200` / `msf-pattern_offset -q <value>` do the same job with a different `Aa0Aa1…` pattern; always look the value up with the tool that generated it. With this build, bytes 64-71 of the input overwrite the saved RBP and bytes 72-79 the saved return address that `ret` pops (see [Stack Frames](#stack-frames)); what can be done with that control depends on the mitigations below.
-
-### Return-Oriented Programming (ROP)
-
-**ROP** chains together "gadgets" (short instruction sequences ending in `ret`) to execute code without injecting shellcode.
-
-**Why ROP?**
-- **DEP/NX:** Data Execution Prevention prevents executing code on stack/heap
-- **ROP defeats DEP/NX:** it reuses code that is already executable in the binary or its libraries
-- **ROP does not defeat ASLR/PIE on its own:** gadget addresses must come from a non-PIE image or an information leak
-
-**Finding ROP gadgets:**
-
-```bash
-# ROPgadget (Python tool):
-ROPgadget --binary vulnerable
-
-# Or use ropper:
-ropper --file vulnerable --search "pop rdi"
-
-# Example gadgets:
-0x004005a3: pop rdi; ret
-0x004005a1: pop rsi; pop r15; ret
-0x00400490: pop rax; ret
-0x00400610: syscall; ret
-```
-
-**Reading a chain:** a ROP chain is a sequence of gadget addresses and values laid out from the saved-return-address slot upward; each `ret` pops the next address. On x86-64 System V the first arguments travel in `rdi`, `rsi`, `rdx`, and every user-space address packed as 8 bytes contains NUL bytes, so a `strcpy`-style bug cannot deliver a chain that a `read`/`gets` bug can.
-
-### Bypassing Protections
-
-**DEP/NX (Data Execution Prevention):**
-- **What it does:** Marks stack/heap as non-executable
-- **Bypass:** ROP (return-oriented programming)
-
-**ASLR (Address Space Layout Randomization):**
-- **What it does:** Randomizes base addresses of stack, heap, libraries
-- **Bypass:** Information leak (leak address, calculate offsets)
-
-**Stack Canaries:**
-- **What it does:** Places random value before return address, checks on function return. On glibc (little-endian) the canary's lowest byte is always `0x00`.
-- **Detection (GCC 13, x86-64):**
-```nasm
-mov rax, qword ptr fs:[0x28]  ; Load canary from TLS
-mov qword ptr [rbp-0x8], rax  ; Store canary on stack
-; ... function body ...
-mov rax, qword ptr [rbp-0x8]  ; Load canary from stack
-sub rax, qword ptr fs:[0x28]  ; Compare with original
-je  .return                   ; Equal: normal epilogue
-call __stack_chk_fail         ; Mismatch: abort
-```
-- **Bypass:** Leak the canary (format string or other info leak). A `fork()`-per-connection server hands every child the parent's canary, so it can be recovered byte by byte; a freshly `execve`d process gets a new one.
-
-**PIE (Position Independent Executable):**
-- **What it does:** Binary can be loaded at any address (extends ASLR to code section)
-- **Bypass:** Information leak (leak code address, calculate gadget offsets)
-
-**RELRO (Relocation Read-Only):**
-- **What it does:** `ld -z relro` emits a `PT_GNU_RELRO` segment that is made read-only after relocation. **Full RELRO** adds `-z now` (resolve every symbol at startup), so the GOT no longer has to stay writable for lazy binding; **Partial RELRO** keeps lazy binding and a writable `.got.plt`.
-- **Impact:** GOT-overwrite techniques need Partial or No RELRO.
-
-**FORTIFY_SOURCE:**
-- **What it does:** `-D_FORTIFY_SOURCE=1|2|3` makes glibc route calls such as `strcpy`/`memcpy`/`printf` to checked `__*_chk` variants that terminate the program with `SIGABRT` when a check fails. Levels 1-2 use `__builtin_object_size`; level 3 uses `__builtin_dynamic_object_size` and needs glibc 2.35+ with GCC 12+ (glibc 2.33+ with LLVM 9+).
-- **Spot it:** `__strcpy_chk`, `__memcpy_chk`, `__printf_chk` imports.
-
-**CET (Control-flow Enforcement Technology, x86-64):**
-- **What it does:** The hardware shadow stack (SHSTK) keeps a protected copy of return addresses and faults on a `ret` whose address does not match; indirect branch tracking (IBT) requires indirect-branch targets to begin with `endbr64`.
-- **Linux status:** the kernel supports only user-space shadow stack and kernel IBT (no user-space IBT). glibc 2.39 syncs with the Linux 6.6 shadow-stack interface; the `glibc.cpu.x86_shstk` tunable (`on`/`off`/`permissive`) controls it. `checksec` reporting `SHSTK`/`IBT: Enabled` reflects the ELF property note, not runtime enforcement.
-- **Windows:** the `/CETCOMPAT` linker flag marks an x64 image as CET shadow-stack compatible.
-
-**CFG (Control Flow Guard, Windows):**
-- **What it does:** `/guard:cf` (compiler and linker; `/DYNAMICBASE` is also required) inserts a check before every indirect call, and a CFG-aware OS (Windows 10/11, Windows Server 2019+) terminates the process if the target is not a valid call target.
-- **Spot it:** `dumpbin /headers /loadconfig` shows `Guard` in the DLL characteristics and `CF Instrumented` in the guard flags.
-
-**Checking protections:**
-
-```bash
-# Linux: two different tools are both called checksec.
-pwn checksec ./vulnerable        # pwntools
-checksec file ./vulnerable       # slimm609/checksec v3 (Go rewrite)
-# pwn checksec output for the lab build above (pwntools 4.15, GCC 13.3):
-#     Arch:       amd64-64-little
-#     RELRO:      Partial RELRO
-#     Stack:      No canary found
-#     NX:         NX enabled
-#     PIE:        No PIE (0x400000)
-#     SHSTK:      Enabled
-#     IBT:        Enabled
-#     Stripped:   No
-#     Debuginfo:  Yes
-```
-
-```powershell
-# Windows: PESecurity (PowerShell):
-Import-Module .\Get-PESecurity.psm1
-Get-PESecurity -file vulnerable.exe
-```
+- **Build and inventory mitigations first:** build lab targets with the protection under study switched off ([[../Pentesting/sop-vulnerability-research#Lab Build Flags|Lab Build Flags]]), then run `pwn checksec ./target` (pwntools) or `checksec file ./target` (slimm609 3.x); on PE, check `/DYNAMICBASE`, `/NXCOMPAT`, `/GUARD:CF` and `/CETCOMPAT` ([[../Pentesting/sop-vulnerability-research#Mitigation Inventory|Mitigation Inventory]]).
+- **Recognise them in disassembly:** the `fs:0x28` canary load and check before `__stack_chk_fail`, `endbr64` landing pads (CET/IBT marking), `__*_chk` calls (FORTIFY_SOURCE).
+- **Reproduce with x86-64 semantics:** a smashed return address faults *at* `ret`, so read `[rsp]`, not RIP. Root-cause with ASan/UBSan and record flaky crashes once with `rr` ([[../Pentesting/sop-vulnerability-research#Crash Analysis|Crash Analysis]]).
+- **Check the glibc version** before assuming a heap technique still applies ([[../Pentesting/sop-vulnerability-research#glibc Version Limits for Heap Techniques|glibc Version Limits for Heap Techniques]]).
+- **Hand over** root-cause notes, binary hashes and a minimal crashing input or a harmless control-flow proof, per the minimal-PoC standard under [[../Pentesting/sop-vulnerability-research#Determining Exploitability|Determining Exploitability]]. No weaponized payloads in this SOP.
 
 ---
 
@@ -2215,10 +2081,7 @@ pwn cyclic -l 0x61616173
 # 72
 ```
 
-**4. Plan the ret2libc stages (NX on, no PIE):**
-- **Stage 1, leak:** pass a GOT entry (e.g. `puts@got`) to `puts@plt` through a `pop rdi; ret` gadget, then return to `main` for a second input. `vuln()` echoes the buffer first, so read past that line before parsing the leaked pointer.
-- **Resolve libc from the challenge's own `libc.so.6`:** base = leaked `puts` minus `puts`'s symbol offset in that file (pwntools `ELF` symbols), never offsets copied from another distro's libc.
-- **Stage 2:** call the target libc function with one extra `ret` gadget first, so that on entry to the libc function `rsp + 8` is a multiple of 16, as the x86-64 System V psABI requires. [verify 2026-10-31]
+**4. Assess exploitability (NX on, no PIE):** with the offset known, the classic route is a libc pointer leak followed by a call into libc, which the binary's own gadgets and the glibc version constrain (glibc 2.34 dropped `__libc_csu_init`). Resolve libc offsets from the challenge's own `libc.so.6`, never from another build. Method, version limits and the minimal-PoC standard: [[../Pentesting/sop-vulnerability-research|Vulnerability Research]] (Exploit Development). [verify 2026-10-31]
 
 **5. Submit flag:** record the offset, gadget addresses and the libc build (hash) in the write-up.
 
