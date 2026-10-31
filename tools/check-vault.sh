@@ -36,8 +36,10 @@ done < <(find Investigations Security -name 'sop-*.md' -type f)
 # 2. Legal & Ethics cross-reference
 echo "[2/5] Checking Legal & Ethics cross-reference ..."
 while IFS= read -r f; do
-  if ! grep -qE "sop-legal-ethics|Legal & Ethic" "$f"; then
-    warn "$f missing Legal & Ethics cross-reference"
+  # A heading saying "Legal & Ethics" is not a cross-reference; require the link.
+  [[ "$(basename "$f")" == "sop-legal-ethics.md" ]] && continue
+  if ! grep -q "sop-legal-ethics" "$f"; then
+    warn "$f missing Legal & Ethics cross-reference (no [[sop-legal-ethics]] link)"
   fi
 done < <(find Investigations Security -name 'sop-*.md' -type f)
 
