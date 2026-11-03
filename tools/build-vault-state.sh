@@ -52,7 +52,10 @@ INVESTIGATIONS_COUNT=$((PLATFORMS_COUNT + TECHNIQUES_COUNT))
 SECURITY_COUNT=$((ANALYSIS_COUNT + PENTEST_COUNT))
 TOTAL=$((INVESTIGATIONS_COUNT + SECURITY_COUNT))
 
-today=$(date +%Y-%m-%d)
+# Ages are measured against this date. CI pins it to the committed `generated:` date
+# so the freshness check compares content, not the calendar.
+today=${VAULT_STATE_AS_OF:-$(date +%Y-%m-%d)}
+today_s=$(date -u -d "$today" +%s)
 
 cat > "$OUT" <<EOF
 ---
@@ -168,7 +171,7 @@ status_rows() {
       if [[ -z "$oldest" ]]; then
         oldest="—"; age="—"; state="no source checks"
       else
-        age=$(( ( $(date +%s) - $(date -d "$oldest" +%s) ) / 86400 ))
+        age=$(( ( today_s - $(date -u -d "$oldest" +%s) ) / 86400 ))
         if   (( age <= VERIFY_WARN_DAYS ));    then state="current"
         elif (( age <= VERIFY_CADENCE_DAYS )); then state="due soon"
         else                                        state="overdue"
@@ -188,7 +191,7 @@ for dir in "$PLATFORMS_DIR" "$TECHNIQUES_DIR" "$ANALYSIS_DIR" "$PENTEST_DIR"; do
     if [[ -z "$oldest" ]]; then
       n_none=$((n_none + 1)); continue
     fi
-    age=$(( ( $(date +%s) - $(date -d "$oldest" +%s) ) / 86400 ))
+    age=$(( ( today_s - $(date -u -d "$oldest" +%s) ) / 86400 ))
     if   (( age <= VERIFY_WARN_DAYS ));    then n_current=$((n_current + 1))
     elif (( age <= VERIFY_CADENCE_DAYS )); then n_due=$((n_due + 1))
     else                                        n_overdue=$((n_overdue + 1))

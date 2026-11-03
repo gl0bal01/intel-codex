@@ -35,7 +35,10 @@ jobs:
         run: |
           set -euo pipefail
           chmod +x tools/build-vault-state.sh
-          ./tools/build-vault-state.sh
+          # Pin ages to the committed generation date; otherwise every push on a
+          # later day fails on the Age column alone.
+          VAULT_STATE_AS_OF=$(awk '/^generated:/{print $2; exit}' Verification-Status.md) \
+            ./tools/build-vault-state.sh
           if ! git diff --quiet; then
             echo "::error::Generated files are stale. Run ./tools/build-vault-state.sh and commit the result."
             git --no-pager diff --stat
