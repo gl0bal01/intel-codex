@@ -11,7 +11,7 @@ tags:
   - security-review
   - formal-verification
 created: 2026-04-26
-updated: 2026-04-26
+updated: 2026-11-04
 template_version: 2026-04-26
 ---
 
@@ -50,30 +50,30 @@ A smart contract audit produces an evidence-based finding set, an exploit-class 
 
 - Audit engagement scoping (commit hash, in-scope contracts, time budget, deliverable shape).
 - Threat modeling specific to on-chain code (actors, trust assumptions, asset flow, invariants, composability surface).
-- The Smart Contract Weakness Classification (SWC) registry, the DASP Top 10 lineage, and modern defect catalogues.
-- Vulnerability classes most often material in EVM contracts: reentrancy (single-function / cross-function / cross-contract / read-only), access-control gaps, oracle manipulation (spot-price, TWAP, governance), MEV / sandwich / front-running, signature replay, delegatecall confusion, storage collisions, upgrade-pattern pitfalls, governance attacks, flash-loan composability, and arithmetic issues (post-Solidity 0.8 baseline).
-- Tooling: Slither, Aderyn, Wake, Mythril, Echidna, Foundry's `forge` / `cast` / `chisel`, ityfuzz, Medusa, Halmos, Certora Prover, K-framework, SMTChecker.
+- The legacy Smart Contract Weakness Classification (SWC) registry and DASP Top 10, their maintained successors (EEA EthTrust Security Levels, OWASP Smart Contract Top 10), and finding-level catalogues such as Solodit.
+- Vulnerability classes most often material in EVM contracts: reentrancy (single-function / cross-function / cross-contract / read-only), access-control gaps, oracle manipulation (spot-price, TWAP, governance), MEV / sandwich / front-running, signature replay, delegatecall confusion, storage collisions, upgrade-pattern pitfalls, governance attacks, flash-loan composability, token-integration assumptions (approve race, fee-on-transfer and rebasing tokens), ERC-4626 vault share inflation, and arithmetic issues (post-Solidity 0.8 baseline).
+- Tooling: Slither, Aderyn, Wake, Mythril, Echidna, Foundry's `forge` / `cast` / `chisel`, ityfuzz, Medusa, Halmos, Certora Prover, K-framework (KEVM, Kontrol), SMTChecker.
 - Formal verification: when to reach for it, what it proves, the practical Certora / Halmos / K / SMTChecker workflow, and how to document a verified property in the report.
 - Audit-report structure conforming to the Trail of Bits, OpenZeppelin, and ConsenSys Diligence shapes.
 - Remediation verification (the auditor's pass after the team patches).
-- Multi-chain coverage: EVM (Ethereum mainnet, L2s — Arbitrum, Optimism, Base, Polygon, BNB Chain, etc.) is the dominant case; Move (Sui, Aptos), Solana (rust-anchor / native), and Cairo (Starknet) are framed at the orientation level so the auditor knows what is recognizably different and where to seek chain-specific guidance.
+- Multi-chain coverage: EVM (Ethereum mainnet; rollup L2s such as Arbitrum, Optimism and Base; EVM-compatible L1s and sidechains such as BNB Smart Chain and Polygon PoS) is the dominant case; Move (Sui, Aptos), Solana (rust-anchor / native), Cairo (Starknet), and CosmWasm (Cosmos SDK chains) are framed at the orientation level so the auditor knows what is recognizably different and where to seek chain-specific guidance.
 
 ### Hard exclusions (out of scope)
 
 - **Post-exploit fund tracing.** Once funds leave the contract, the methodology is on-chain investigative tradecraft, not audit. Routes to [[../../Investigations/Techniques/sop-blockchain-investigation|Blockchain Investigation]].
 - **Mixer / privacy-pool de-obfuscation.** Routes to [[../../Investigations/Techniques/sop-mixer-tracing|Mixer & Privacy-Pool Tracing]].
 - **General offensive exploitation methodology.** Web3 web-application angles, off-chain server attacks, exploit-development discipline, fuzzing of native binaries, and ROP / heap / kernel work all live in [[../Pentesting/sop-vulnerability-research|Vulnerability Research]] and [[../Pentesting/sop-web-application-security|Web Application Security]].
-- **Bug bounty submission process.** Disclosure mechanics for Immunefi, HackerOne crypto programs, Code4rena and Sherlock contests are framed in [[../Pentesting/sop-bug-bounty|Bug Bounty]]; this SOP focuses on the technical findings the report contains, not the submission UX.
-- **Live exploitation of deployed contracts.** No instructions for executing exploits against contracts you do not own or are not authorized to test. PoCs for findings live in audit-firm forks of mainnet (`forge --fork-url`) or local test rigs, never against live state.
+- **Bug bounty and contest submission process.** Submission and disclosure mechanics for bounty programs (Immunefi, HackerOne crypto programs) and audit contests (Code4rena, Cantina, Immunefi audit competitions) follow each platform's current rules; the general bounty workflow is in [[../Pentesting/sop-bug-bounty|Bug Bounty]]. This SOP focuses on the technical findings the report contains, not the submission UX.
+- **Live exploitation of deployed contracts.** No instructions for executing exploits against contracts you do not own or are not authorized to test. PoCs for findings live in audit-firm forks of mainnet (`forge test --fork-url`, with `--fork-block-number` pinned) or local test rigs, never against live state.
 - **Cryptographic primitive analysis.** Curve choice, hash construction, ZK circuit soundness review, and cipher-suite analysis route to [[sop-cryptography-analysis|Cryptography Analysis]]. This SOP covers how primitives are *used* by contracts (signature replay, hash-collision-resistant identifiers), not whether the primitives themselves are sound.
-- **Reverse engineering of unverified bytecode-only contracts.** Decompilation, IDA/Ghidra-style methodology, and lifted-IR analysis route to [[sop-reverse-engineering|Reverse Engineering]] and the relevant blockchain-investigation hand-off; this SOP assumes source-available review or panoramic / dedaub-tier decompilation as a starting point only.
+- **Reverse engineering of unverified bytecode-only contracts.** Decompilation, IDA/Ghidra-style methodology, and lifted-IR analysis route to [[sop-reverse-engineering|Reverse Engineering]] and the relevant blockchain-investigation hand-off; this SOP assumes source-available review, and treats decompiler output (Heimdall-rs, the Dedaub decompiler; see §11.7) as a starting point only.
 
 ### Engagement types covered
 
 - **Pre-deployment audit.** Code is feature-frozen at a commit hash; the audit deliverable gates a deployment.
 - **Pre-upgrade audit.** Live contract upgrade (UUPS, Transparent Proxy, Beacon, Diamond) needs review of the new logic plus storage-layout compatibility with the live storage.
 - **Continuous / retainer review.** Repeating PR-by-PR review for an active codebase.
-- **Public audit contest.** Code4rena, Sherlock, Cantina, Hats Finance, Immunefi-Boost competitions — same methodology, compressed timeline, public reporting.
+- **Public audit contest.** Code4rena, Cantina and Immunefi audit competitions — same methodology, compressed timeline, public reporting. Check that a platform still runs open contests before planning around it: Sherlock's docs now file its contests under a section marked deprecated and replaced by its Audit Engine.
 - **Internal pre-audit review.** Team's own security engineer doing the pass before paying for an external auditor.
 
 ---
@@ -84,7 +84,7 @@ A smart contract audit produces an evidence-based finding set, an exploit-class 
 
 - [ ] Written engagement letter or contest scope page identifying the **commit hash**, the **files in scope**, and the **time window**. Audit reviews drift if the codebase moves under the auditor; pin the SHA and refuse to follow `main` mid-engagement.
 - [ ] Out-of-scope contracts and integrations are enumerated. Off-chain backend, signer infrastructure, oracle deployment scripts, frontend, and operational runbooks are explicitly in or out.
-- [ ] Test environment authority: confirm the auditor may run forks against any RPC the engagement references, and that the engagement covers reading mainnet state via `forge --fork-url` and similar tooling.
+- [ ] Test environment authority: confirm the auditor may run forks against any RPC the engagement references, and that the engagement covers reading mainnet state via `forge test --fork-url` and similar tooling.
 - [ ] Disclosure pathway: who receives the draft, who receives the final, what the public-disclosure timeline looks like, and whether the team will publish the report. Public-contest platforms have platform-managed disclosure clocks.
 - [ ] Private repo access: read-only credentials, separate from any personal account. Rotate at engagement end.
 - [ ] Sample data and deployment scripts, where the engagement covers a live system: confirm the auditor receives them under NDA terms compatible with the report deliverable.
@@ -96,7 +96,7 @@ A smart contract audit produces an evidence-based finding set, an exploit-class 
 - Engagement-specific repo clone, isolated from personal work; no shared secrets between engagements.
 - Foundry (`foundryup` install), Hardhat (npm), and Slither in a versioned virtual environment per engagement so toolchain drift between engagements does not corrupt findings.
 - Mainnet fork RPC endpoint (Alchemy / Infura / QuickNode / public RPC) on a dedicated key per engagement; rotate when the engagement ends so leaked keys do not bleed across clients.
-- Solidity version pinning matched to the engagement target. The compiler version is part of the threat model — many findings are version-conditional (Solidity 0.4.x integer-overflow defaults, 0.5.x ABI changes, 0.6 / 0.7 minor checks, 0.8.0+ default checked arithmetic, 0.8.20 `PUSH0` vs older L2 / EVM forks, 0.8.24 transient storage, etc.) [verify 2026-04-26].
+- Solidity version pinning matched to the engagement target. The compiler version is part of the threat model; many findings are version-conditional: 0.4.x wrapping arithmetic; the `constructor` keyword from 0.4.22 (name-matched constructors removed in 0.5.0); the `receive` / `fallback` split and `virtual` / `override` in 0.6.0; checked arithmetic and ABI coder v2 by default in 0.8.0; default EVM `shanghai` in 0.8.20 (emits `PUSH0`, which fails on chains without Shanghai support); inline-assembly `tload` / `tstore` from 0.8.24 and `transient` state variables from 0.8.28; default EVM `cancun` from 0.8.25, `prague` from 0.8.30 and `osaka` from 0.8.31; deprecation warnings for `send` / `transfer` from 0.8.31. Check that the target chain supports the compiler's `evmVersion`, and check the pinned version against the [Solidity known-bugs list](https://docs.soliditylang.org/en/latest/bugs.html). Latest release: 0.8.38 (2026-10-22) [verify 2026-11-04].
 - Local crash / artifact storage encrypted at rest. Audit findings are pre-disclosure material; treat them with the same OPSEC discipline as a 0-day per [[sop-opsec-plan|OPSEC]].
 - Reproducible PoC scripts checked in to the engagement repo. The team needs them to verify the fix; a PoC that lives only in your terminal scrollback is a defect.
 
@@ -136,7 +136,7 @@ The bulk of audit findings come from manual reading paired with running examples
 
 Static analysis (Slither, Aderyn, Wake) finds the cheap wins: missing `view` / `pure`, suspicious external calls, public state vars that should be internal, missing zero-address checks. Run early; triage; fold confirmed issues into manual-review notes; mark false positives so they don't recur.
 
-Symbolic execution (Mythril, Manticore) finds reachability of bug states; output is a list of paths the auditor must verify. Coverage-guided fuzzers (Echidna, Foundry's `forge test --fuzz-runs`, ityfuzz, Medusa) find counterexamples to invariants the auditor encodes.
+Symbolic execution (Mythril, whose maintenance has stalled, see §7.4; Halmos and hevm for property-level symbolic tests) finds reachable bug states; output is a list of paths the auditor must verify. Trail of Bits' Manticore is archived and no longer maintained. Coverage-guided fuzzers (Echidna, Foundry's `forge test --fuzz-runs`, ityfuzz, Medusa) find counterexamples to invariants the auditor encodes.
 
 Formal verification (Certora, Halmos, K, SMTChecker) proves an encoded property over all inputs (within configured bounds). It complements but does not replace fuzzing — both find different bug shapes.
 
@@ -191,7 +191,7 @@ Write them down before testing. Examples:
 - "The contract reverts on any reentrant call into `withdraw`."
 - "Governance proposals execute only after a timelock delay of at least N blocks."
 
-Invariants drive both the manual review (every function violation hunt) and the fuzz suite (encoded as `forge test --invariant` or Echidna properties).
+Invariants drive both the manual review (every function violation hunt) and the fuzz suite (encoded as Foundry `invariant_*` test functions run by `forge test`, or Echidna / Medusa properties).
 
 ### 4.5 Composability Surface
 
@@ -203,24 +203,24 @@ What does the protocol assume about its callers? About the protocols it calls? C
 
 ### 5.1 SWC (Smart Contract Weakness Classification)
 
-The [SWC Registry](https://swcregistry.io) is the canonical EVM-defect taxonomy maintained by the SmartContractSecurity community. It carries SWC-100 through SWC-136 entries (status of newer entries varies; some labelled deprecated when superseded by other catalogues) [verify 2026-04-26]. Each entry lists a CWE parent, a description, code samples, and remediations.
+The [SWC Registry](https://swcregistry.io) (SWC-100 through SWC-136) is the historical EVM-defect taxonomy. It is **no longer actively maintained**: its maintainers state the content has not been thoroughly updated since 2020 and is known to be incomplete, and they point readers to the [EEA EthTrust Security Levels specification](https://entethalliance.org/specs/ethtrust-sl/) for current guidance [verify 2026-11-04]. The GitHub repository is not archived, but no new entries are added. Each entry lists a CWE parent, a description, remediation, references, and code samples.
 
-The registry is no longer the bleeding edge — community focus has shifted toward the [Solodit](https://solodit.cyfrin.io) defect catalogue (aggregated public audit findings) and the Trail of Bits / Consensys / Cyfrin internal classification systems — but SWC remains the lingua franca. Audit reports reference SWC IDs alongside firm-specific severity. [verify 2026-04-26]
+Because the registry is unmaintained, treat SWC IDs as a legacy cross-reference rather than a current taxonomy. Maintained references are the EEA EthTrust Security Levels specification (v3, March 2025), which draws on the SWC registry among other sources, and the [OWASP Smart Contract Top 10](https://scs.owasp.org/sctop10/) (2026 edition). For finding-level comparison, practitioners use the [Solodit](https://solodit.cyfrin.io) aggregate of public audit findings. Many audit reports and some tools (Mythril, for example) still emit SWC IDs, so keep citing them alongside an EthTrust requirement or OWASP SC category [verify 2026-11-04].
 
 High-frequency SWC entries to know cold:
 
 | SWC ID | Title | Notes |
 |--------|-------|-------|
-| SWC-101 | Integer Overflow / Underflow | Pre-Solidity 0.8 default; assumed mitigated in 0.8+ unless `unchecked { }` blocks are used. |
+| SWC-101 | Integer Overflow / Underflow | Default before 0.8.0. From 0.8.0, arithmetic reverts on overflow / underflow except inside `unchecked { }`; bitwise shifts, explicit narrowing casts and inline-assembly arithmetic are never checked. |
 | SWC-104 | Unchecked Call Return Value | Low-level `call` / `send` return value not checked. |
 | SWC-105 | Unprotected Ether Withdrawal | Public withdrawal without access control. |
-| SWC-106 | Unprotected Self-Destruct | Public `selfdestruct` reachable. Note: post-Cancun (EIP-6780, March 2024 [verify 2026-04-26]) `SELFDESTRUCT` only fully destroys when called in the same transaction as creation; legacy contracts pre-Cancun retain prior semantics. |
+| SWC-106 | Unprotected Self-Destruct | Public `selfdestruct` reachable. Since Cancun (EIP-6780, Ethereum mainnet 2024-03-13 [verify 2026-11-04]), `SELFDESTRUCT` deletes code and storage only when executed in the same transaction that created the contract; otherwise it only sends the whole balance to the target. This applies to every contract, including those deployed before Cancun; pre-Cancun semantics matter only for historical analysis and for EVM chains that have not adopted EIP-6780. Solidity has warned that `selfdestruct` is deprecated since 0.8.18. |
 | SWC-107 | Reentrancy | The classic. See §6.1. |
 | SWC-112 | Delegatecall to Untrusted Callee | Storage-layout corruption, full takeover. |
 | SWC-114 | Transaction Order Dependence | MEV / front-running. |
 | SWC-115 | Authorization through tx.origin | Use `msg.sender`, not `tx.origin`, for authorization. |
 | SWC-116 | Block-Values as Time | `block.timestamp` and `block.number` as randomness or precise timing. |
-| SWC-118 | Incorrect Constructor Name (Solidity ≤ 0.4.21) | Pre-`constructor` keyword; legacy contracts only. |
+| SWC-118 | Incorrect Constructor Name (Solidity < 0.5.0) | Name-matched constructors were the only form before 0.4.22 and were removed in 0.5.0; legacy contracts only. |
 | SWC-119 | Shadowing State Variables | Inheritance pitfall. |
 | SWC-120 | Weak Sources of Randomness | `block.timestamp`, `blockhash`, `block.difficulty` (now `block.prevrandao` post-merge) as randomness. |
 | SWC-124 | Write to Arbitrary Storage | Unbounded storage write primitives. |
@@ -231,26 +231,29 @@ High-frequency SWC entries to know cold:
 
 ### 5.2 DASP Top 10
 
-The [Decentralized Application Security Project Top 10](https://dasp.co) (DASP, 2018) was the first widely-cited DeFi defect taxonomy. It is dated and not actively maintained, but its categories shaped how the field talks about issues: 1) Reentrancy, 2) Access Control, 3) Arithmetic Issues, 4) Unchecked Return Values, 5) Denial of Service, 6) Bad Randomness, 7) Front-Running, 8) Time Manipulation, 9) Short Address Attack (largely mitigated by modern web3 libs), 10) Unknown Unknowns. Most of these are subsumed by SWC entries. Cite DASP only for historical context.
+The Decentralized Application Security Project Top 10 (DASP, an NCC Group initiative, 2018) was the first widely cited smart-contract defect taxonomy. dasp.co is no longer publicly served; read the [archived copy](https://web.archive.org/web/20240102011402/https://dasp.co/). It is dated and not actively maintained, but its categories shaped how the field talks about issues: 1) Reentrancy, 2) Access Control, 3) Arithmetic Issues, 4) Unchecked Return Values, 5) Denial of Service, 6) Bad Randomness, 7) Front-Running, 8) Time Manipulation, 9) Short Address Attack (largely mitigated by modern web3 libs), 10) Unknown Unknowns. Most of these are subsumed by SWC entries. Cite DASP only for historical context.
 
 ### 5.3 Modern Catalogues
 
 Beyond SWC, current practice references:
 
-- **[Solodit](https://solodit.cyfrin.io)** — aggregated public audit-finding database from Cyfrin; searchable by category, protocol, severity. The de facto modern catalogue. [verify 2026-04-26]
+- **[EEA EthTrust Security Levels](https://entethalliance.org/specs/ethtrust-sl/)** — maintained, Solidity-specific requirement catalogue (v3, March 2025) at three levels, [S], [M] and [Q]; the SWC registry's notice points readers to it for currently maintained guidance.
+- **[OWASP Smart Contract Top 10](https://scs.owasp.org/sctop10/)** — awareness ranking, 2026 edition (SC01 Access Control Vulnerabilities through SC10 Proxy & Upgradeability Vulnerabilities).
+- **[Solodit](https://solodit.cyfrin.io)** — aggregated public audit-finding database from Cyfrin, filterable by impact, protocol category, report tags and source; Cyfrin describes it as the largest public dataset of smart-contract findings [verify 2026-11-04].
 - **[Trail of Bits "Building Secure Smart Contracts"](https://github.com/crytic/building-secure-contracts)** — patterns, tooling guidance, training material. Authoritative for Slither / Echidna / Medusa workflow.
-- **[OpenZeppelin Defender / Forum](https://forum.openzeppelin.com/c/security/35)** — published advisories on libraries and patterns; the OZ contracts library is the most-deployed Solidity library in the world, so its advisories propagate widely.
+- **[OpenZeppelin Contracts security advisories](https://github.com/OpenZeppelin/openzeppelin-contracts/security/advisories)** and the **[OpenZeppelin Forum security category](https://forum.openzeppelin.com/c/security/25)** — advisories on the OZ libraries, which are widely inherited, so their advisories propagate widely. (OpenZeppelin announced Defender's final shutdown for 2026-07-01, as part of phasing it out in favour of open-source tooling.)
 - **[ConsenSys Diligence "Ethereum Smart Contract Best Practices"](https://consensys.github.io/smart-contract-best-practices/)** — pattern catalogue and known-attacks list. Complements SWC.
-- **[Code4rena Reports](https://code4rena.com/reports)**, **[Sherlock Audits](https://audits.sherlock.xyz/contests)**, **[Cantina Reports](https://cantina.xyz)** — public competitive-audit findings; exceptional for understanding what *current* findings look like in the wild.
-- **[Rekt News](https://rekt.news)** and **[DeFiLlama Hacks](https://defillama.com/hacks)** — incident catalogues for post-mortem study; not technical taxonomy but invaluable for "what did the actual exploits look like." [verify 2026-04-26]
+- **[Code4rena Reports](https://code4rena.com/reports)**, the **[Sherlock contest archive](https://audits.sherlock.xyz/contests)** (historical: Sherlock's docs now mark contests as replaced by its Audit Engine), and **[Cantina](https://cantina.security)** — public competitive-audit findings; useful for seeing what recent findings look like in practice.
+- **[Rekt News](https://rekt.news)** — incident write-ups for post-mortem study; not technical taxonomy but useful for "what did the actual exploits look like" [verify 2026-11-04].
+- **[DeFiLlama Hacks](https://defillama.com/hacks)** — incident catalogue with loss figures.
 
-The taxonomy you cite in the audit report should match the audience: SWC IDs for downstream consumers who index reports, firm-internal severity labels for the team's triage workflow, and Solodit category labels for cross-engagement comparability.
+The taxonomy you cite in the audit report should match the audience: SWC IDs (legacy) or EthTrust requirement IDs for downstream consumers who index reports, OWASP SC Top 10 categories for executive summaries, firm-internal severity labels for the team's triage workflow, and Solodit category labels for cross-engagement comparability.
 
 ---
 
 ## 6. Vulnerability Classes
 
-The classes below are the categories that have produced most material findings in EVM-chain audits in the 2020-2026 window. Each subsection describes the pattern, the auditor's check, the remediation shape, and a short illustrative (intentionally abstract) snippet. Working exploit code against deployed contracts is intentionally omitted — see [[../Pentesting/sop-vulnerability-research|Vulnerability Research]] for the ethics of PoC publication.
+The classes below are the categories that have produced most material findings in EVM-chain audits in the 2020-2026 window. Each subsection describes the pattern, the auditor's check, the remediation shape, and, where a snippet helps, a short illustrative (intentionally abstract) one. Working exploit code against deployed contracts is intentionally omitted — see [[../Pentesting/sop-vulnerability-research|Vulnerability Research]] for the ethics of PoC publication.
 
 ### 6.1 Reentrancy
 
@@ -260,11 +263,11 @@ The classes below are the categories that have produced most material findings i
 - **Single-function reentrancy.** Same function re-entered. The original 2016 DAO bug. Mitigated by checks-effects-interactions (CEI) ordering or the `nonReentrant` modifier.
 - **Cross-function reentrancy.** Function A is called; A calls out; the callee re-enters function B that shares state with A. CEI in A alone is insufficient; B must also be guarded.
 - **Cross-contract reentrancy.** Two contracts in the same protocol share state via a registry, accounting library, or token. An external call from contract X re-enters contract Y, which sees stale shared state.
-- **Read-only reentrancy.** External integrators read view functions that compute over state mid-update. Even when the protocol's own writes are CEI-safe, view functions can return inconsistent values during the brief window an external call is in flight, and downstream protocols using those view functions for pricing or accounting are corrupted. Curve's read-only reentrancy issue (April 2022 advisory) [verify 2026-04-26] popularized this class.
+- **Read-only reentrancy.** External integrators read view functions that compute over state mid-update. Even when the protocol's own writes are CEI-safe, view functions can return inconsistent values during the brief window an external call is in flight, and downstream protocols using those view functions for pricing or accounting are corrupted. ChainSecurity's disclosure popularized this class: on 2022-04-14 it privately informed Curve and affected integrators that Curve pools' `get_virtual_price` could be read mid-`remove_liquidity`, which exposed price feeds at MakerDAO, Enzyme, Abracadabra, TribeDAO and Opyn; the public post-mortem followed on 2022-10-11 [verify 2026-11-04].
 
-**Auditor's check.** For every external call (low-level `.call`, ERC-20 transfer where the token may have hooks like ERC-777 / ERC-1363, ERC-721 `safeTransferFrom` triggering `onERC721Received`, ERC-1155 batch hooks, native ETH `.call{value:}`), enumerate all functions that share state with the calling function and verify each is reentrancy-safe, including cross-contract integrators that read computed view functions.
+**Auditor's check.** For every external call (low-level `.call`, ERC-20 transfer where the token may have hooks like ERC-777 / ERC-1363, ERC-721 `safeTransferFrom` triggering `onERC721Received`, ERC-1155 `onERC1155Received` / `onERC1155BatchReceived` hooks, native ETH `.call{value:}`), enumerate all functions that share state with the calling function and verify each is reentrancy-safe, including cross-contract integrators that read computed view functions. For transient-storage guards (EIP-1153 `TSTORE` / `TLOAD`, Solidity `transient` variables from 0.8.28), confirm the lock is cleared before the function returns: transient slots persist until the end of the *transaction*, not the call, so a lock left set blocks legitimate re-entry from multicall / batch flows, and stale transient values leak between calls in the same transaction.
 
-**Remediation.** Checks-effects-interactions ordering. `nonReentrant` modifier (OpenZeppelin's `ReentrancyGuard`) on functions that make external calls or share state with such functions. Read-only-reentrancy guards on view functions that compute over mutable state (or cache values pre-call and serve cached values during the window). Pull-payment patterns where users withdraw owed balances rather than the contract pushing.
+**Remediation.** Checks-effects-interactions ordering. `nonReentrant` modifier (OpenZeppelin's `ReentrancyGuard`, or `ReentrancyGuardTransient`, its EIP-1153 variant from 5.1) on functions that make external calls or share state with such functions. Read-only-reentrancy guards on view functions that compute over mutable state: OpenZeppelin's `nonReentrantView` (5.5+) or a check on `_reentrancyGuardEntered()` (4.9+). Integrators that price off another protocol's view function must confirm that protocol is not mid-call; after the Curve disclosure, most affected integrators triggered the pool's reentrancy lock by calling a cheap state-changing function (`withdraw_admin_fees`) before reading the price. Pull-payment patterns where users withdraw owed balances rather than the contract pushing. Do not treat `transfer` / `send` and their 2300-gas stipend as reentrancy protection: both are deprecated since Solidity 0.8.31, the Solidity docs say the stipend "no longer holds its original meaning due to changing opcode costs", and EIP-1153 `TSTORE` is exempt from the stipend check. Use `call{value: ...}("")` with CEI and a reentrancy guard, and check its return value.
 
 ```solidity
 // Vulnerable: external call before state update.
@@ -308,13 +311,13 @@ function withdraw() external nonReentrant {
 - **Spot-price oracle from a thinly-traded AMM pool.** Attacker flash-loans capital, swaps to skew the pool, calls the victim contract (which reads the now-manipulated price), profits, swaps back, repays the flash loan. The bZx 2020 incidents popularized this class.
 - **Single-block price reads.** Even on deeper pools, reading the price within the same block as a swap allows sandwich-style manipulation.
 - **TWAP windows too short.** Time-weighted-average-price oracles with too-short windows (e.g. 5 minutes on a block-time-of-12-seconds chain = ~25 samples) are still manipulable with sustained pressure.
-- **Stale Chainlink reads.** Chainlink's `AggregatorV3Interface` returns `(roundId, answer, startedAt, updatedAt, answeredInRound)`. Failing to check `updatedAt` against the heartbeat or the current timestamp lets stale prices drive logic — the protocol thinks the price is current, but the oracle stopped publishing. Failing to check `answeredInRound >= roundId` lets historical / partial rounds slip through.
-- **Sequencer-down on L2s.** Arbitrum / Optimism / Base sequencer outages stop new blocks from being produced, freezing the oracle. Failing to consult the L2 sequencer-uptime feed (Chainlink publishes it) makes the protocol mis-price during outages.
+- **Stale Chainlink reads.** Chainlink's `AggregatorV3Interface` returns `(roundId, answer, startedAt, updatedAt, answeredInRound)`. Failing to compare `updatedAt` with `block.timestamp` against the feed's heartbeat lets stale prices drive logic: the protocol thinks the price is current, but the oracle stopped publishing. Also check `answer > 0` and any min / max bounds. (`answeredInRound` is deprecated per Chainlink's API reference; a missing `answeredInRound >= roundId` check is not a finding on its own.)
+- **Sequencer-down on L2s.** Arbitrum / Optimism / Base sequencer outages stop new blocks from being produced, freezing the oracle. Failing to consult the L2 sequencer-uptime feed (Chainlink publishes it) makes the protocol mis-price during outages. Also check the protocol waits for a grace period after the sequencer comes back before allowing liquidations.
 - **Custom oracle aggregator with un-validated inputs.** Median-of-N sources where N includes a low-quality feed; weighted-average where weights are owner-mutable.
 
-**Auditor's check.** For every price read, identify the source. AMM-based? Has the protocol enforced sufficient depth, sufficient time-weighting, and circuit-breaker logic? Chainlink? Are `updatedAt`, heartbeat, and `answeredInRound` checked? Is the sequencer-uptime feed checked on L2? Is the price used for liquidations or for accounting? Liquidation prices need tighter freshness than display prices.
+**Auditor's check.** For every price read, identify the source. AMM-based? Has the protocol enforced sufficient depth, sufficient time-weighting, and circuit-breaker logic? Chainlink? Are `updatedAt` vs heartbeat, `answer > 0` and value bounds checked? Is the sequencer-uptime feed checked on L2? Is the price used for liquidations or for accounting? Liquidation prices need tighter freshness than display prices.
 
-**Remediation.** TWAP with a window long enough to make manipulation cost-prohibitive (often 30 minutes to hours, not seconds-to-minutes). Multiple-source medianization. Circuit breakers that pause on oracle deviations beyond N basis points. Always-check the freshness fields. Document the oracle threat model in the protocol README.
+**Remediation.** TWAP with a window and pool depth that make multi-block manipulation cost-prohibitive: size it from the pool's liquidity, not a fixed number of minutes, and assume a post-Merge proposer can control consecutive blocks (proposers know their slots up to one epoch ahead). Multiple-source medianization. Circuit breakers that pause on oracle deviations beyond N basis points. Check `updatedAt` against the heartbeat, `answer > 0` and value bounds on every read. Document the oracle threat model in the protocol README.
 
 ### 6.4 MEV, Front-Running & Sandwich Attacks
 
@@ -329,7 +332,7 @@ function withdraw() external nonReentrant {
 
 **Auditor's check.** Does the protocol design assume transactions execute in a specific order? Does it expose a value extractable by front-running (uncapped slippage on user trades, uncapped withdrawal in a depegged stablecoin, undercut of governance vote?) Does it use commit-reveal where ordering matters?
 
-**Remediation.** Slippage parameters set by the user, with sensible UI defaults. Commit-reveal schemes for orderings. Auctions (sealed-bid, batch-auction) for actions where ordering equals value. Private mempool routing (Flashbots Protect, MEV Blocker, MEV-Share) at the wallet / app layer. Acceptable-loss framing in the threat model — most protocols cannot eliminate MEV, only bound it. CowSwap's batch-auction CoW model and the Uniswap X / 1inch Fusion intent-based models are end-state designs that mitigate at the protocol level rather than per-transaction. [verify 2026-04-26]
+**Remediation.** Slippage parameters set by the user, with sensible UI defaults. Commit-reveal schemes for orderings. Auctions (sealed-bid, batch-auction) for actions where ordering equals value. Private mempool routing (Flashbots Protect, MEV Blocker, MEV-Share) at the wallet / app layer. Acceptable-loss framing in the threat model — most protocols cannot eliminate MEV, only bound it. CoW Protocol's fair combinatorial batch auction (uniform directed clearing prices, coincidence of wants) and intent-based designs such as UniswapX and 1inch Fusion mitigate MEV at the protocol level rather than per transaction [verify 2026-11-04].
 
 ### 6.5 Signature & Cryptographic Pitfalls
 
@@ -338,10 +341,10 @@ function withdraw() external nonReentrant {
 **Common shapes.**
 - **Signature replay across chains.** Same chain ID is not bound into the signed message; a signature valid on chain A is replayable on chain B. EIP-712 domain-separator binding mitigates if the domain separator includes `chainid` and the contract address.
 - **Signature replay within a chain.** No nonce or expiration; the same signature is replayable until the signer rotates keys.
-- **Signature malleability.** ECDSA signatures `(r, s, v)` have a paired `(r, -s mod n, v')` form that verifies the same message; allowing both lets an attacker mutate a signature without invalidating it. Use OpenZeppelin's `ECDSA.recover` or enforce `s < secp256k1n / 2` (EIP-2 / Ethereum's "low-s" rule).
+- **Signature malleability.** ECDSA signatures `(r, s, v)` have a paired `(r, -s mod n, v')` form that verifies the same message; allowing both lets an attacker mutate a signature without invalidating it. Use OpenZeppelin's `ECDSA.recover`, which rejects high-s values and reverts instead of returning `address(0)`, or enforce `s <= secp256k1n / 2` yourself. EIP-2's low-s rule applies only to transaction signatures; the `ecrecover` precompile still accepts high-s signatures. Never use a signature's bytes as a replay key or unique ID; use a nonce or the signed message digest.
 - **`ecrecover` returning the zero address on invalid input.** Treat zero-address as a non-recovery; otherwise an attacker who can produce malformed input can claim signing as the zero address.
 - **`abi.encodePacked` collision.** Concatenating multiple variable-length arguments without separators allows collisions; e.g. `abi.encodePacked("a", "bc")` and `abi.encodePacked("ab", "c")` produce the same byte string. Use `abi.encode` for hash inputs that mix dynamic types.
-- **Permit / EIP-2612 / EIP-3009 / EIP-7702 misuse.** Token permits bind specific approvals to a signature; the contract must verify the permit was issued *to itself*, must check expiration, and must update the nonce. EIP-7702-style account-abstraction delegations introduce additional pitfalls when the delegated contract is upgradeable. [verify 2026-04-26]
+- **Permit / ERC-2612 / ERC-3009 (Draft) / EIP-7702 misuse.** *Token side:* `permit` must check `deadline`, consume `nonces[owner]`, and reject `owner == address(0)`; prefer a domain separator rebuilt when `block.chainid` changes. *Integrator side:* anyone can submit a permit signature first, so wrap `permit` in `try` / `catch` (OpenZeppelin `IERC20Permit` guidance) and do not let the flow depend on it succeeding. Contracts that accept ERC-3009 authorizations should call `receiveWithAuthorization`, not `transferWithAuthorization`. *EIP-7702 delegate contracts:* the delegate must enforce its own replay protection and have the account sign over value, gas, target and calldata; initialization must be authorized by the EOA's signature because it can be front-run; storage should be namespaced (ERC-7201) so re-delegation does not collide; authorizations with `chain_id = 0` are valid on every chain; and delegated EOAs break `require(msg.sender == tx.origin)` checks [verify 2026-11-04].
 - **Schnorr / BLS / threshold signatures.** Used in some L2s, validator sets, and cross-chain bridges. Audits of these systems require the auditor to read the specific scheme paper and reference implementation; defer to [[sop-cryptography-analysis|Cryptography Analysis]] for primitive-level review.
 
 **Auditor's check.** Every place a signature is accepted: domain-separator includes chain-id and verifying contract? Nonce included and incremented atomically with use? Expiration included and checked? Recovery handles malformed input? Hash construction non-collision? Signer authority bound to the action (not just any-signer)?
@@ -353,26 +356,26 @@ function withdraw() external nonReentrant {
 **Pattern.** `delegatecall` runs callee code in the caller's storage context. Wrong storage layout, wrong callee, or wrong delegation discipline corrupts state or hands the caller's storage to the callee.
 
 **Common shapes.**
-- **Storage collision in upgradeable proxies.** UUPS / Transparent Proxy / Beacon proxies put the implementation behind storage that the proxy itself reserves slots for (`_IMPLEMENTATION_SLOT` per ERC-1967). New implementation versions must preserve storage layout: a removed variable, a re-ordered variable, or an added variable in the wrong slot corrupts state.
+- **Storage collision in upgradeable proxies.** UUPS / Transparent Proxy / Beacon proxies put the implementation (or, for Beacon proxies, the beacon) address in pseudo-random ERC-1967 slots (`implementation`, `admin`, `beacon`) so it does not collide with the implementation's sequential layout. New implementation versions must preserve storage layout: a removed variable, a re-ordered variable, or an added variable in the wrong slot corrupts state.
 - **Diamond / multi-facet storage collisions.** EIP-2535 Diamond proxies route different selectors to different facets that share storage. Two facets defining a state variable at the same slot collide.
 - **`delegatecall` to attacker-controlled address.** A function `delegatecall(addr, data)` where `addr` is user-supplied gives the user a write primitive over the caller's entire storage.
-- **`delegatecall` returning to a caller that assumes its own state survived.** The callee can `selfdestruct`, removing the implementation; the proxy is bricked.
-- **Initializer in implementation.** If the implementation contract's `initialize()` is callable directly (rather than only through the proxy), an attacker takes ownership of the bare implementation, which can matter for uninitialized-implementation chains where the implementation itself becomes a target (the parity multisig 2017 incident).
+- **`delegatecall` into code that can `SELFDESTRUCT`.** `delegatecall` runs the callee's code in the caller's context, so a `SELFDESTRUCT` reached in the callee acts on the caller (through a proxy, it targets the proxy). Before Cancun (EIP-6780), a reachable `SELFDESTRUCT` deleted code: through a proxy it destroyed the proxy, and called directly on an unprotected implementation it destroyed the shared code every proxy depends on (the 2017 Parity multisig library freeze, next item). On EIP-6780 chains, `SELFDESTRUCT` outside the creation transaction only moves the balance, so code is no longer deleted. Still flag it: the balance moves, and chains without EIP-6780 keep the old behaviour.
+- **Initializer in implementation.** If the implementation contract's `initialize()` is callable directly (rather than only through the proxy), an attacker takes ownership of the bare implementation, which can matter for uninitialized-implementation chains where the implementation itself becomes a target. The reference case is the November 2017 Parity multisig incident: an uninitialized Parity wallet library was claimed and self-destructed, freezing every wallet that delegated to it. Post-Cancun, `SELFDESTRUCT` no longer deletes code, but an attacker-owned implementation is still a finding: the attacker can move any balance the implementation holds and act with any privileges granted to the implementation's address. (OpenZeppelin's UUPS `upgradeToAndCall` is `onlyProxy`, so it cannot be called on the bare implementation; custom upgrade paths may lack that guard.)
 
-**Auditor's check.** For every upgrade path: storage-layout diff between V1 and V2 (use `forge inspect` or OpenZeppelin's `@openzeppelin/upgrades-core` storage-layout checker). For every `delegatecall`: is the target trusted? Is it pinned? For Diamond architectures: facet storage is in named-slot pattern (EIP-7201 / "Diamond Storage")? Implementation contracts have `_disableInitializers()` in the constructor (OpenZeppelin Initializable post-4.6)?
+**Auditor's check.** For every upgrade path: storage-layout diff between V1 and V2 (use `forge inspect` or OpenZeppelin's `@openzeppelin/upgrades-core` storage-layout checker). For every `delegatecall`: is the target trusted? Is it pinned? For Diamond architectures: facet storage is in named-slot pattern (ERC-7201 / "Diamond Storage")? Implementation contracts have `_disableInitializers()` in the constructor (OpenZeppelin Initializable post-4.6)?
 
-**Remediation.** Use OpenZeppelin Upgrades plugin + storage-layout linter. Diamond Storage / namespaced storage (EIP-7201 [verify 2026-04-26]) for new diamonds. Pin `delegatecall` targets. Disable initializers on implementations.
+**Remediation.** Use OpenZeppelin Upgrades plugin + storage-layout linter. Diamond Storage / namespaced storage (ERC-7201 [verify 2026-11-04]) for new diamonds. Pin `delegatecall` targets. Disable initializers on implementations.
 
 ### 6.7 Arithmetic & Integer Issues
 
-**Pattern.** Pre-Solidity 0.8.0, arithmetic wrapped silently; post-0.8.0, arithmetic reverts on overflow / underflow except inside `unchecked { }` blocks. The class shifted shape but did not disappear.
+**Pattern.** Pre-Solidity 0.8.0, arithmetic wrapped silently; post-0.8.0, arithmetic reverts on overflow / underflow except inside `unchecked { }` blocks. Bitwise shifts, explicit down-casts and inline assembly (Yul) arithmetic are not checked even outside `unchecked`. The class shifted shape but did not disappear.
 
 **Common shapes (post-0.8).**
-- **`unchecked { }` blocks for gas optimization.** Every `unchecked` block is a place the auditor must reason about manually. Solidity's checked arithmetic is correct by default; opt-out is a flag.
+- **`unchecked { }` blocks for gas optimization.** Every `unchecked` block is a place the auditor must reason about manually. Solidity's arithmetic is checked by default. The only opt-out is an `unchecked { }` block in the source; there is no compiler flag. It covers only the operations written inside the block, not functions called from it, and division or modulo by zero still reverts.
 - **Precision loss in division.** `(a * b) / c` versus `a * (b / c)`: the former preserves precision, the latter loses it. Solidity's `/` is integer division.
 - **Down-casting truncation.** `uint128(uint256(x))` silently truncates; Solidity emits no warning. SafeCast (OpenZeppelin) reverts on lossy down-cast.
 - **Order-of-operations in fixed-point math.** PRBMath / Solady `FixedPointMathLib` / OpenZeppelin's `Math.mulDiv` are the canonical helpers; rolling your own usually introduces precision errors.
-- **Rounding direction.** `roundUp` favors the protocol; `roundDown` favors the user. Inverting these on deposit / withdraw / share-issuance leaks value.
+- **Rounding direction.** Every rounding should favor the protocol: round **down** what the user receives (shares minted for deposited assets, assets paid out for redeemed shares) and round **up** what the user must provide (shares burned to withdraw a given amount of assets, assets pulled in to mint a given number of shares). This is the ERC-4626 rule. Inverting any one of these leaks value, and a repeatable 1-wei leak can be looped.
 - **Token-decimal mismatch.** USDC has 6 decimals, WETH has 18, WBTC has 8. Treating a `uint256` amount as inherently 18-decimal silently breaks accounting.
 
 **Auditor's check.** Read every `unchecked { }` block and verify the bounds claim. Read every cast-down. Verify rounding direction matches the protocol's economic intent. Verify token-decimal handling at every boundary.
@@ -384,11 +387,11 @@ function withdraw() external nonReentrant {
 **Pattern.** Upgradeable contracts have lifecycle pitfalls absent from immutable contracts.
 
 **Common shapes.**
-- **Uninitialized storage on a fresh proxy.** A proxy points at an implementation; initialization is a separate transaction. Front-running the initialization lets the front-runner take ownership.
+- **Uninitialized storage on a fresh proxy.** A proxy points at an implementation; initialization is a separate transaction. Front-running the initialization lets the front-runner take ownership. Check the deployment script passes the initializer calldata to the proxy constructor (`ERC1967Proxy(impl, data)`) so deploy and initialize happen in one transaction.
 - **Re-initializable.** OZ's `initializer` modifier allows one-time init; `reinitializer(version)` allows additional init steps per version. Wiring these wrong (missing modifier, wrong version number, mis-ordered upgrade steps) leaves init reachable.
-- **UUPS authorization missing.** UUPS proxies put the upgrade logic in the implementation; if the new implementation does not override `_authorizeUpgrade()` or override it incorrectly, anyone can upgrade.
-- **Storage-gap omission (legacy).** OZ Transparent Proxies traditionally reserved a `__gap` array per inherited contract to allow future state-variable addition. Omitting it bricks future upgrades. (Modern OZ guidance is shifting toward namespaced storage / EIP-7201; verify the project's OZ version.) [verify 2026-04-26]
-- **Implementation kept at zero address while proxy is deployed.** A misconfiguration that causes the proxy to call into nothing, bricking it pre-init.
+- **UUPS authorization missing.** UUPS proxies keep the upgrade logic in the implementation. OpenZeppelin's `_authorizeUpgrade` is declared without a body, so it must be overridden; an override without an access check (e.g. `function _authorizeUpgrade(address) internal override {}`) lets anyone upgrade. Also check every new implementation still inherits the UUPS upgrade path and the `proxiableUUID` check; otherwise one upgrade can permanently remove upgradeability.
+- **Storage-gap omission (pre-5.0 OZ pattern).** Before OpenZeppelin Contracts 5.0, upgradeable base contracts reserved a `uint256[N] __gap` so later versions could add state variables without shifting the child contract's slots. Without a gap, or if the gap is not shrunk to match added variables, a base-contract change silently collides with child storage. OZ Contracts Upgradeable 5.0+ uses ERC-7201 namespaced storage instead (`@custom:storage-location erc7201:<id>`; the Upgrades plugins need Solidity 0.8.20 or later to validate it). Check which convention the project's OZ version uses and run the plugin's layout validation [verify 2026-11-04].
+- **Implementation without code (custom proxies).** A hand-rolled proxy that does not check `implementation.code.length > 0` can point at the zero address or an EOA; delegatecalls then succeed silently and do nothing. OpenZeppelin's `ERC1967Utils` rejects this.
 
 **Auditor's check.** Run OpenZeppelin Upgrades plugin's storage-layout checker against V1 → V2 diff. Verify init modifiers exist on every initializable function. Verify `_disableInitializers()` is called in implementation constructor. For UUPS, verify `_authorizeUpgrade` is restricted. For Diamond, verify facet replacement does not orphan storage.
 
@@ -397,16 +400,16 @@ function withdraw() external nonReentrant {
 **Pattern.** On-chain governance lets token-holders change protocol parameters, upgrade contracts, or move treasury. Adversaries with enough voting power (acquired, borrowed, or rented) hijack the protocol.
 
 **Common shapes.**
-- **Flash-loan governance.** If voting power is sampled at the moment a vote is cast (rather than a checkpoint before the proposal), an attacker flash-loans tokens, votes, repays. Mitigated by Compound-style checkpointing (snapshot at proposal-creation block) and by minimum-token-holding-time requirements.
-- **Vote-buying / Curve-wars / bribery.** Governance tokens with vote-escrow (veCRV, veBAL) accrue voting power based on lockup duration. Bribery markets (Votium, Hidden Hand, Convex / Aura ecosystems) commodify voting; not a vulnerability per se but a threat-model factor.
+- **Flash-loan governance.** If voting power is sampled at the moment a vote is cast (rather than a checkpoint before the proposal), an attacker flash-loans tokens, votes, repays. Mitigated by checkpointed voting power read at a fixed past timepoint (Compound GovernorBravo / OpenZeppelin Governor use proposal creation + `votingDelay`), so tokens borrowed after the snapshot carry no votes, and by minimum-token-holding-time requirements.
+- **Vote-buying / Curve-wars / bribery.** Governance tokens with vote-escrow (veCRV, veBAL) accrue voting power based on lockup duration. Bribery markets (e.g. Votium in the Convex ecosystem) commodify voting; not a vulnerability per se but a threat-model factor.
 - **Insufficient timelock.** Governance proposals execute immediately or near-immediately, leaving no window for users to exit. Best practice is a multi-day timelock plus a guardian veto for emergency.
 - **Quorum too low.** Low-quorum governance lets a small token-holder coalition pass arbitrary proposals.
 - **Proposal payload not auditable.** Proposals are encoded as `(target, value, signature, calldata)` tuples; obscure encoding lets a malicious proposal hide a privileged call.
 - **Compromised guardian.** Guardian / multisig with veto-or-pause power is a single point of failure.
 
-**Auditor's check.** Token voting power source: snapshot at proposal block, snapshot at vote block, or live? Timelock duration? Quorum threshold? Guardian / pauser identity and process? Does the proposal-execution path allow arbitrary calldata to arbitrary targets? Are there anti-vote-buying mechanisms?
+**Auditor's check.** Token voting power source: checkpointed at a fixed past timepoint (e.g. proposal creation + `votingDelay`), or read live at vote time? Timelock duration? Quorum threshold? Guardian / pauser identity and process? Does the proposal-execution path allow arbitrary calldata to arbitrary targets? Are there anti-vote-buying mechanisms?
 
-**Remediation.** Snapshot voting (at proposal block, not vote block). Timelock of days, not hours. Guardian-veto rather than guardian-execute (the guardian can stop, not start). Separation of treasury / parameter-change / upgrade authorities (don't let one proposal type change all three).
+**Remediation.** Checkpointed vote weights fixed at the proposal snapshot (creation + `votingDelay`), not read live at vote time. Timelock of days, not hours. Guardian-veto rather than guardian-execute (the guardian can stop, not start). Separation of treasury / parameter-change / upgrade authorities (don't let one proposal type change all three).
 
 ### 6.10 Flash Loans & Composability Attacks
 
@@ -421,7 +424,29 @@ function withdraw() external nonReentrant {
 
 **Auditor's check.** "What is the largest single-transaction action this protocol allows?" If the answer is "anything an attacker with $1B of flash-loaned capital can do," the protocol's invariants must hold under that adversary. Test invariants under flash-loan-amplified scenarios. Document the protocol's tolerance for flash-loan-driven price impact.
 
-**Remediation.** Defense-in-depth: oracle TWAP windows long enough to outlast a single block, governance snapshots, reentrancy guards across the entire protocol surface (not per-contract), liquidation incentives that align with attacker incentives.
+**Remediation.** Defense-in-depth: oracle TWAP windows and pool depth sized so that a multi-block manipulation by a validator holding consecutive slots is unprofitable (post-Merge proposers know their slots up to one epoch ahead), governance snapshots, reentrancy guards across the entire protocol surface (not per-contract), liquidation incentives that align with attacker incentives.
+
+### 6.11 Token Integration Assumptions
+
+**Pattern.** The protocol assumes every token it handles behaves like a textbook ERC-20: the amount argument equals the amount received, balances change only through transfers, `approve` can be called with any value, and every call returns `true`. Real tokens break each of these assumptions.
+
+**Common shapes.**
+- **Approve race.** Changing a non-zero allowance to another non-zero value lets the spender front-run the change and spend both the old and the new allowance. [ERC-20](https://eips.ethereum.org/EIPS/eip-20) tells clients to set the allowance to `0` before setting a new value for the same spender, and [ERC-2612](https://eips.ethereum.org/EIPS/eip-2612) notes the same race applies to `permit`. Some tokens, USDT among them, go further and revert unless the current allowance is zero, so a protocol that calls `approve` with a new value directly can lock up on them.
+- **Missing return values.** Some tokens return nothing from `transfer` / `transferFrom` / `approve`, and some return `false` instead of reverting. Code that calls the bare `IERC20` interface reverts on the first kind and silently ignores failures from the second.
+- **Fee-on-transfer tokens.** The token burns or diverts part of each transfer, so the recipient receives less than the `amount` argument. A protocol that credits `amount` on deposit over-credits the depositor, and its books then show more than it holds.
+- **Rebasing tokens.** Balances change without any transfer. Cached balances and internal accounting drift from `balanceOf`: a positive rebase leaves an unaccounted surplus that a third party may capture, and a negative rebase leaves a deficit that the next user to transact absorbs.
+
+**Auditor's check.** List every token the protocol may receive, including user-supplied tokens in permissionless markets. For each entry point that moves tokens, check whether accounting uses the `amount` argument or the measured balance change, how return values are handled, how allowances are set, and whether the code caches balances that a rebase can change. Confirm the documentation states which token behaviours are unsupported, and that the code enforces it (e.g. an allowlist) where it matters.
+
+**Remediation.** OpenZeppelin [`SafeERC20`](https://docs.openzeppelin.com/contracts/5.x/api/token/erc20#SafeERC20): `safeTransfer` / `safeTransferFrom` revert on a `false` return and accept tokens that return no value; `forceApprove` (4.9+) handles tokens that require the allowance to be set to zero first; `safeIncreaseAllowance` / `safeDecreaseAllowance` change an allowance relative to its current value. Where fee-on-transfer tokens are allowed, credit the measured balance delta (`balanceAfter - balanceBefore`), not the argument. Account rebasing tokens in shares, require a non-rebasing wrapper, or reject them explicitly. Uniswap's [v2 troubleshooting notes](https://developers.uniswap.org/docs/protocols/v2/guides/troubleshooting) document how fee-on-transfer and rebasing tokens break pool accounting.
+
+### 6.12 ERC-4626 Vault Share Inflation (First Depositor)
+
+**Pattern.** An [ERC-4626](https://eips.ethereum.org/EIPS/eip-4626) vault converts between assets and shares at a rate set by the vault's assets and share supply. On an empty or nearly empty vault, an attacker who holds the first shares donates assets directly to the vault (a plain token transfer, not a `deposit`), inflating the price of a share so that the next depositor's shares round down to zero or close to it. The attacker typically front-runs the first real deposit, then redeems their shares for the vault's assets, including most or all of the victim's deposit. OpenZeppelin calls this the inflation (or donation) attack.
+
+**Auditor's check.** Work out what a depositor receives when the share supply is zero or tiny and the vault's assets have been inflated by a donation. Check whether `totalAssets()` reads the raw token balance (donations count) or internal accounting. Check rounding on every conversion against the ERC-4626 rule (§6.7). Check how the vault is seeded at deployment, and whether user-facing entry points let depositors set a minimum number of shares out.
+
+**Remediation.** OpenZeppelin's `ERC4626` (4.9+) adds virtual shares and virtual assets to the exchange-rate computation, with `_decimalsOffset()` setting the offset between the asset's and the vault's decimals. Per OpenZeppelin's `ERC4626` documentation and [ERC-4626 guide](https://docs.openzeppelin.com/contracts/5.x/erc4626), this does not fully prevent the attack, but even the default offset (0) makes it unprofitable and larger offsets make it far more costly. Other mitigations OpenZeppelin documents: an initial deposit of a non-trivial amount by the deployer, and depositor-side slippage checks on the shares received (e.g. through a router such as `ERC4626Router`). ERC-4626 also warns that the `preview*` functions are manipulable and not always safe as price oracles.
 
 ---
 
@@ -431,7 +456,7 @@ The static-tooling layer is where cheap wins live: missing visibility modifiers,
 
 ### 7.1 Slither
 
-[Slither](https://github.com/crytic/slither) (Trail of Bits) is the de facto standard. Detector-based, fast, reads Solidity ASTs and the Slither IR.
+[Slither](https://github.com/crytic/slither) (Trail of Bits) is the de facto standard. Detector-based, fast, reads Solidity ASTs and lifts them to the SlithIR intermediate representation.
 
 ```bash
 # Install
@@ -441,11 +466,13 @@ pip install slither-analyzer
 slither .                                  # auto-detects framework
 slither contracts/MyContract.sol           # single file
 
-# Filter by detector severity
+# Exclude results from test / dependency paths
 slither . --filter-paths "test/|lib/|node_modules/"
 
-# Output as Markdown for the engagement repo
-slither . --markdown-root . > slither-report.md
+# Markdown report for the engagement repo
+slither . --checklist > slither-report.md
+# Same, with finding locations linked to the GitHub source at the audited commit
+slither . --checklist --markdown-root https://github.com/ORG/REPO/blob/COMMIT/ > slither-report.md
 
 # Specific detectors only
 slither . --detect reentrancy-eth,reentrancy-no-eth,reentrancy-benign
@@ -457,23 +484,24 @@ slither . --print call-graph              # call relationships
 slither . --print function-summary        # per-function modifiers, state vars touched
 ```
 
-Slither has ~90 detectors out of the box [verify 2026-04-26]; severity is informational / low / medium / high. False-positive rate is non-trivial for the more aggressive detectors; triage is mandatory. The `slither-mutate` and `slither-flat` companion tools support mutation testing and flattening for tooling that wants single-file input.
+Slither 0.11.6 ships 100 detectors [verify 2026-11-04]; each carries an impact (High / Medium / Low / Informational / Optimization) and a confidence rating. False-positive rate is non-trivial for the more aggressive detectors; triage is mandatory. The `slither-mutate` and `slither-flat` companion tools support mutation testing and flattening for tooling that wants single-file input.
 
 ### 7.2 Aderyn
 
-[Aderyn](https://github.com/Cyfrin/aderyn) (Cyfrin) is a Rust-based static analyzer; faster than Slither on large codebases, covers an overlapping but distinct detector set. Currently in active development and gaining detector coverage; pair with Slither rather than replacing.
+[Aderyn](https://github.com/Cyfrin/aderyn) (Cyfrin) is a Rust-based static analyzer covering an overlapping but distinct detector set. Currently in active development and gaining detector coverage; pair with Slither rather than replacing.
 
 ```bash
-# Install
-cargo install aderyn
+# Install (one of). The crates.io package is stale (0.1.9, 2024), so skip `cargo install`.
+curl --proto '=https' --tlsv1.2 -LsSf https://github.com/cyfrin/aderyn/releases/latest/download/aderyn-installer.sh | bash
+brew install cyfrin/tap/aderyn
 
-# Run
+# Run (writes report.md)
 aderyn .
 ```
 
 ### 7.3 Wake
 
-[Wake](https://github.com/Ackee-Blockchain/wake) (Ackee Blockchain) is a Python-based development and testing framework that bundles a static analyzer, fuzzer, and IDE-server features. The detector set complements Slither / Aderyn and is the go-to for Python-shop audit firms. [verify 2026-04-26]
+[Wake](https://github.com/Ackee-Blockchain/wake) (Ackee Blockchain) is a Python-based development and testing framework that bundles a static analyzer, fuzzer, and IDE-server (LSP) features. The detector set complements Slither / Aderyn, and the framework pairs naturally with Python-based test suites. [verify 2026-11-04]
 
 ```bash
 pip install eth-wake
@@ -482,7 +510,7 @@ wake detect all
 
 ### 7.4 Mythril
 
-[Mythril](https://github.com/Consensys/mythril) (ConsenSys) is symbolic-execution-based; reachability of bug states rather than syntactic patterns. Slower than Slither, finds different classes of bug.
+[Mythril](https://github.com/ConsenSysDiligence/mythril) (Consensys Diligence) is symbolic-execution-based; reachability of bug states rather than syntactic patterns. Slower than Slither, finds different classes of bug. Maintenance has stalled (last release v0.24.8, March 2024; no commits since January 2025): expect dependency friction with current Python and solc versions, and treat it as a supplementary pass rather than a primary tool.
 
 ```bash
 # Install
@@ -497,9 +525,10 @@ Mythril output is per-finding with the symbolic path that triggers it; verify ea
 
 ### 7.5 Other Notable
 
-- **[Semgrep](https://semgrep.dev)** — pattern-based linting; community Solidity rule packs exist. Cheap to write engagement-specific rules.
+- **[Semgrep](https://semgrep.dev)** — pattern-based linting; community Solidity rule packs exist (e.g. [Decurity/semgrep-smart-contracts](https://github.com/Decurity/semgrep-smart-contracts)). Cheap to write engagement-specific rules.
+- **[Solhint](https://github.com/protofire/solhint)** — Solidity linter with security, style-guide and best-practice rule sets; a cheap CI gate, not a bug finder.
 - **[Cloc-style scoping helpers](https://github.com/AlDanial/cloc)** — count in-scope lines for engagement scoping.
-- **[Surya](https://github.com/ConsenSys/surya)** — call-graph and inheritance visualization; older but still useful for orientation.
+- **[Surya](https://github.com/ConsenSysDiligence/surya)** — call-graph and inheritance visualization; older but still useful for orientation.
 
 ---
 
@@ -509,7 +538,7 @@ Fuzzing finds counterexamples to invariants. The auditor encodes the invariant; 
 
 ### 8.1 Foundry's `forge test`
 
-[Foundry](https://book.getfoundry.sh) is the dominant Solidity testing framework as of 2026 [verify 2026-04-26]. Native Solidity tests, fuzzing, and invariant testing built in.
+[Foundry](https://getfoundry.sh) is a Solidity-native testing toolkit (stable since v1.0.0, February 2025; v1.9.0 as of 2026-11) [verify 2026-11-04]. Native Solidity tests, fuzzing, and invariant testing built in.
 
 ```bash
 # Install
@@ -519,8 +548,10 @@ foundryup
 # Project layout
 forge init my-audit
 cd my-audit
+```
 
-# Standard fuzz test — randomized inputs to a single function
+```solidity
+// Standard fuzz test — randomized inputs to a single function
 function testFuzz_Withdraw(uint256 amount) public {
     amount = bound(amount, 1, 1e30);
     vault.deposit{value: amount}();
@@ -528,10 +559,7 @@ function testFuzz_Withdraw(uint256 amount) public {
     assertEq(address(vault).balance, 0);
 }
 
-# Run
-forge test --match-test testFuzz_Withdraw --fuzz-runs 10000
-
-# Invariant test — random call sequences against the contract surface
+// Invariant test — random call sequences against the contract surface
 contract VaultInvariantTest is Test {
     Vault vault;
     Handler handler;
@@ -546,9 +574,16 @@ contract VaultInvariantTest is Test {
         assertEq(vault.totalSupply(), handler.sumOfBalances());
     }
 }
+```
 
-# Run invariant tests
-forge test --match-test invariant_ --fuzz-runs 1000
+```bash
+# Run the fuzz test
+forge test --match-test testFuzz_Withdraw --fuzz-runs 10000
+
+# Run invariant tests. The run count comes from `runs` under [invariant] in
+# foundry.toml (default 256) or FOUNDRY_INVARIANT_RUNS; call depth per run from
+# `depth` (default 500) or --invariant-depth.
+FOUNDRY_INVARIANT_RUNS=1000 forge test --match-test invariant_
 
 # Fork tests — run against mainnet state at a specific block
 forge test --fork-url $RPC_URL --fork-block-number 19000000
@@ -557,7 +592,7 @@ forge test --fork-url $RPC_URL --fork-block-number 19000000
 forge coverage --report lcov
 ```
 
-Invariant tests with **handler contracts** are the high-leverage pattern: the handler bounds calls to realistic ranges, tracks ghost variables, and prevents the fuzzer from exploring useless paths. See [Trail of Bits' "Building Secure Smart Contracts" handler-pattern guide](https://github.com/crytic/building-secure-contracts/tree/master/program-analysis) [verify 2026-04-26].
+Invariant tests with **handler contracts** are the high-leverage pattern: the handler bounds calls to realistic ranges, tracks ghost variables, and prevents the fuzzer from exploring useless paths. The Foundry [Invariant Testing guide](https://getfoundry.sh/guides/invariant-testing) documents the handler pattern (`targetContract`, bounded handlers, ghost variables); Trail of Bits' ["Building Secure Smart Contracts" program-analysis material](https://github.com/crytic/building-secure-contracts/tree/master/program-analysis) covers the equivalent Echidna and Medusa setups [verify 2026-11-04].
 
 ### 8.2 Echidna
 
@@ -567,8 +602,10 @@ Invariant tests with **handler contracts** are the high-leverage pattern: the ha
 # Install
 brew install echidna   # or download release from GitHub
 echidna --version
+```
 
-# Property example
+```solidity
+// Property example
 contract TestVault {
     Vault vault = new Vault();
 
@@ -580,7 +617,9 @@ contract TestVault {
         return vault.totalSupply() == vault.sumOfBalances();
     }
 }
+```
 
+```bash
 # Run
 echidna . --contract TestVault --config echidna.yaml
 ```
@@ -589,11 +628,13 @@ Echidna's `seqLen`, `testLimit`, `coverage`, `corpusDir` config options drive de
 
 ### 8.3 Medusa
 
-[Medusa](https://github.com/crytic/medusa) (Trail of Bits) is a Go-based fuzzer aimed at faster execution than Echidna with similar property API. Use when Echidna is the bottleneck. [verify 2026-04-26]
+[Medusa](https://github.com/crytic/medusa) (Trail of Bits) is a go-ethereum-based fuzzer inspired by Echidna that fuzzes in parallel across workers. Its default property prefix is `property_`; add `echidna_` to `testPrefixes` to reuse Echidna properties. Use when Echidna is the bottleneck. [verify 2026-11-04]
+
+[Chimera](https://github.com/Recon-Fuzz/chimera) (Recon) is a property-testing harness that lets one invariant suite run under Foundry, Echidna, Medusa and Halmos.
 
 ### 8.4 ityfuzz
 
-[ityfuzz](https://github.com/fuzzland/ityfuzz) is a hybrid concolic / coverage-guided fuzzer that includes ABI-level mutation; useful for protocols with complex calldata layouts. [verify 2026-04-26]
+[ityfuzz](https://github.com/fuzzland/ityfuzz) is a bytecode-level hybrid fuzzer that combines symbolic execution and fuzzing, for EVM and MoveVM contracts. It ships as nightly pre-release builds installed with `ityfuzzup` (latest nightly May 2025). [verify 2026-11-04]
 
 ### 8.5 Differential Fuzzing
 
@@ -622,15 +663,16 @@ Formal verification proves a property holds over all inputs (within configured b
 
 ### 9.2 SMTChecker (Built into Solidity)
 
-The [Solidity SMTChecker](https://docs.soliditylang.org/en/latest/smtchecker.html) is a built-in formal checker that runs at compile time. It uses Z3 / CVC4 / Eldarica as backends. Free, but limited in what it can prove; mostly catches arithmetic and assertion violations.
+The [Solidity SMTChecker](https://docs.soliditylang.org/en/latest/smtchecker.html) is a built-in formal checker that runs at compile time. It uses z3, cvc5 (BMC engine only) or Eldarica (CHC engine only) as backends, or emits SMT-LIB2 queries for an external solver; cvc5 replaced CVC4 in Solidity 0.8.27. Free, but limited in what it can prove; mostly catches arithmetic and assertion violations.
 
 ```solidity
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.20;
-pragma experimental SMTChecker;
-// or in foundry.toml:
+// Enable the checker by selecting an engine (solc --model-checker-engine chc,
+// or foundry.toml below). `pragma experimental SMTChecker;` is deprecated and
+// will be removed in Solidity 0.9.0.
 // [profile.default.model_checker]
-// engine = "all"
+// engine = "chc"   # BMC, and "all" which includes it, deprecated since 0.8.37
 // targets = ["assert", "underflow", "overflow", "divByZero", "balance", "constantCondition", "popEmptyArray", "outOfBounds"]
 // timeout = 30000
 ```
@@ -639,10 +681,10 @@ Use SMTChecker as a first pass; reach for Certora / Halmos when SMTChecker can't
 
 ### 9.3 Halmos
 
-[Halmos](https://github.com/a16z/halmos) (a16z) is a symbolic-execution-based bounded model checker for Solidity. Reuses Foundry test syntax: write a test with symbolic inputs, Halmos proves the assertion holds for all inputs in the bound.
+[Halmos](https://github.com/a16z/halmos) (a16z) is a symbolic-testing tool for EVM contracts: bounded symbolic execution over Foundry-style tests. Write a test with symbolic inputs, Halmos proves the assertion holds for all inputs in the bound. Development has been quiet since v0.3.3 (2025-07-31); check the repo's status before relying on it with a current Foundry toolchain.
 
 ```bash
-pip install halmos
+uv tool install --python 3.12 halmos   # or: pip install halmos
 halmos
 ```
 
@@ -650,11 +692,15 @@ Halmos is the lowest-friction path for adding formal verification to an existing
 
 ### 9.4 Certora Prover
 
-[Certora Prover](https://www.certora.com) is a commercial formal-verification tool with a custom specification language (CVL — Certora Verification Language). Used by major protocols (Aave, Compound, Maker historically, Uniswap, OpenZeppelin's library) for high-assurance verification. Not free; engagement-budget item.
+[Certora Prover](https://github.com/Certora/CertoraProver) is a formal-verification tool with a custom specification language (CVL — Certora Verification Language). Used by major protocols (Aave, Compound, Maker historically, Uniswap, OpenZeppelin's library) for high-assurance verification. The prover has been open source under GPL-3.0 since 2025; Certora also runs a cloud platform for users who prefer not to build it locally, so check that platform's current access terms when budgeting the engagement.
 
-CVL specs sit alongside Solidity and encode invariants, hooks, and rules:
+CVL specs sit alongside Solidity and encode invariants, hooks, and rules. Contract methods called without an `env` argument must be declared `envfree` in the `methods` block:
 
-```
+```text
+methods {
+    function balanceOf(address) external returns (uint256) envfree;
+}
+
 rule withdrawDecreasesBalance(address user, uint256 amount) {
     env e;
     require e.msg.sender == user;
@@ -669,7 +715,7 @@ Certora's value is in the spec library it ships with each engagement (template i
 
 ### 9.5 K-framework (KEVM)
 
-[KEVM](https://github.com/runtimeverification/evm-semantics) (Runtime Verification) is a formal semantics of the EVM in the K framework; supports proofs at the bytecode level. Used historically for high-stakes proofs (DAO incident retrospective, Casper FFG). Higher friction than Halmos / Certora; reach for it when bytecode-level proofs are required (e.g. compiler-bug-resistant properties). [verify 2026-04-26]
+[KEVM](https://github.com/runtimeverification/evm-semantics) (Runtime Verification) is a formal semantics of the EVM in the K framework; supports proofs at the bytecode level. Used for high-stakes proofs such as Runtime Verification's 2018 bytecode-level verification of the Casper FFG contract. Runtime Verification's Foundry-facing front end is [Kontrol](https://github.com/runtimeverification/kontrol), which runs existing Foundry tests symbolically on KEVM; [hevm](https://github.com/argotorg/hevm) is a separate symbolic and concrete EVM execution engine. Higher friction than Halmos / Certora; reach for it when bytecode-level proofs are required (e.g. compiler-bug-resistant properties). [verify 2026-11-04]
 
 ### 9.6 Documenting Formal-Verification Findings
 
@@ -699,7 +745,7 @@ The audit report is the audit. A complete review with no report is a missed enga
 
 ### 10.2 Severity Rubric
 
-Common shape used by Trail of Bits / Consensys / OZ / Code4rena / Sherlock [verify 2026-04-26], normalized:
+Severity scales differ by publisher: Immunefi's bug-bounty scale ([VSCS v2.3](https://immunefi.com/immunefi-vulnerability-severity-classification-system-v2-3/)) has four tiers (Critical / High / Medium / Low), and contest platforms are narrower (below). This SOP normalizes private-engagement reports to five tiers [verify 2026-11-04]:
 
 | Severity | Definition |
 |----------|------------|
@@ -709,13 +755,15 @@ Common shape used by Trail of Bits / Consensys / OZ / Code4rena / Sherlock [veri
 | Low | Negligible fund impact; code-quality issues that could become severe under future changes; non-critical DoS. |
 | Informational | Code-quality, naming, optimization. No security impact. |
 
-Code4rena uses the same shape with QA / Gas as separate categories. Sherlock uses a "Watson"-classified shape with explicit numerical impact thresholds. [verify 2026-04-26]
+Contest platforms judge on their own scales. [Code4rena](https://docs.code4rena.com/competitions/severity-categorization) rates security findings High or Medium; Low-risk and governance / centralization items go into a QA report, and informational items are discouraged. [Sherlock's judging guidelines](https://docs.sherlock.xyz/audit-contests-deprecated-replaced-by-audit-engine/judging/guidelines) reward only High and Medium and set numeric loss thresholds (High: loss of more than 1% and more than $10 of principal, yield or fees without extensive external conditions; Medium: more than 0.01% and more than $10, or broken core functionality); Sherlock's docs now file contests under a section marked deprecated and replaced by its "Audit Engine". [Cantina](https://docs.cantina.security/standards/severity/competition) derives High / Medium / Low / Informational from an impact × likelihood matrix. [verify 2026-11-04]
 
 The severity of a finding is a function of impact × likelihood, not impact alone. A "Critical impact, near-zero likelihood" finding is reported but typically rated lower than a "Medium impact, certain occurrence" finding. Document both axes in the finding writeup.
 
 ### 10.3 Finding Writeup Shape
 
-```
+Example writeup for a High finding (the Curve reference dates come from ChainSecurity's 2022-10-11 post-mortem [verify 2026-11-04]):
+
+```text
 [H-01] Reentrancy in Vault.withdraw() drains contract via cross-function path
 
 Severity: High
@@ -750,16 +798,17 @@ writes balances).
 References:
 - SWC-107 (Reentrancy)
 - The DAO 2016
-- Curve read-only reentrancy advisory, 2022-04 [verify 2026-04-26]
+- Curve read-only reentrancy (get_virtual_price): ChainSecurity disclosure
+  to Curve 2022-04-14, public post-mortem 2022-10-11
 ```
 
 ### 10.4 Disclosure & Public Reporting
 
 For private engagements: draft to client → revisions → final → mutually-agreed public version (sometimes weeks or months later, sometimes never). Some clients publish; some do not; respect contractual terms.
 
-For public-contest reporting: the platform owns the disclosure timeline. Code4rena / Sherlock / Cantina publish post-judging.
+For public-contest reporting: the platform owns the disclosure timeline. Code4rena / Cantina publish post-judging; Sherlock's past contest reports remain in its public archive.
 
-For findings discovered in-the-wild during the audit (the auditor finds an active exploit on a deployed contract that is in scope): immediately escalate to the client's security contact via the agreed encrypted channel. Do not commit details to the engagement repo. Preserve PoC artifacts under the engagement OPSEC posture per [[sop-opsec-plan|OPSEC]]. The protocol team typically coordinates with chain-level emergency response (validator outreach, sequencer pause if the chain has a privileged sequencer, exchange notifications) — the auditor's role is technical, not operational, unless explicitly extended.
+For findings discovered in-the-wild during the audit (the auditor finds an active exploit on a deployed contract that is in scope): immediately escalate to the client's security contact via the agreed encrypted channel. Do not commit details to the engagement repo. Preserve PoC artifacts under the engagement OPSEC posture per [[sop-opsec-plan|OPSEC]]. The protocol team typically coordinates with chain-level emergency response (validator outreach, sequencer pause if the chain has a privileged sequencer, exchange notifications) — the auditor's role is technical, not operational, unless explicitly extended. If the client is unreachable or the exploit is already live, [SEAL 911](https://securityalliance.org/our-work/seal-911) (Security Alliance) provides 24/7 incident response for the crypto ecosystem. A whitehat intervention is pre-authorized only where the protocol has adopted the [SEAL Whitehat Safe Harbor](https://github.com/security-alliance/safe-harbor) agreement (v3.0, February 2026) and the auditor follows its terms; otherwise do not touch funds. Legal framing: [[sop-legal-ethics|Legal & Ethics]].
 
 ### 10.5 Remediation Verification
 
@@ -779,21 +828,21 @@ EVM dominates the audit market (Ethereum mainnet, Arbitrum, Optimism, Base, Poly
 
 ### 11.1 EVM Mainnet vs L2 Caveats
 
-- **Sequencer trust.** Optimism / Arbitrum / Base have a sequencer that orders transactions; if the sequencer is centralized (most are, as of 2026 [verify 2026-04-26]), the chain inherits the sequencer's liveness and ordering trust. Protocols on these L2s should consult the sequencer-uptime feed before liquidations or other timing-sensitive actions.
+- **Sequencer trust.** Optimism / Arbitrum / Base have a sequencer that orders transactions; if the sequencer is centralized (Arbitrum's documentation, for example, lists decentralized sequencing as a long-term goal [verify 2026-11-04]), the chain inherits the sequencer's liveness and ordering trust. Protocols on these L2s should consult the sequencer-uptime feed before liquidations or other timing-sensitive actions.
 - **L1 → L2 message latency.** Cross-domain messengers have multi-hour or multi-day delays for L2-to-L1 (Optimistic Rollups, ~7-day challenge window) or seconds-to-minutes (ZK-rollups). Protocols that assume same-block messaging across L1↔L2 are broken.
-- **EIP support drift.** Not all L2s support all opcodes at all times. `PUSH0` (Solidity 0.8.20+) was unsupported on some L2s for months after mainnet enabled it [verify 2026-04-26]. Compiler version selection is part of the threat model.
+- **EIP support drift.** Not all L2s support all opcodes at all times. `PUSH0` (emitted by default since Solidity 0.8.20) arrived on Arbitrum One only with ArbOS 11 (shipped in Nitro v2.2.0 in December 2023, activated after a DAO vote in late January 2024), about nine months after mainnet's Shanghai upgrade in April 2023 [verify 2026-11-04]. Compiler version selection is part of the threat model.
 - **Gas pricing differences.** L2s have L1-data-cost components that affect gas optimization decisions. Calldata is more expensive on L2s than mainnet (relatively); storage is cheaper.
-- **Reorg properties.** L1 mainnet has finality after ~12-15 minutes (~32 slots / 2 epochs post-merge); some L2s have soft finality at sequencer level and hard finality only when batches post to L1. Protocols sensitive to reorgs (oracles, bridges) should encode the chain-specific finality assumption.
+- **Reorg properties.** L1 mainnet has finality after ~13-15 minutes (two epochs of 32 twelve-second slots post-merge); some L2s have soft finality at sequencer level and hard finality only when batches post to L1. Protocols sensitive to reorgs (oracles, bridges) should encode the chain-specific finality assumption.
 
 ### 11.2 Vyper
 
-[Vyper](https://docs.vyperlang.org) is the second-most-deployed EVM language. Audit methodology is the same as Solidity at the bytecode level; the bug shapes are mostly the same. Vyper-specific pitfalls have produced large incidents — the July 2023 Vyper compiler reentrancy-lock bug affected multiple Curve pools [verify 2026-04-26]. Pin compiler version explicitly; check the Vyper changelog for the specific version against published advisories.
+[Vyper](https://docs.vyperlang.org) is a Pythonic EVM language with major production deployments, Curve's pools among them. Audit methodology is the same as Solidity at the bytecode level; the bug shapes are mostly the same. Vyper-specific pitfalls have produced large incidents — on 2023-07-30 several Curve pools were exploited through a compiler bug that misallocated `@nonreentrant` locks in Vyper 0.2.15, 0.2.16 and 0.3.0 (GHSA-5824-cm3x-3c38, fixed in 0.3.1) [verify 2026-11-04]. Pin the compiler version explicitly and check it against the [Vyper security advisories](https://github.com/vyperlang/vyper/security/advisories).
 
 ### 11.3 Move (Sui, Aptos)
 
 Move is the language of Sui and Aptos. Move's resource-oriented type system ("resources cannot be copied or implicitly discarded") eliminates several EVM bug classes by construction (double-spend of in-memory token objects, accidental drop of valuable resources). Different bug classes appear: capability-pattern misuse (the equivalent of access-control), object-ownership confusion, epoch-boundary effects on Sui-specific timing assumptions, on-chain resource exhaustion patterns specific to Move's storage model.
 
-Tooling: [Move Prover](https://aptos.dev/move/prover/move-prover) (formal verification, included in the Aptos / Sui dev kit), `move build` / `move test`, fuzzing via the chain-specific frameworks. Audit firms maintain Move-specific guides; cite the chain-specific guide for engagement-specific patterns. [verify 2026-04-26]
+Tooling: on Aptos, the [Move Prover](https://aptos.dev/build/smart-contracts/prover) runs from the Aptos CLI (`aptos move prove`, after a separate prover install step), alongside `aptos move compile` / `aptos move test`. The Sui CLI has no prover (`sui move build` / `sui move test`); formal verification on Sui uses the separate [Sui Prover](https://github.com/asymptotic-code/sui-prover) from Asymptotic. Audit firms maintain Move-specific guides; cite the chain-specific guide for engagement-specific patterns. [verify 2026-11-04]
 
 ### 11.4 Solana
 
@@ -801,17 +850,21 @@ Solana programs are written in Rust (native or Anchor-framework). Audit methodol
 
 Bug classes specific to Solana: missing signer checks, missing owner checks, account-substitution attacks, PDA-seed collisions, integer-overflow in `u64` math (Rust's native overflow behavior depends on `release` vs `debug`), CPI authority confusion, lamport-balance-not-checked-after-CPI.
 
-Tooling: [Anchor](https://www.anchor-lang.com), [Solana Anchor Verify](https://github.com/Ellipsis-Labs/anchor-verify) (build reproducibility), `cargo test`, and chain-specific fuzzing tools. [verify 2026-04-26]
+Tooling: [Anchor](https://www.anchor-lang.com/docs) (v1.x; 2.0 in release candidate), whose built-in `anchor verify <program-id>` checks on-chain bytecode against the local build; [solana-verifiable-build](https://github.com/solana-foundation/solana-verifiable-build) for deterministic builds and on-chain verification; `cargo test`; [Trident](https://github.com/Ackee-Blockchain/trident) (Ackee Blockchain) for fuzzing; and [sec3 X-ray](https://github.com/sec3-product/x-ray) for static analysis. [verify 2026-11-04]
 
 ### 11.5 Cairo / Starknet
 
 Cairo is the language of Starknet (and was used historically for ZK-STARK provable computation). Cairo 1.x (Rust-like syntax, post-2023) replaced Cairo 0.x. Different memory model (immutable memory + Felt252 field-element arithmetic), different ABI, different bug shapes. Underlying ZK-VM correctness is part of the trust assumption.
 
-Bug classes specific to Starknet / Cairo: storage-variable hash collisions (Pedersen-hash-keyed storage), syscall mis-use, L1↔L2 message handling (same as L2 caveats above but with Starknet-specific semantics), Felt252 underflow / overflow at the field boundary. [verify 2026-04-26]
+Bug classes specific to Starknet / Cairo: storage-slot collisions (slot addresses derive from `sn_keccak` of the variable name, Pedersen-hashed with the keys for mappings, so two components reusing a storage name collide), syscall misuse (e.g. `library_call` with a user-controlled class hash), L1 handlers that do not check the sender's `from_address` (L1↔L2 message handling, same as L2 caveats above but with Starknet-specific semantics), and `felt252` arithmetic, which is not overflow / underflow safe. [Caracal](https://github.com/crytic/caracal) (Trail of Bits) has detectors for the last three, but has been unmaintained since January 2024; check its output against current Cairo versions. [verify 2026-11-04]
 
-### 11.6 Bytecode-Only Audits
+### 11.6 CosmWasm
 
-For deployed contracts whose source is not verified, decompilation is the entry point. [Panoramix](https://github.com/palkeo/panoramix), [dedaub.com](https://library.dedaub.com), [Heimdall-rs](https://github.com/Jon-Becker/heimdall-rs) lift bytecode to readable pseudo-Solidity. Differential review against the pseudo-Solidity is significantly higher-friction than source review; the audit cost is larger and the confidence is lower. This SOP recommends bytecode-only audits be staffed by RE-strong reviewers and explicitly flagged in the engagement letter as a different-confidence deliverable.
+CosmWasm contracts are Rust compiled to Wasm and run on Cosmos SDK chains. They follow an actor model: a contract does not call another contract mid-execution but returns messages for the chain to dispatch, and results come back through the `reply` entry point, which avoids EVM-style reentrancy into a half-finished execution. Review focus shifts to message dispatch and `reply` handling and, for IBC-enabled contracts, the packet entry points (`ibc_packet_receive`, `ibc_packet_ack`, `ibc_packet_timeout`). Unit tests run under `cargo test`; [cw-multi-test](https://github.com/CosmWasm/cw-multi-test) covers multi-contract interactions. [verify 2026-11-04]
+
+### 11.7 Bytecode-Only Audits
+
+For deployed contracts whose source is not verified, decompilation is the entry point. [Heimdall-rs](https://github.com/Jon-Becker/heimdall-rs) and the [Dedaub](https://dedaub.com) Security Suite decompiler lift bytecode to readable pseudo-Solidity; [Panoramix](https://github.com/palkeo/panoramix) does the same but is unmaintained (last release 2020, last commit June 2023). Differential review against the pseudo-Solidity is significantly higher-friction than source review; the audit cost is larger and the confidence is lower. This SOP recommends bytecode-only audits be staffed by RE-strong reviewers and explicitly flagged in the engagement letter as a different-confidence deliverable.
 
 ---
 
@@ -820,12 +873,12 @@ For deployed contracts whose source is not verified, decompilation is the entry 
 | When the audit observes... | Routes to... |
 |----------------------------|--------------|
 | Suspicious withdrawal pattern in the post-deployment monitoring window | [[../../Investigations/Techniques/sop-blockchain-investigation|Blockchain Investigation]] for fund tracing |
-| Funds entering Tornado Cash / Wasabi-class CoinJoin / Samourai Whirlpool / cross-chain bridge for obfuscation | [[../../Investigations/Techniques/sop-mixer-tracing|Mixer & Privacy-Pool Tracing]] |
+| Funds entering Tornado Cash, a WabiSabi / Wasabi-style CoinJoin round (zkSNACKs' coordinator closed 2024-06-01; independent coordinators continue), historical Samourai Whirlpool outputs (service seized April 2024), or a cross-chain bridge for obfuscation | [[../../Investigations/Techniques/sop-mixer-tracing|Mixer & Privacy-Pool Tracing]] |
 | Off-chain backend / signer infrastructure / web frontend vulnerability | [[../Pentesting/sop-web-application-security|Web Application Security]] / [[../Pentesting/sop-vulnerability-research|Vulnerability Research]] |
 | Mobile-wallet or hardware-wallet integration issue | [[../Pentesting/sop-mobile-security|Mobile Security]] |
 | Cryptographic primitive concern (curve choice, hash construction, ZK-circuit soundness, threshold-signature scheme) | [[sop-cryptography-analysis|Cryptography Analysis]] |
 | Bytecode-only deployed contract requiring decompilation / lifted-IR review | [[sop-reverse-engineering|Reverse Engineering]] (with this SOP's review methodology applied to the lifted output) |
-| Bug bounty submission (Immunefi, HackerOne crypto programs, Code4rena / Sherlock contests) | [[../Pentesting/sop-bug-bounty|Bug Bounty]] |
+| Bug bounty or audit-contest submission (Immunefi, HackerOne crypto programs, Code4rena / Cantina contests) | [[../Pentesting/sop-bug-bounty|Bug Bounty]] |
 | Disclosure / coordinated-publication mechanics, vendor encrypted comms, CERT routing | [[../../Investigations/Techniques/sop-reporting-packaging-disclosure|Reporting, Packaging & Disclosure]] |
 | Live-incident triage where funds are moving and patches are needed in minutes-to-hours | Hand-off to the protocol's security-response process; this SOP covers technical findings, not operational incident command |
 | Protocol-team OPSEC concerns (multisig signer device hygiene, deployment-key rotation, incident-response drills) | [[sop-opsec-plan|OPSEC]] |
@@ -844,51 +897,53 @@ The audit deliverable stops at the boundary of the protocol's source code. Where
 | Slither | Detector-based static analysis (Solidity, Vyper) | https://github.com/crytic/slither |
 | Aderyn | Rust-based static analysis (Solidity) | https://github.com/Cyfrin/aderyn |
 | Wake | Python-based dev framework + static analysis | https://github.com/Ackee-Blockchain/wake |
-| Mythril | Symbolic execution (bytecode level) | https://github.com/Consensys/mythril |
+| Mythril | Symbolic execution (bytecode level) | https://github.com/ConsenSysDiligence/mythril |
 | Semgrep | Pattern-based linting (multi-language, Solidity rule packs) | https://semgrep.dev |
-| Surya | Call-graph and inheritance visualization | https://github.com/ConsenSys/surya |
+| Solhint | Solidity linter (security, style-guide, best-practice rules) | https://github.com/protofire/solhint |
+| Surya | Call-graph and inheritance visualization | https://github.com/ConsenSysDiligence/surya |
 
 ### Fuzzing & Property Testing
 
 | Tool | Purpose | Link |
 |------|---------|------|
-| Foundry (`forge`) | Solidity testing, fuzzing, invariant testing, fork testing | https://book.getfoundry.sh |
+| Foundry (`forge`) | Solidity testing, fuzzing, invariant testing, fork testing | https://getfoundry.sh |
 | Echidna | Property-based fuzzer for Solidity | https://github.com/crytic/echidna |
-| Medusa | Go-based fuzzer (Echidna-API-compatible) | https://github.com/crytic/medusa |
-| ityfuzz | Hybrid concolic / coverage-guided fuzzer | https://github.com/fuzzland/ityfuzz |
+| Medusa | Go-based parallel fuzzer inspired by Echidna (property prefix `property_`; add `echidna_` to `testPrefixes` to port Echidna tests) | https://github.com/crytic/medusa |
+| ityfuzz | Hybrid symbolic-execution + fuzzing (EVM, MoveVM) | https://github.com/fuzzland/ityfuzz |
 | Hardhat | JS-based dev framework (alt to Foundry) | https://hardhat.org |
 
 ### Formal Verification
 
 | Tool | Purpose | Link |
 |------|---------|------|
-| SMTChecker | Built-in Solidity formal checker (Z3 / CVC4 / Eldarica) | https://docs.soliditylang.org/en/latest/smtchecker.html |
-| Halmos | Symbolic bounded model checker (Foundry-test syntax) | https://github.com/a16z/halmos |
-| Certora Prover | Commercial formal-verification platform (CVL spec lang) | https://www.certora.com |
+| SMTChecker | Built-in Solidity formal checker (z3 / cvc5 / Eldarica) | https://docs.soliditylang.org/en/latest/smtchecker.html |
+| Halmos | Symbolic testing over Foundry-style tests (no release since v0.3.3, 2025-07-31; confirm maintenance status before relying on it) | https://github.com/a16z/halmos |
+| Certora Prover | Formal-verification prover (CVL spec lang); open source under GPL-3.0 since 2025, plus a Certora-run cloud platform | https://www.certora.com (source: https://github.com/Certora/CertoraProver) |
 | KEVM | K-framework EVM semantics (bytecode-level proofs) | https://github.com/runtimeverification/evm-semantics |
-| Move Prover | Built-in formal verification for Aptos / Sui Move | https://aptos.dev/move/prover/move-prover |
+| Move Prover | Formal verification for Aptos Move (`aptos move prove`) | https://aptos.dev/build/smart-contracts/prover |
+| Sui Prover | Formal verification for Sui Move (Asymptotic) | https://github.com/asymptotic-code/sui-prover |
 
 ### Decompilation & Bytecode
 
 | Tool | Purpose | Link |
 |------|---------|------|
-| Panoramix | EVM bytecode decompiler | https://github.com/palkeo/panoramix |
+| Panoramix | EVM bytecode decompiler (unmaintained; last commit 2023-06; prefer Heimdall-rs) | https://github.com/palkeo/panoramix |
 | Heimdall-rs | Rust EVM decompiler / disassembler | https://github.com/Jon-Becker/heimdall-rs |
-| Dedaub Library | Web-hosted bytecode decompilation + analysis | https://library.dedaub.com |
+| Dedaub Security Suite | Web-hosted bytecode decompilation + analysis | https://dedaub.com |
 | evm.codes | EVM opcode reference + interactive playground | https://www.evm.codes |
 
 ### Audit Repositories & Reference
 
 | Resource | Purpose | Link |
 |----------|---------|------|
-| SWC Registry | Smart Contract Weakness Classification | https://swcregistry.io |
+| SWC Registry | Smart Contract Weakness Classification (no longer actively maintained; content not thoroughly updated since 2020; the site points to the EEA EthTrust Security Levels for current guidance) | https://swcregistry.io |
 | Solodit | Aggregated public audit findings (Cyfrin) | https://solodit.cyfrin.io |
 | Trail of Bits "Building Secure Contracts" | Patterns + tooling guidance | https://github.com/crytic/building-secure-contracts |
 | Consensys Smart Contract Best Practices | Pattern catalogue + known attacks | https://consensys.github.io/smart-contract-best-practices/ |
-| OpenZeppelin Forum (Security) | OZ library advisories + patterns | https://forum.openzeppelin.com/c/security/35 |
+| OpenZeppelin Forum (Security) | OZ library advisories + patterns | https://forum.openzeppelin.com/c/security/25 |
 | Code4rena Reports | Public competitive-audit findings | https://code4rena.com/reports |
-| Sherlock Audits | Public competitive-audit findings | https://audits.sherlock.xyz/contests |
-| Cantina Reports | Public competitive-audit findings | https://cantina.xyz |
+| Sherlock Audits | Public competitive-audit findings (Sherlock's docs mark contests as replaced by its Audit Engine; the public contest archive remains here) | https://audits.sherlock.xyz/contests |
+| Cantina Reports | Public competitive-audit findings | https://cantina.security |
 | Rekt News | Incident catalogue for post-mortem study | https://rekt.news |
 | DeFiLlama Hacks | Incident catalogue + losses | https://defillama.com/hacks |
 
@@ -903,7 +958,7 @@ The audit deliverable stops at the boundary of the protocol's source code. Where
 - **Re-audit drift.** A single auditor seeing the same codebase twice may anchor on prior findings and miss new ones. Multi-firm audits, rotating auditor pairs within a firm, and contest-style competitive auditing mitigate.
 - **Severity disagreement.** Severity is a judgment call. Different auditors will rate the same finding differently. Document the rationale; expect the team to push back on Highs that are realistically Medium and to want to see Mediums escalated when the team perceives reputational risk.
 - **Time-budget framing.** "We audited for 3 person-weeks" is a stronger claim than "We audited" with no time disclosure. Report the time budget; downstream consumers calibrate trust on it.
-- **Public-contest reliance.** Code4rena / Sherlock / Cantina contests find different bug shapes than firm engagements (more eyeballs, less time per eyeball, contest-incentive distortions). Pair, don't substitute; using contests as the sole pre-deployment review is a documented anti-pattern. [verify 2026-04-26]
+- **Public-contest reliance.** Code4rena / Cantina / Immunefi contests find different bug shapes than firm engagements (more eyeballs, less time per eyeball, contest-incentive distortions). Pair, don't substitute: combine a contest with a firm or internal review rather than using it as the sole pre-deployment gate.
 - **Formal-verification scope.** A verified property is valuable; an unverified or out-of-scope property is not. The audit must explicitly state which properties were verified, with what tool, against what bound. Vague "we ran formal verification" claims are worse than no claim.
 - **Audit-firm reputation laundering.** A logo on a website ≠ a passing report. Insurers, exchanges, and downstream protocols should read the report, not the logo. Auditors should resist the demand to publish a "summary" that omits unfixed findings; a report missing its findings is a marketing artifact, not an audit.
 - **Court-admissibility of audit findings.** In post-incident litigation (theft, regulatory action, lender-borrower disputes), audit reports are sometimes introduced as evidence. The auditor's name, time budget, methodology disclosure, and severity rationale all become subject to expert-witness scrutiny. Document accordingly.
@@ -921,7 +976,7 @@ The audit deliverable stops at the boundary of the protocol's source code. Where
 - **Reporting without reproductions.** Every High / Critical should have a reproducible PoC (Foundry test, Echidna config, or step-by-step). The team needs them to verify the fix.
 - **Missing remediation pass.** The audit is incomplete without verifying the patches. Schedule the remediation pass at engagement intake.
 - **Disclosing publicly before the team patches.** For private engagements, the team owns the disclosure timeline. Public-contest disclosure runs through the platform's clock.
-- **Citing only SWC IDs.** SWC is a starting taxonomy; Solodit and firm-internal classifications add precision. Cite both.
+- **Citing only SWC IDs.** SWC is a legacy, unmaintained taxonomy; pair it with EthTrust requirement IDs or OWASP SC Top 10 categories, and use Solodit and firm-internal labels for precision.
 - **Mixing audit findings with code-quality nits.** Code-quality is "Recommendations." Security findings are "Findings." A reader who can't tell the two apart can't act on either.
 - **Out-of-scope creep.** Audit time spent on out-of-scope code is time not spent on in-scope code. If the team wants out-of-scope coverage, scope it explicitly and bill it.
 - **Reporting CVSS scores for smart-contract findings.** CVSS is calibrated for traditional software; on-chain impact does not map cleanly. Use the smart-contract-firm severity rubrics (§10.2). If a CNA assigns a CVE, the CNA may produce a CVSS; the auditor's report severity is separate.
@@ -942,7 +997,7 @@ The scenarios below abstract published-incident patterns to illustrate how the m
 
 ### 16.1 Scenario — Lending Protocol with Read-Only Reentrancy in a Pool's Price Function
 
-A lending protocol uses a Curve-style stable pool's `get_virtual_price()` view function as part of its collateral-pricing logic. Curve's read-only reentrancy class (April 2022 advisory and subsequent incidents) [verify 2026-04-26] means that during a swap mid-call, `get_virtual_price()` returns an inconsistent value to integrators that read it from within the swap's external-call window.
+A lending protocol uses a Curve-style stable pool's `get_virtual_price()` view function as part of its collateral-pricing logic. Curve's read-only reentrancy class (ChainSecurity disclosed it to Curve on 2022-04-14; subsequent incidents followed) [verify 2026-11-04] means that during `remove_liquidity` (mid-call), `get_virtual_price()` returns an inconsistent value to integrators that read it from within that call's external-call window.
 
 **Audit catch.** §6.1 read-only reentrancy variant. The auditor checks every external integration's view function and asks "could this be called mid-update from upstream?" Mitigation is the read-only-reentrancy-guard pattern (`require(!_lock)` on the view function) or caching the value pre-call on the consumer side.
 
@@ -952,19 +1007,19 @@ A lending protocol uses a Curve-style stable pool's `get_virtual_price()` view f
 
 A lending market accepts an LP token as collateral and prices it via the underlying pool's spot price. An attacker flash-loans large capital, swaps to push the spot price 30%, deposits the now-overpriced LP token, borrows the maximum against it, and lets the swap reverse, leaving the protocol with under-collateralized debt.
 
-**Audit catch.** §6.3 oracle manipulation, §6.10 flash-loan amplification. The auditor identifies every price source, walks the manipulation cost (cost to move the price by N% × the amount of collateral the attacker can deposit at the manipulated price), and asks "does the protocol's borrowing cap and oracle smoothing make this unprofitable for any realistic flash-loaned capital?" Mitigation is TWAP windows long enough to outlast a single block, multi-source medianization, deviation circuit-breakers, and per-asset borrow caps that limit blast radius.
+**Audit catch.** §6.3 oracle manipulation, §6.10 flash-loan amplification. The auditor identifies every price source, walks the manipulation cost (cost to move the price by N% × the amount of collateral the attacker can deposit at the manipulated price), and asks "does the protocol's borrowing cap and oracle smoothing make this unprofitable for any realistic flash-loaned capital?" Mitigation is TWAP windows and pool depth sized so multi-block manipulation is unprofitable (§6.3), multi-source medianization, deviation circuit-breakers, and per-asset borrow caps that limit blast radius.
 
 ### 16.3 Scenario — Upgradeable Proxy with Storage-Layout Drift
 
 V1 of a protocol's UUPS-upgradeable contract has state variables `(uint256 totalSupply, mapping(address => uint256) balances)`. V2 adds a new variable `(address admin)` at slot 0, intending to push `totalSupply` to slot 1 and `balances` to slot 2. The deployed proxy still has `totalSupply` value at slot 0; after upgrade, the proxy reads slot 0 as `admin`, slot 1 as `totalSupply`, slot 2 as `balances` — corrupting all three.
 
-**Audit catch.** §6.6 storage collision. The auditor runs OpenZeppelin Upgrades' storage-layout checker on the V1 → V2 diff at engagement intake; the tool flags any layout-incompatible change. Mitigation is to never reorder, only append; or to use namespaced storage (EIP-7201) [verify 2026-04-26] to insulate facets from layout drift.
+**Audit catch.** §6.6 storage collision. The auditor runs OpenZeppelin Upgrades' storage-layout checker on the V1 → V2 diff at engagement intake; the tool flags any layout-incompatible change. Mitigation is to never reorder, only append; or to use namespaced storage (ERC-7201) [verify 2026-11-04] to insulate facets from layout drift.
 
 ### 16.4 Scenario — Governance Attack with Flash-Loaned Voting Power
 
 A governance system samples voting power at the moment a vote is cast. An attacker flash-loans the governance token, votes "yes" on a proposal that grants their address admin authority, repays the flash loan in the same transaction. Total cost: gas + flash-loan fee. The attacker now controls the protocol.
 
-**Audit catch.** §6.9 flash-loan governance. The auditor checks the voting-power checkpoint: snapshot at proposal-creation block (mitigates), snapshot at vote-cast block (does not mitigate), live read (does not mitigate). The Compound Governor Bravo pattern with `getPriorVotes` at the proposal-creation block is the canonical mitigation.
+**Audit catch.** §6.9 flash-loan governance. The auditor checks the voting-power checkpoint: snapshot at a block fixed before voting opens, e.g. proposal creation + `votingDelay` (mitigates), snapshot at vote-cast block (does not mitigate), live read (does not mitigate). The Compound Governor Bravo pattern — `getPriorVotes` at the proposal's `startBlock` (creation block + `votingDelay`), fixed before voting opens — is the canonical mitigation.
 
 ---
 
@@ -985,8 +1040,8 @@ A governance system samples voting power at the moment a vote is cast. An attack
 - [[sop-hash-generation-methods|Hash Generation Methods]] — evidence-integrity hashing for audit artifacts.
 
 **Pentesting & Security:**
-- [[../Pentesting/sop-vulnerability-research|Vulnerability Research]] — general offensive methodology; web3 contract findings live here, this SOP focuses on the audit deliverable.
-- [[../Pentesting/sop-bug-bounty|Bug Bounty]] — disclosure mechanics for Immunefi, HackerOne crypto, Code4rena, Sherlock submissions.
+- [[../Pentesting/sop-vulnerability-research|Vulnerability Research]] — general offensive methodology (native-binary fuzzing, exploit development, CVE process); smart-contract findings stay in this SOP.
+- [[../Pentesting/sop-bug-bounty|Bug Bounty]] — general submission workflow for bounty programs and audit contests (Immunefi, HackerOne crypto, Code4rena, Cantina); platform-specific rules come from each platform.
 - [[../Pentesting/sop-web-application-security|Web Application Security]] — web3 frontend, signing-UX, off-chain backend findings.
 - [[../Pentesting/sop-mobile-security|Mobile Security]] — wallet-app / hardware-wallet integration findings.
 
@@ -1009,14 +1064,14 @@ A signed engagement letter (or, for public contests, the platform's published ru
 - **Time budget and deliverable.** What the report covers, what it does not, and the schedule.
 - **Disclosure terms.** Who receives the draft; who receives the final; whether the team will publish; how findings affecting third parties (oracle providers, integrators) are coordinated.
 - **Warranty and liability framing.** Most engagement contracts disclaim warranty (the audit does not guarantee safety) and limit liability. Verify the language matches your firm's standard or insurer's requirements.
-- **Safe-harbor analog.** Public contests have platform-managed safe-harbor (Code4rena / Sherlock / Cantina each publish terms). Private engagements rely on contract terms; verify they cover the auditor's actions.
+- **Safe-harbor analog.** Code4rena's [Terms of Service](https://docs.code4rena.com/legal/terms-of-service) contain an explicit "Safe Harbor (Authorization to Test)" clause scoped by each contest's program materials; other platforms' terms differ, so read the current terms for each contest and apply the safe-harbor checklist in [[../Pentesting/sop-bug-bounty|Bug Bounty]]. SEAL's Whitehat Safe Harbor covers rescues during live exploits, not contest testing. Private engagements rely on contract terms; verify they cover the auditor's actions.
 
 ### Anti-Hacking Statute Framing
 
-Smart-contract audits operate against code, not deployed state, so the CFAA / Computer Misuse Act / Cybercrime Directive concerns that apply to live-system pentesting are reduced — but not absent. Specifically:
+Smart-contract audits operate against code, not deployed state, so the CFAA / Computer Misuse Act / Cybercrime Directive concerns that apply to live-system pentesting are reduced — but not absent; see [[sop-legal-ethics|Legal & Ethics]] for the statute-level framing. Specifically:
 
-- **Mainnet-fork testing** with the engagement's RPC endpoint is local computation against a snapshot; it does not interact with live state. Allowed.
-- **Active sending of transactions to deployed contracts the engagement does not authorize** is the line. Even read-only-feeling actions (calling a public view function) are arguably state-touching at the gas-and-block-inclusion level. When in doubt, route through a fork.
+- **Mainnet-fork testing** against the engagement's RPC endpoint executes locally against a state snapshot and sends no transactions. The engagement letter's RPC authorization (§2) and the RPC provider's terms cover it.
+- **Active sending of transactions to deployed contracts the engagement does not authorize** is the line. Reads via `eth_call` create no transaction and touch no state, but they still go through an RPC provider under its terms; a view function invoked inside a signed transaction is on-chain. When in doubt, route through a fork.
 - **Probing testnet deployments the team operates** is generally authorized within the engagement; verify in the engagement letter.
 - **Probing mainnet deployments of the protocol under audit** is a gray area in many jurisdictions; verify explicit authorization in the engagement letter for any mainnet interaction. Bug-bounty programs sometimes authorize specific mainnet probing under safe-harbor; audit engagements usually do not.
 
@@ -1064,67 +1119,69 @@ Smart-contract audits operate against code, not deployed state, so the CFAA / Co
 ## 18. External & Reference Resources
 
 **Defect taxonomies and audit-finding catalogues:**
-- SWC Registry — https://swcregistry.io
+- SWC Registry (no longer actively maintained; content not thoroughly updated since 2020; the site points to the EEA EthTrust Security Levels for current guidance) — https://swcregistry.io
 - Solodit — https://solodit.cyfrin.io
-- DASP Top 10 (historical) — https://dasp.co
+- DASP Top 10 (historical; dasp.co is offline behind HTTP authentication as of 2026-11) — archived copy: https://web.archive.org/web/20240102011402/https://dasp.co/
 - Trail of Bits "Building Secure Smart Contracts" — https://github.com/crytic/building-secure-contracts
 - Consensys Smart Contract Best Practices — https://consensys.github.io/smart-contract-best-practices/
-- OpenZeppelin Forum — https://forum.openzeppelin.com/c/security/35
+- OpenZeppelin Forum — https://forum.openzeppelin.com/c/security/25
 
 **Public competitive-audit reports:**
 - Code4rena — https://code4rena.com/reports
-- Sherlock — https://audits.sherlock.xyz/contests
-- Cantina — https://cantina.xyz
-- Cyfrin — https://www.cyfrin.io/audits
-- Hats Finance — https://hats.finance
+- Sherlock (past-contest archive) — https://audits.sherlock.xyz/contests
+- Cantina — https://cantina.security
+- Cyfrin — https://github.com/Cyfrin/cyfrin-audit-reports (public report archive; service page: https://www.cyfrin.io/services/audits)
 
 **Standards and EIPs:**
 - Ethereum Improvement Proposals — https://eips.ethereum.org
 - ERC-20 / ERC-721 / ERC-1155 / ERC-4626 (token standards)
-- ERC-1967 (Standard Proxy Storage Slots)
-- EIP-2535 (Diamond Proxy)
-- EIP-7201 (Namespaced Storage Layout)
+- ERC-1967 (Proxy Storage Slots)
+- ERC-2535 (Diamonds, Multi-Facet Proxy)
+- ERC-7201 (Namespaced Storage Layout)
 - EIP-712 (Typed Structured Data Hashing and Signing)
-- EIP-2612 (Permit Extension)
+- ERC-2612 (Permit Extension for EIP-20 Signed Approvals)
 
 **Tooling and frameworks:**
-- Foundry — https://book.getfoundry.sh
+- Foundry — https://getfoundry.sh
 - Hardhat — https://hardhat.org
 - Slither — https://github.com/crytic/slither
 - Aderyn — https://github.com/Cyfrin/aderyn
 - Wake — https://github.com/Ackee-Blockchain/wake
-- Mythril — https://github.com/Consensys/mythril
+- Mythril — https://github.com/ConsenSysDiligence/mythril
 - Echidna — https://github.com/crytic/echidna
 - Medusa — https://github.com/crytic/medusa
-- Halmos — https://github.com/a16z/halmos
-- Certora — https://www.certora.com
+- Halmos (no release since v0.3.3, 2025-07-31) — https://github.com/a16z/halmos
+- Certora — https://www.certora.com (prover source, GPL-3.0: https://github.com/Certora/CertoraProver)
 - KEVM — https://github.com/runtimeverification/evm-semantics
 
 **Incident catalogues for post-mortem study:**
 - Rekt News — https://rekt.news
 - DeFiLlama Hacks — https://defillama.com/hacks
 - Chainalysis Crypto Crime Reports — https://www.chainalysis.com/reports/
-- TRM Labs Reports — https://www.trmlabs.com/reports
+- TRM Labs Resources (reports, research) — https://www.trmlabs.com/resources
 
 **Audit firm methodology references:**
 - Trail of Bits Blog — https://blog.trailofbits.com
-- OpenZeppelin Blog — https://blog.openzeppelin.com
-- ConsenSys Diligence Blog — https://consensys.io/diligence/blog
+- OpenZeppelin News — https://www.openzeppelin.com/news
+- Consensys Diligence Blog — https://diligence.security/blog
 - Spearbit — https://spearbit.com
-- Cantina Research — https://cantina.xyz/research
+- Cantina Research — https://cantina.security/research
 - Zellic — https://www.zellic.io/blog
-- Sigma Prime — https://blog.sigmaprime.io
+- Sigma Prime — https://sigmaprime.io/blog/
 
 **Academic and primary sources:**
 - Solidity Documentation — https://docs.soliditylang.org
 - Vyper Documentation — https://docs.vyperlang.org
-- Move Language — https://move-language.github.io/move/
-- Solana Anchor — https://www.anchor-lang.com
+- Move Language (legacy book; upstream repo archived 2024-05, prefer the chain-specific docs below) — https://move-language.github.io/move/
+- Aptos Move (smart contracts) — https://aptos.dev/build/smart-contracts
+- Sui Move concepts — https://docs.sui.io/develop/write-move/sui-move-concepts
+- Solana Anchor — https://www.anchor-lang.com/docs
+- CosmWasm — https://cosmwasm.github.io
 - Cairo / Starknet — https://docs.starknet.io
 - evm.codes — https://www.evm.codes
 
 ---
 
 **Version:** 1.0
-**Last Updated:** 2026-04-26
+**Last Updated:** 2026-11-04
 **Review Frequency:** Quarterly (tooling, EIPs, defect-taxonomy entries, and audit-firm methodology drift on a months-to-quarters cadence; vulnerability-class fundamentals are slower)
