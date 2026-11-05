@@ -87,7 +87,7 @@ file, so a SOP is only as fresh as its stalest claim.
 
 | SOP | File | Updated | Checks | Oldest check | Age (days) | State |
 |-----|------|---------|-------:|--------------|-----------:|-------|
-| Active Directory Pentesting SOP (Authorized) | [[sop-ad-pentest]] | 2026-04-26 | 16 | 2026-04-26 | 193 | current |
+| Active Directory Pentesting SOP (Authorized) | [[sop-ad-pentest]] | 2026-11-05 | 38 | 2026-11-05 | 0 | current |
 | Bug Bounty Methodology SOP | [[sop-bug-bounty]] | 2026-04-25 | 3 | 2026-04-25 | 194 | current |
 | Cloud Pentesting SOP (Authorized) | [[sop-cloud-pentest]] | 2026-04-27 | 33 | 2026-04-26 | 193 | current |
 | Container & Kubernetes Pentesting SOP (Authorized) | [[sop-container-k8s-pentest]] | 2026-10-18 | 37 | 2026-04-27 | 192 | current |

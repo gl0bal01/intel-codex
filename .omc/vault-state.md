@@ -57,7 +57,7 @@ generator: tools/build-vault-state.sh
 
 ### Security/Pentesting (11 SOPs)
 
-- `sop-ad-pentest` — Active Directory Pentesting SOP (Authorized) (updated 2026-04-26)
+- `sop-ad-pentest` — Active Directory Pentesting SOP (Authorized) (updated 2026-11-05)
 - `sop-bug-bounty` — Bug Bounty Methodology SOP (updated 2026-04-25)
 - `sop-cloud-pentest` — Cloud Pentesting SOP (Authorized) (updated 2026-04-27)
 - `sop-container-k8s-pentest` — Container & Kubernetes Pentesting SOP (Authorized) (updated 2026-10-18)
