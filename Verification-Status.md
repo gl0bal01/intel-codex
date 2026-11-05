@@ -72,7 +72,7 @@ file, so a SOP is only as fresh as its stalest claim.
 
 | SOP | File | Updated | Checks | Oldest check | Age (days) | State |
 |-----|------|---------|-------:|--------------|-----------:|-------|
-| AI/ML Vulnerability & Evasion Testing SOP | [[sop-ai-vulnerability-evasion]] | 2026-11-04 | 39 | 2026-11-04 | 1 | current |
+| AI/ML Vulnerability & Evasion Testing SOP | [[sop-ai-vulnerability-evasion]] | 2026-11-05 | 55 | 2026-11-04 | 1 | current |
 | Cloud Forensics SOP | [[sop-cloud-forensics]] | 2026-10-30 | 261 | 2026-10-30 | 6 | current |
 | Cryptography Analysis SOP | [[sop-cryptography-analysis]] | 2026-11-02 | 21 | 2026-11-02 | 3 | current |
 | Email & BEC Forensics SOP | [[sop-email-bec-forensics]] | 2026-10-30 | 136 | 2026-10-29 | 7 | current |
