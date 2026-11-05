@@ -10,7 +10,7 @@ Operational manual for digital investigators, security analysts, OSINT practitio
 
 **Not** a tool, course, CVE database, install guide, or malware repo. SOPs reference tools, don't bundle them. Defensive/educational scope.
 
-**Dual-format:** Obsidian vault is source of truth. Mirrored to a Docusaurus site via an out-of-tree `vault-sync` plugin. `index.md` = Docusaurus landing page; `README.md` = Obsidian/GitHub landing page — keep both in sync. `.github/workflows/mirror.yml` mirrors `main` to Codeberg. No CI; vault hygiene is checked by `tools/check-vault.sh`.
+**Dual-format:** Obsidian vault is source of truth. Mirrored to a Docusaurus site via an out-of-tree `vault-sync` plugin. `index.md` = Docusaurus landing page; `README.md` = Obsidian/GitHub landing page — keep both in sync. `.github/workflows/mirror.yml` mirrors `main` to Codeberg. CI: `.github/workflows/vault-check.yml` runs `tools/check-vault.sh` and fails if `tools/build-vault-state.sh` output is stale; `tools/ci-local.sh` mirrors it locally — run it before every push.
 
 ## Layout
 
@@ -24,6 +24,7 @@ Operational manual for digital investigators, security analysts, OSINT practitio
 - `.omc/vault-state.md` — generated SOP inventory + counts + watchlist + gaps (**read this first**)
 - `.omc/watchlist.md`, `.omc/gaps.md` — manual sources composed into `vault-state.md`
 - `tools/build-vault-state.sh`, `tools/check-vault.sh` — regenerate state; lint vault drift
+- `tools/ci-local.sh` — local CI mirror; `tools/marker_lint.py`, `code_block_check.py`, `anchor_check.py`, `wikianchor_check.py`, `attack_check.py` — per-SOP lints
 
 SOP counts and inventory are derived from the filesystem — see `.omc/vault-state.md`. `README.md` and `index.md` should match the vault total; `tools/check-vault.sh` verifies.
 
@@ -58,4 +59,4 @@ Use existing tags. Themes: doc type (`sop`, `index`, `dossier`), OSINT domain, p
 - **Cross-links:** verify with `./tools/check-vault.sh` or `Glob`/`Grep`. Basename for in-folder, relative for cross-folder, Docusaurus long form only in `index.md`, Markdown relative for `Cases/`.
 - **Cases:** start from `Cases/Case-Template/`. Naming: `YYYY-NNN-Brief-Description`. Subject data fictional unless authorized. Reference `Cases/2025-001-Example-Investigation/`.
 - **Refusals:** never invent commands, flags, CVE numbers, statute numbers, citations, vendor pricing. Never draft adversary content (working malware, weaponized exploits). If unsure about scope, ask first.
-- **Commits:** never commit or `git push` without explicit user approval. The user runs commits.
+- **Commits:** never commit or `git push` without the user's explicit yes for that commit; after it, the agent may run them (staged by explicit path, never `index.md` unless asked).
