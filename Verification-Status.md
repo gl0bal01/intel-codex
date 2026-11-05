@@ -61,7 +61,7 @@ file, so a SOP is only as fresh as its stalest claim.
 | Entity Dossier Guide | [[sop-entity-dossier]] | 2026-10-29 | 58 | 2026-10-18 | 17 | current |
 | Financial Crime & AML OSINT | [[sop-financial-aml-osint]] | 2026-10-29 | 51 | 2026-10-29 | 6 | current |
 | Image & Video OSINT | [[sop-image-video-osint]] | 2026-10-29 | 145 | 2026-10-29 | 6 | current |
-| Legal, Ethics & Data Governance for OSINT | [[sop-legal-ethics]] | 2026-10-29 | 131 | 2026-10-25 | 10 | current |
+| Legal, Ethics & Data Governance for OSINT | [[sop-legal-ethics]] | 2026-11-04 | 132 | 2026-10-25 | 10 | current |
 | Mixer & Privacy-Pool Tracing | [[sop-mixer-tracing]] | 2026-10-29 | 139 | 2026-10-29 | 6 | current |
 | OPSEC Planning for OSINT Investigations | [[sop-opsec-plan]] | 2026-10-29 | 187 | 2026-10-25 | 10 | current |
 | Reporting, Packaging & Disclosure | [[sop-reporting-packaging-disclosure]] | 2026-10-29 | 47 | 2026-10-18 | 17 | current |
@@ -72,7 +72,7 @@ file, so a SOP is only as fresh as its stalest claim.
 
 | SOP | File | Updated | Checks | Oldest check | Age (days) | State |
 |-----|------|---------|-------:|--------------|-----------:|-------|
-| AI/ML Vulnerability & Evasion Testing SOP | [[sop-ai-vulnerability-evasion]] | 2026-04-26 | 25 | 2026-04-26 | 192 | current |
+| AI/ML Vulnerability & Evasion Testing SOP | [[sop-ai-vulnerability-evasion]] | 2026-11-04 | 39 | 2026-11-04 | 0 | current |
 | Cloud Forensics SOP | [[sop-cloud-forensics]] | 2026-10-30 | 261 | 2026-10-30 | 5 | current |
 | Cryptography Analysis SOP | [[sop-cryptography-analysis]] | 2026-11-02 | 21 | 2026-11-02 | 2 | current |
 | Email & BEC Forensics SOP | [[sop-email-bec-forensics]] | 2026-10-30 | 136 | 2026-10-29 | 6 | current |

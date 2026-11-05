@@ -35,7 +35,7 @@ generator: tools/build-vault-state.sh
 - `sop-entity-dossier` — Entity Dossier Guide (updated 2026-10-29)
 - `sop-financial-aml-osint` — Financial Crime & AML OSINT (updated 2026-10-29)
 - `sop-image-video-osint` — Image & Video OSINT (updated 2026-10-29)
-- `sop-legal-ethics` — Legal, Ethics & Data Governance for OSINT (updated 2026-10-29)
+- `sop-legal-ethics` — Legal, Ethics & Data Governance for OSINT (updated 2026-11-04)
 - `sop-mixer-tracing` — Mixer & Privacy-Pool Tracing (updated 2026-10-29)
 - `sop-opsec-plan` — OPSEC Planning for OSINT Investigations (updated 2026-10-29)
 - `sop-reporting-packaging-disclosure` — Reporting, Packaging & Disclosure (updated 2026-10-29)
@@ -44,7 +44,7 @@ generator: tools/build-vault-state.sh
 
 ### Security/Analysis (10 SOPs)
 
-- `sop-ai-vulnerability-evasion` — AI/ML Vulnerability & Evasion Testing SOP (updated 2026-04-26)
+- `sop-ai-vulnerability-evasion` — AI/ML Vulnerability & Evasion Testing SOP (updated 2026-11-04)
 - `sop-cloud-forensics` — Cloud Forensics SOP (updated 2026-10-30)
 - `sop-cryptography-analysis` — Cryptography Analysis SOP (updated 2026-11-02)
 - `sop-email-bec-forensics` — Email & BEC Forensics SOP (updated 2026-10-30)

@@ -3,7 +3,7 @@ type: sop
 title: Legal, Ethics & Data Governance for OSINT
 description: "Essential legal & ethical boundaries for OSINT: GDPR/CPRA/state-privacy compliance, authorization, cross-border transfer, sensitive-data handling & responsible disclosure."
 created: 2025-10-05
-updated: 2026-10-29
+updated: 2026-11-04
 template_version: 2026-04-26
 tags: [sop, legal, ethics, compliance, gdpr, privacy, data-governance]
 ---
@@ -57,6 +57,7 @@ tags: [sop, legal, ethics, compliance, gdpr, privacy, data-governance]
 - **SCA (18 U.S.C. § 2701):** Stored Communications Act — unauthorized access to stored electronic communications [verify 2026-10-25].
 - **DMCA § 1201 (17 U.S.C. § 1201):** Anti-circumvention of technological protection measures. Triennial Librarian-of-Congress rulemaking sets security-research exemptions; **most recent cycle was 2024** (security-research exemption at 37 CFR 201.40(b)(18); 89 FR 85446, Oct. 28, 2024) [verify 2026-10-29].
 - **CSAM reporting (18 U.S.C. § 2258A):** Mandatory NCMEC CyberTipline reporting by US-provider electronic-communication services. REPORT Act (Pub. L. 118-59, May 2024) expanded reporting categories to include enticement and trafficking [verify 2026-10-25].
+- **Federal AI executive orders:** EO 14110 (Oct 30, 2023) was rescinded by EO 14148 (Jan 20, 2025). Later orders include EO 14179 (Jan 23, 2025), EO 14365 (Dec 11, 2025) and EO 14409 (Jun 2, 2026); check https://www.federalregister.gov/presidential-documents/executive-orders before relying on any of them [verify 2026-11-04].
 - **State privacy laws:** California **CCPA** (2018) as amended by **CPRA** (operative Jan 1, 2023; CPPA enforcement); **VCDPA** (Virginia, Jan 2023), **CPA** (Colorado, July 2023), **CTDPA** (Connecticut, July 2023), **UCPA** (Utah, Dec 2023). Comprehensive laws have since been enacted in TX, OR, MT, IA, DE, NJ, NH, TN, MD, MN, NE and other states; Indiana's, Kentucky's and Rhode Island's took effect Jan 1, 2026 — verify the current list and effective dates at iapp.org or NCSL before scoping a multi-state matter [verify 2026-10-29].
 
 **European Union:**
@@ -1232,7 +1233,7 @@ Example: "Subject's social media post suggests suicidal ideation. Should I notif
 ---
 
 **Version:** 2.1
-**Last Updated:** 2026-10-29
+**Last Updated:** 2026-11-04
 **Review Cycle:** Yearly (with quarterly check on fast-moving items: EU AI Act phase-in, US-state privacy tracker, DMCA § 1201 cycle, REPORT Act guidance)
 **Next Review:** 2027-04-26
 
