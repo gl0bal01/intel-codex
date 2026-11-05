@@ -1,0 +1,4 @@
+#!/usr/bin/env bash
+# Runs the local mirror of .github/workflows/vault-check.yml on HEAD before every push.
+# Enable once per clone: git config core.hooksPath .githooks
+exec "$(git rev-parse --show-toplevel)/tools/ci-local.sh" --head
