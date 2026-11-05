@@ -1,5 +1,5 @@
 ---
-generated: 2026-11-04
+generated: 2026-11-05
 generator: tools/build-vault-state.sh
 ---
 
@@ -63,7 +63,7 @@ generator: tools/build-vault-state.sh
 - `sop-container-k8s-pentest` — Container & Kubernetes Pentesting SOP (Authorized) (updated 2026-10-18)
 - `sop-detection-evasion-testing` — Detection & Evasion Testing SOP (Purple Team) (updated 2026-10-18)
 - `sop-firmware-reverse-engineering` — Firmware Reverse Engineering (updated 2026-04-26)
-- `sop-linux-pentest` — Linux Pentesting SOP (Authorized) (updated 2026-04-25)
+- `sop-linux-pentest` — Linux Pentesting SOP (Authorized) (updated 2026-11-05)
 - `sop-mobile-security` — Mobile Security (iOS & Android) (updated 2026-09-20)
 - `sop-vulnerability-research` — Vulnerability Research SOP (updated 2026-10-31)
 - `sop-web-application-security` — Web Application Security Testing SOP (updated 2026-09-20)
