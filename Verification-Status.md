@@ -2,7 +2,7 @@
 type: index
 title: Verification Status
 description: "Per-SOP verification record for the Intel Codex vault: source-check counts, oldest check, and review age for all 41 procedures."
-generated: 2026-11-05
+generated: 2026-11-06
 generator: tools/build-vault-state.sh
 tags:
   - index
@@ -42,63 +42,63 @@ file, so a SOP is only as fresh as its stalest claim.
 
 | SOP | File | Updated | Checks | Oldest check | Age (days) | State |
 |-----|------|---------|-------:|--------------|-----------:|-------|
-| Bluesky SOP | [[sop-platform-bluesky]] | 2026-10-18 | 56 | 2026-10-18 | 18 | current |
-| Discord SOP | [[sop-platform-discord]] | 2026-10-29 | 103 | 2026-10-18 | 18 | current |
-| Instagram SOP | [[sop-platform-instagram]] | 2026-10-18 | 38 | 2026-10-18 | 18 | current |
-| LinkedIn SOP | [[sop-platform-linkedin]] | 2026-10-18 | 61 | 2026-10-18 | 18 | current |
-| Reddit SOP | [[sop-platform-reddit]] | 2026-10-29 | 46 | 2026-10-18 | 18 | current |
-| Telegram SOP | [[sop-platform-telegram]] | 2026-10-18 | 33 | 2026-10-18 | 18 | current |
-| TikTok SOP | [[sop-platform-tiktok]] | 2026-10-18 | 39 | 2026-10-18 | 18 | current |
-| Twitter/X SOP | [[sop-platform-twitter-x]] | 2026-10-29 | 56 | 2026-10-18 | 18 | current |
+| Bluesky SOP | [[sop-platform-bluesky]] | 2026-10-18 | 56 | 2026-10-18 | 19 | current |
+| Discord SOP | [[sop-platform-discord]] | 2026-10-29 | 103 | 2026-10-18 | 19 | current |
+| Instagram SOP | [[sop-platform-instagram]] | 2026-10-18 | 38 | 2026-10-18 | 19 | current |
+| LinkedIn SOP | [[sop-platform-linkedin]] | 2026-10-18 | 61 | 2026-10-18 | 19 | current |
+| Reddit SOP | [[sop-platform-reddit]] | 2026-10-29 | 46 | 2026-10-18 | 19 | current |
+| Telegram SOP | [[sop-platform-telegram]] | 2026-10-18 | 33 | 2026-10-18 | 19 | current |
+| TikTok SOP | [[sop-platform-tiktok]] | 2026-10-18 | 39 | 2026-10-18 | 19 | current |
+| Twitter/X SOP | [[sop-platform-twitter-x]] | 2026-10-29 | 56 | 2026-10-18 | 19 | current |
 
 ## Investigations / Techniques
 
 | SOP | File | Updated | Checks | Oldest check | Age (days) | State |
 |-----|------|---------|-------:|--------------|-----------:|-------|
-| Blockchain Investigation | [[sop-blockchain-investigation]] | 2026-10-29 | 160 | 2026-10-29 | 7 | current |
-| OSINT Collection Log & Chain of Custody | [[sop-collection-log]] | 2026-10-29 | 86 | 2026-10-29 | 7 | current |
-| Darkweb Investigation | [[sop-darkweb-investigation]] | 2026-10-29 | 132 | 2026-10-29 | 7 | current |
-| Entity Dossier Guide | [[sop-entity-dossier]] | 2026-10-29 | 58 | 2026-10-18 | 18 | current |
-| Financial Crime & AML OSINT | [[sop-financial-aml-osint]] | 2026-10-29 | 51 | 2026-10-29 | 7 | current |
-| Image & Video OSINT | [[sop-image-video-osint]] | 2026-10-29 | 145 | 2026-10-29 | 7 | current |
-| Legal, Ethics & Data Governance for OSINT | [[sop-legal-ethics]] | 2026-11-04 | 132 | 2026-10-25 | 11 | current |
-| Mixer & Privacy-Pool Tracing | [[sop-mixer-tracing]] | 2026-10-29 | 139 | 2026-10-29 | 7 | current |
-| OPSEC Planning for OSINT Investigations | [[sop-opsec-plan]] | 2026-10-29 | 187 | 2026-10-25 | 11 | current |
-| Reporting, Packaging & Disclosure | [[sop-reporting-packaging-disclosure]] | 2026-10-29 | 47 | 2026-10-18 | 18 | current |
-| Sensitive Crime Intake & Escalation | [[sop-sensitive-crime-intake-escalation]] | 2026-10-29 | 128 | 2026-10-29 | 7 | current |
-| Web, DNS & WHOIS OSINT | [[sop-web-dns-whois-osint]] | 2026-10-29 | 97 | 2026-10-29 | 7 | current |
+| Blockchain Investigation | [[sop-blockchain-investigation]] | 2026-10-29 | 160 | 2026-10-29 | 8 | current |
+| OSINT Collection Log & Chain of Custody | [[sop-collection-log]] | 2026-10-29 | 86 | 2026-10-29 | 8 | current |
+| Darkweb Investigation | [[sop-darkweb-investigation]] | 2026-10-29 | 132 | 2026-10-29 | 8 | current |
+| Entity Dossier Guide | [[sop-entity-dossier]] | 2026-10-29 | 58 | 2026-10-18 | 19 | current |
+| Financial Crime & AML OSINT | [[sop-financial-aml-osint]] | 2026-10-29 | 51 | 2026-10-29 | 8 | current |
+| Image & Video OSINT | [[sop-image-video-osint]] | 2026-10-29 | 145 | 2026-10-29 | 8 | current |
+| Legal, Ethics & Data Governance for OSINT | [[sop-legal-ethics]] | 2026-11-04 | 132 | 2026-10-25 | 12 | current |
+| Mixer & Privacy-Pool Tracing | [[sop-mixer-tracing]] | 2026-10-29 | 139 | 2026-10-29 | 8 | current |
+| OPSEC Planning for OSINT Investigations | [[sop-opsec-plan]] | 2026-10-29 | 187 | 2026-10-25 | 12 | current |
+| Reporting, Packaging & Disclosure | [[sop-reporting-packaging-disclosure]] | 2026-10-29 | 47 | 2026-10-18 | 19 | current |
+| Sensitive Crime Intake & Escalation | [[sop-sensitive-crime-intake-escalation]] | 2026-10-29 | 128 | 2026-10-29 | 8 | current |
+| Web, DNS & WHOIS OSINT | [[sop-web-dns-whois-osint]] | 2026-10-29 | 97 | 2026-10-29 | 8 | current |
 
 ## Security / Analysis
 
 | SOP | File | Updated | Checks | Oldest check | Age (days) | State |
 |-----|------|---------|-------:|--------------|-----------:|-------|
-| AI/ML Vulnerability & Evasion Testing SOP | [[sop-ai-vulnerability-evasion]] | 2026-11-05 | 55 | 2026-11-04 | 1 | current |
-| Cloud Forensics SOP | [[sop-cloud-forensics]] | 2026-10-30 | 261 | 2026-10-30 | 6 | current |
-| Cryptography Analysis SOP | [[sop-cryptography-analysis]] | 2026-11-02 | 21 | 2026-11-02 | 3 | current |
-| Email & BEC Forensics SOP | [[sop-email-bec-forensics]] | 2026-10-30 | 136 | 2026-10-29 | 7 | current |
-| Digital Forensics Investigation SOP | [[sop-forensics-investigation]] | 2026-10-30 | 212 | 2026-10-29 | 7 | current |
-| Hash Generation Methods for Evidence Integrity | [[sop-hash-generation-methods]] | 2026-10-30 | 58 | 2026-10-30 | 6 | current |
-| Malware Analysis SOP | [[sop-malware-analysis]] | 2026-10-18 | 200 | 2026-10-18 | 18 | current |
-| Reverse Engineering | [[sop-reverse-engineering]] | 2026-10-31 | 48 | 2026-10-30 | 6 | current |
-| SaaS Log Forensics SOP | [[sop-saas-log-forensics]] | 2026-10-30 | 338 | 2026-10-30 | 6 | current |
-| Smart Contract Audit SOP | [[sop-smart-contract-audit]] | 2026-11-04 | 30 | 2026-11-04 | 1 | current |
+| AI/ML Vulnerability & Evasion Testing SOP | [[sop-ai-vulnerability-evasion]] | 2026-11-06 | 83 | 2026-11-04 | 2 | current |
+| Cloud Forensics SOP | [[sop-cloud-forensics]] | 2026-10-30 | 261 | 2026-10-30 | 7 | current |
+| Cryptography Analysis SOP | [[sop-cryptography-analysis]] | 2026-11-02 | 21 | 2026-11-02 | 4 | current |
+| Email & BEC Forensics SOP | [[sop-email-bec-forensics]] | 2026-10-30 | 136 | 2026-10-29 | 8 | current |
+| Digital Forensics Investigation SOP | [[sop-forensics-investigation]] | 2026-10-30 | 212 | 2026-10-29 | 8 | current |
+| Hash Generation Methods for Evidence Integrity | [[sop-hash-generation-methods]] | 2026-10-30 | 58 | 2026-10-30 | 7 | current |
+| Malware Analysis SOP | [[sop-malware-analysis]] | 2026-10-18 | 200 | 2026-10-18 | 19 | current |
+| Reverse Engineering | [[sop-reverse-engineering]] | 2026-10-31 | 48 | 2026-10-30 | 7 | current |
+| SaaS Log Forensics SOP | [[sop-saas-log-forensics]] | 2026-10-30 | 338 | 2026-10-30 | 7 | current |
+| Smart Contract Audit SOP | [[sop-smart-contract-audit]] | 2026-11-04 | 30 | 2026-11-04 | 2 | current |
 
 ## Security / Pentesting
 
 | SOP | File | Updated | Checks | Oldest check | Age (days) | State |
 |-----|------|---------|-------:|--------------|-----------:|-------|
-| Active Directory Pentesting SOP (Authorized) | [[sop-ad-pentest]] | 2026-11-05 | 38 | 2026-11-05 | 0 | current |
-| Bug Bounty Methodology SOP | [[sop-bug-bounty]] | 2026-04-25 | 3 | 2026-04-25 | 194 | current |
-| Cloud Pentesting SOP (Authorized) | [[sop-cloud-pentest]] | 2026-04-27 | 33 | 2026-04-26 | 193 | current |
-| Container & Kubernetes Pentesting SOP (Authorized) | [[sop-container-k8s-pentest]] | 2026-10-18 | 37 | 2026-04-27 | 192 | current |
-| Detection & Evasion Testing SOP (Purple Team) | [[sop-detection-evasion-testing]] | 2026-10-18 | 67 | 2026-10-18 | 18 | current |
-| Firmware Reverse Engineering | [[sop-firmware-reverse-engineering]] | 2026-04-26 | 39 | 2026-04-26 | 193 | current |
-| Linux Pentesting SOP (Authorized) | [[sop-linux-pentest]] | 2026-11-05 | 69 | 2026-11-05 | 0 | current |
-| Mobile Security (iOS & Android) | [[sop-mobile-security]] | 2026-09-20 | 21 | 2026-04-26 | 193 | current |
-| Vulnerability Research SOP | [[sop-vulnerability-research]] | 2026-10-31 | 85 | 2026-10-31 | 5 | current |
-| Web Application Security Testing SOP | [[sop-web-application-security]] | 2026-09-20 | 8 | 2026-04-25 | 194 | current |
-| Wireless & RF Pentesting (Authorized) | [[sop-wireless-rf-pentest]] | 2026-04-26 | 31 | 2026-04-26 | 193 | current |
+| Active Directory Pentesting SOP (Authorized) | [[sop-ad-pentest]] | 2026-11-05 | 38 | 2026-11-05 | 1 | current |
+| Bug Bounty Methodology SOP | [[sop-bug-bounty]] | 2026-04-25 | 3 | 2026-04-25 | 195 | current |
+| Cloud Pentesting SOP (Authorized) | [[sop-cloud-pentest]] | 2026-04-27 | 33 | 2026-04-26 | 194 | current |
+| Container & Kubernetes Pentesting SOP (Authorized) | [[sop-container-k8s-pentest]] | 2026-10-18 | 37 | 2026-04-27 | 193 | current |
+| Detection & Evasion Testing SOP (Purple Team) | [[sop-detection-evasion-testing]] | 2026-10-18 | 67 | 2026-10-18 | 19 | current |
+| Firmware Reverse Engineering | [[sop-firmware-reverse-engineering]] | 2026-04-26 | 39 | 2026-04-26 | 194 | current |
+| Linux Pentesting SOP (Authorized) | [[sop-linux-pentest]] | 2026-11-05 | 69 | 2026-11-05 | 1 | current |
+| Mobile Security (iOS & Android) | [[sop-mobile-security]] | 2026-09-20 | 21 | 2026-04-26 | 194 | current |
+| Vulnerability Research SOP | [[sop-vulnerability-research]] | 2026-10-31 | 85 | 2026-10-31 | 6 | current |
+| Web Application Security Testing SOP | [[sop-web-application-security]] | 2026-09-20 | 8 | 2026-04-25 | 195 | current |
+| Wireless & RF Pentesting (Authorized) | [[sop-wireless-rf-pentest]] | 2026-04-26 | 31 | 2026-04-26 | 194 | current |
 
 ---
 
-**Generated:** 2026-11-05
+**Generated:** 2026-11-06
