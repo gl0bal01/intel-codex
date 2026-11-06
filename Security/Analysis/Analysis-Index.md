@@ -1,14 +1,14 @@
 ---
 type: index
 title: "Security Analysis SOPs"
-description: "Expert security analysis techniques: malware investigation, reverse engineering, cryptography audits, hash verification, smart-contract audit, cloud forensics, SaaS log forensics, email & BEC forensics & threat intelligence research."
-tags: [index, security, analysis, malware, reverse-engineering, smart-contract, cloud-forensics, saas-forensics, email-forensics, bec]
-updated: 2026-04-27
+description: "Expert security analysis techniques: malware investigation, reverse engineering, cryptography audits, hash verification, smart-contract audit, cloud forensics, SaaS log forensics, email & BEC forensics, AI/ML red teaming & threat intelligence research."
+tags: [index, security, analysis, malware, reverse-engineering, smart-contract, cloud-forensics, saas-forensics, email-forensics, bec, ai]
+updated: 2026-11-06
 ---
 
 # Security Analysis SOPs
 
-This directory contains Standard Operating Procedures (SOPs) for security analysis, reverse engineering, cryptographic analysis, smart-contract audit, cloud forensics, SaaS log forensics, and email & BEC forensics.
+This directory contains Standard Operating Procedures (SOPs) for security analysis, reverse engineering, cryptographic analysis, smart-contract audit, cloud forensics, SaaS log forensics, email & BEC forensics, and AI/ML red teaming.
 
 ## Available Analysis SOPs
 
@@ -21,6 +21,8 @@ This directory contains Standard Operating Procedures (SOPs) for security analys
 - [[sop-cloud-forensics|Cloud Forensics]]
 - [[sop-saas-log-forensics|SaaS Log Forensics]]
 - [[sop-email-bec-forensics|Email & BEC Forensics]]
+- [[sop-ai-vulnerability-evasion|AI/ML Vulnerability & Evasion Testing]]
+- [[sop-ai-vulnerability-evasion-guide|AI/ML Testing Field Guide]] - start here if you are new to AI red teaming
 
 ## Purpose
 
@@ -34,6 +36,7 @@ These SOPs provide standardized procedures for:
 - Conducting cloud forensics across IaaS control planes (AWS / Azure / GCP), IAM, container runtimes, and cloud volumes
 - Conducting SaaS log forensics across M365 (UAL + Purview), Google Workspace (Reports + Vault), Okta (System Log + ITP), Slack (Audit + Discovery), Salesforce (Setup Audit Trail + Real-Time Event Monitoring), GitHub / GitLab audit, OAuth consent-grant abuse, and cross-tenant collaboration patterns
 - Reconstructing email-vector incidents and Business Email Compromise: header forensics (Received-chain, Authentication-Results), SPF / DKIM / DMARC / ARC evaluation, lookalike-domain and brand-impersonation detection, Microsoft 365 / Workspace message tracing, secure-email-gateway forensics (Mimecast / Proofpoint / Barracuda), phishing-kit defensive analysis (kit acquisition, AiTM detection), wire-recall pathway and Financial Fraud Kill Chain coordination, and BEC scenario taxonomy (CEO fraud, vendor-invoice, payroll-redirect, attorney-impersonation, real-estate / closing-funds, gift-card, cryptocurrency-payout variants)
+- Testing AI/ML systems (LLM applications, RAG, agents with tools or MCP, model artifacts) for prompt injection, data exfiltration, filter evasion, abuse and supply-chain risk, red and blue side by side
 
 ## Common Workflows
 
@@ -82,6 +85,11 @@ These SOPs provide standardized procedures for:
 6. [[../../Investigations/Techniques/sop-collection-log|Collection Log]] - Chain-of-custody discipline for every `.eml` capture, header dump, gateway-log export, and recovered-kit archive
 7. [[../../Investigations/Techniques/sop-financial-aml-osint|Financial & AML OSINT]] - Banking-pivot intelligence layer (SAR-typology, UBO investigation, structuring patterns); #9 owns wire-recall *operations*, AML *intelligence* layer routes here
 8. [[../../Investigations/Techniques/sop-blockchain-investigation|Blockchain Investigation]] - On-chain trace once cryptocurrency-payout BEC funds are deposited
+
+### AI/ML Red Teaming
+1. [[sop-ai-vulnerability-evasion-guide|AI/ML Testing Field Guide]] - Core concepts, the defense stack, routes by role and a ten-minute local smoke test
+2. [[sop-ai-vulnerability-evasion|AI/ML Vulnerability & Evasion Testing]] - The engagement procedure: harness, trials and statistics, red/blue technique mirror, scoring, RoE addendum, worked engagements
+3. [[../../Investigations/Techniques/sop-collection-log|Collection Log]] - Evidence hashing and chain of custody for trial logs and transcripts
 
 ## Navigation
 

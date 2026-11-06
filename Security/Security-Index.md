@@ -21,7 +21,7 @@ Understanding threats, reverse engineering, cryptographic analysis, and AI/ML se
 - **Cryptography Analysis** – Crypto implementation audit, weakness discovery
 - **Hash Generation** – File integrity verification, forensic hashing
 - **Forensics Investigation** – Evidence collection, incident response, timeline analysis
-- **AI/ML Vulnerability** – Adversarial attacks, prompt injection, model extraction
+- **AI/ML Vulnerability** – Adversarial attacks, prompt injection, model extraction; a plain-language field guide for newcomers
 
 ### [[Pentesting/Pentesting-Index|🔓 Pentesting SOPs]]
 Security assessments across infrastructure, applications, and offensive research.
@@ -56,7 +56,7 @@ Security assessments across infrastructure, applications, and offensive research
 | Bypass detection | Pentesting → Detection Evasion |
 | Analyze encrypted protocol | Analysis → Reverse Engineering |
 | Test mobile app | Pentesting → Mobile Security |
-| Test AI/ML system | Analysis → AI/ML Vulnerability |
+| Test AI/ML system | Analysis → AI/ML Field Guide, then AI/ML Vulnerability |
 
 ### By Workflow
 

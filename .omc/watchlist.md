@@ -15,6 +15,7 @@ Recommended review cadence per tier. SOPs in **Fast** rotate fastest (platform A
 - `sop-firmware-reverse-engineering`
 - `sop-wireless-rf-pentest` — Wi-Fi / Bluetooth / Matter portions rotate quarterly; SDR / NFC fundamentals are slower
 - `sop-ai-vulnerability-evasion` — quarterly review
+- `sop-ai-vulnerability-evasion-guide` — reviewed with the full SOP; its links follow the spec's headings
 
 ### Medium — semi-annual review
 

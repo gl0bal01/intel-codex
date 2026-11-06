@@ -1,7 +1,7 @@
 ---
 type: index
 title: Verification Status
-description: "Per-SOP verification record for the Intel Codex vault: source-check counts, oldest check, and review age for all 41 procedures."
+description: "Per-SOP verification record for the Intel Codex vault: source-check counts, oldest check, and review age for all 42 procedures."
 generated: 2026-11-06
 generator: tools/build-vault-state.sh
 tags:
@@ -32,11 +32,11 @@ file, so a SOP is only as fresh as its stalest claim.
 
 | State | SOPs |
 |-------|------|
-| current (≤ 335 days) | 41 |
+| current (≤ 335 days) | 42 |
 | due soon (336–365 days) | 0 |
 | overdue (> 365 days) | 0 |
 | no source checks recorded | 0 |
-| **Total** | **41** |
+| **Total** | **42** |
 
 ## Investigations / Platforms
 
@@ -72,7 +72,8 @@ file, so a SOP is only as fresh as its stalest claim.
 
 | SOP | File | Updated | Checks | Oldest check | Age (days) | State |
 |-----|------|---------|-------:|--------------|-----------:|-------|
-| AI/ML Vulnerability & Evasion Testing SOP | [[sop-ai-vulnerability-evasion]] | 2026-11-06 | 83 | 2026-11-04 | 2 | current |
+| AI Vulnerability & Evasion Testing — Field Guide | [[sop-ai-vulnerability-evasion-guide]] | 2026-11-06 | 1 | 2026-11-06 | 0 | current |
+| AI/ML Vulnerability & Evasion Testing SOP | [[sop-ai-vulnerability-evasion]] | 2026-11-06 | 87 | 2026-11-04 | 2 | current |
 | Cloud Forensics SOP | [[sop-cloud-forensics]] | 2026-10-30 | 261 | 2026-10-30 | 7 | current |
 | Cryptography Analysis SOP | [[sop-cryptography-analysis]] | 2026-11-02 | 21 | 2026-11-02 | 4 | current |
 | Email & BEC Forensics SOP | [[sop-email-bec-forensics]] | 2026-10-30 | 136 | 2026-10-29 | 8 | current |

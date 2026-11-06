@@ -42,8 +42,9 @@ generator: tools/build-vault-state.sh
 - `sop-sensitive-crime-intake-escalation` — Sensitive Crime Intake & Escalation (updated 2026-10-29)
 - `sop-web-dns-whois-osint` — Web, DNS & WHOIS OSINT (updated 2026-10-29)
 
-### Security/Analysis (10 SOPs)
+### Security/Analysis (11 SOPs)
 
+- `sop-ai-vulnerability-evasion-guide` — AI Vulnerability & Evasion Testing — Field Guide (updated 2026-11-06)
 - `sop-ai-vulnerability-evasion` — AI/ML Vulnerability & Evasion Testing SOP (updated 2026-11-06)
 - `sop-cloud-forensics` — Cloud Forensics SOP (updated 2026-10-30)
 - `sop-cryptography-analysis` — Cryptography Analysis SOP (updated 2026-11-02)
@@ -75,11 +76,11 @@ generator: tools/build-vault-state.sh
 |--------|------|
 | Investigations/Platforms | 8 |
 | Investigations/Techniques | 12 |
-| Security/Analysis | 10 |
+| Security/Analysis | 11 |
 | Security/Pentesting | 11 |
 | **Investigations total** | **20** |
-| **Security total** | **21** |
-| **Vault total** | **41** |
+| **Security total** | **22** |
+| **Vault total** | **42** |
 
 These counts are the source of truth. `README.md`, `index.md`, and per-folder `*-Index.md` files should match.
 
@@ -101,6 +102,7 @@ Recommended review cadence per tier. SOPs in **Fast** rotate fastest (platform A
 - `sop-firmware-reverse-engineering`
 - `sop-wireless-rf-pentest` — Wi-Fi / Bluetooth / Matter portions rotate quarterly; SDR / NFC fundamentals are slower
 - `sop-ai-vulnerability-evasion` — quarterly review
+- `sop-ai-vulnerability-evasion-guide` — reviewed with the full SOP; its links follow the spec's headings
 
 ### Medium — semi-annual review
 
