@@ -3,7 +3,7 @@ type: sop
 title: Legal, Ethics & Data Governance for OSINT
 description: "Essential legal & ethical boundaries for OSINT: GDPR/CPRA/state-privacy compliance, authorization, cross-border transfer, sensitive-data handling & responsible disclosure."
 created: 2025-10-05
-updated: 2026-11-04
+updated: 2026-11-07
 template_version: 2026-04-26
 tags: [sop, legal, ethics, compliance, gdpr, privacy, data-governance]
 ---
@@ -411,6 +411,36 @@ tags: [sop, legal, ethics, compliance, gdpr, privacy, data-governance]
 "Legal obligation" is an Article 6(1)(c) lawful basis, not an Article 9(2) exception.
 
 **Best practice:** Avoid collecting sensitive data unless absolutely necessary and lawfully authorized.
+
+### Radio Transmission & Spectrum Rules
+
+Wireless and RF testing (Wi-Fi, Bluetooth/BLE, 802.15.4, sub-GHz, SDR) is regulated as radio use, not only as computer access. A client's written authorization covers the client's own systems; it is not a spectrum license and does not cover interference with, or interception of, third parties' radio traffic. Test method and rules of engagement: [[sop-wireless-rf-pentest|Wireless & RF Pentesting]].
+
+**United States:**
+- **Unlicensed devices (47 CFR Part 15):** Part 15 devices operate without an individual license (§ 15.1(a)) on condition that they cause no harmful interference and accept interference from others (§ 15.5(b)); the operator must stop when an FCC representative gives notice of harmful interference (§ 15.5(c)). Operation outside the Part 15 rules (e.g. above the power limits) needs a license under section 301 of the Communications Act "unless otherwise exempted from the licensing requirements elsewhere in this chapter" (§ 15.1(b)), and operating or marketing a device that does not comply with Part 15's administrative and technical provisions, including prior equipment authorization where required, is prohibited under section 302 unless specifically exempted (§ 15.1(c)) [verify 2026-11-07]
+- **6 GHz:** since April 27, 2026, Part 15 also allows geofenced variable-power (GVP) devices in the U-NII-5 and U-NII-7 bands; each GVP access point must use a geofencing system and its own geolocation to "avoid operating on prohibited frequencies within the exclusion zones" (FCC 26-1, 91 FR 9140, Feb. 25, 2026), and must "avoid transmitting on frequencies that are not available" at its location (47 CFR 15.407(m)(4)) [verify 2026-11-07]
+- **Interference and jamming:** "No person shall willfully or maliciously interfere with or cause interference to any radio communications of any station licensed or authorized by or under this chapter or operated by the United States Government" (47 U.S.C. § 333); willful and knowing violations of the Communications Act are crimes (47 U.S.C. § 501). The FCC Enforcement Bureau treats Wi-Fi deauthentication that blocks other people's hotspots as § 333 interference (Enforcement Advisory No. 2015-01, DA 15-113, citing the 2014 Marriott consent decree) [verify 2026-11-07]
+- **Interception:** see **2. Communications Interception** above (Wiretap Act, 18 U.S.C. § 2511). Its exceptions for communications "readily accessible to the general public" (§ 2511(2)(g)(i), (g)(ii)(II)) do not cover a radio communication that is "scrambled or encrypted": § 2510(16)(A) excludes it from that term, among other exclusions (§ 2510(16)(A)–(E)) [verify 2026-11-07]
+
+**United Kingdom (Wireless Telegraphy Act 2006):**
+- **§ 8 (licensing):** establishing or using a wireless telegraphy station, or installing or using wireless telegraphy apparatus, is unlawful except "under and in accordance with" an Ofcom license, or as exempted by Ofcom regulations, either absolutely or subject to "terms, provisions and limitations" (§ 8(1), (3)) [verify 2026-11-07]
+- **§ 48 (interception and disclosure):** an offense, without lawful authority, to use wireless telegraphy apparatus with intent to obtain information as to the contents, sender or addressee of a message of which neither you nor a person on whose behalf you act is an intended recipient, or to disclose such information (§ 48(1)). Conduct that constitutes the Investigatory Powers Act 2016 § 3(1) offense of unlawful interception, or would do so without lawful authority, is not a § 48 offense (§ 48(3A)); that carve-out leaves the conduct to the IPA and does not make it lawful [verify 2026-11-07]
+- **§ 68 (deliberate interference):** an offense to use apparatus "for the purpose of interfering with wireless telegraphy", whether or not it is wireless telegraphy apparatus; up to two years on indictment (§ 68(1)–(3)) [verify 2026-11-07]
+
+**European Union:**
+- **Radio Equipment Directive 2014/53/EU:** sets the rules for making radio equipment available on the market and putting it into service (Article 1(1)), including that it be built to use spectrum efficiently "in order to avoid harmful interference" (Article 3(2)). Member states must allow compliant equipment to be put into service and used when "properly installed, maintained and used for its intended purpose"; without prejudice to "the conditions attached to authorisations for the use of frequencies", they may add requirements only for reasons related to effective and efficient spectrum use, "the avoidance of harmful interference", electromagnetic disturbances or public health (Article 7) [verify 2026-11-07]
+- **Interception:** Directive 2013/40/EU Article 6 requires member states to criminalize intercepting, "by technical means", non-public transmissions of computer data, "including electromagnetic emissions from an information system carrying such computer data", when done "intentionally and without right", at least for cases that are not minor; "without right" means not authorized by the owner or another right holder of the system or of part of it, or not permitted under national law (Article 2(d)). A client can authorize only systems it owns or holds rights in. See the Cybercrime Directive entry under [Regulatory Framework](#regulatory-framework) [verify 2026-11-07]
+- **Cyber Resilience Act (Regulation (EU) 2024/2847):** since September 11, 2026, manufacturers must notify actively exploited vulnerabilities in their products to the coordinator CSIRT and ENISA, with an early warning within 24 hours of becoming aware (Article 14(1)–(2), Article 71(2)). Relevant when you disclose an exploited wireless-product flaw to the vendor: [[sop-reporting-packaging-disclosure|Reporting & Disclosure]] [verify 2026-11-07]
+
+**Export controls (SDR and RF test hardware):**
+- **US:** the EAR (15 CFR Parts 730–774) govern export, reexport and in-country transfer; items subject to the EAR but not listed on the Commerce Control List (Supplement No. 1 to Part 774) are designated EAR99 (§ 734.3(c)). EAR99 items need no license "in most situations" but "may require a license if destined for a prohibited or restricted end user, end use or destination of concern" (BIS, https://www.bis.gov/licensing/classify-your-item) [verify 2026-11-07]
+- **EU:** exporting dual-use items listed in Annex I of Regulation (EU) 2021/821 needs an authorization (Article 3(1)), and unlisted items can need one under Articles 4, 5, 9 or 10 (Article 3(2)) [verify 2026-11-07]
+
+**Personal data in captures:** device identifiers such as MAC addresses in Wi-Fi probe requests and BLE advertising can be personal data: GDPR Article 4(1) lists "an online identifier", and Recital 30 names identifiers "provided by their devices, applications, tools and protocols" (including RFID tags). The identifiers are not themselves an Article 9 category, but Article 9(1) covers "personal data revealing" racial or ethnic origin, political opinions, religious or philosophical beliefs or trade union membership, which location or presence traces built from them can reveal [verify 2026-11-07]
+
+**Caution:** spectrum rules are national and band-specific. Deliberate interference (jamming) is prohibited by 47 U.S.C. § 333 and is an offense under Wireless Telegraphy Act 2006 § 68; neither provision has an owner-consent exception, so a client or counsel cannot authorize it and it is never in scope. Counsel is for scope and jurisdiction questions, such as whether a transmit or deauthentication test outside a shielded lab is lawful where you test [verify 2026-11-07]
+
+**Best practice:** keep 6 GHz lab APs within the rules of their device class; do not decode, keep or share third-party traffic captured incidentally; minimize, pseudonymize and delete bystander data per [GDPR Compliance (EU Subjects)](#gdpr-compliance-eu-subjects); get each item's export classification (from the manufacturer, by self-classification or from BIS) before shipping RF gear abroad.
 
 ---
 
@@ -1127,6 +1157,9 @@ Example: "Subject's social media post suggests suicidal ideation. Should I notif
 - **Wire fraud:** 18 U.S.C. § 1343 [verify 2026-10-25]
 - **CCPA / CPRA:** California Civil Code § 1798.100 *et seq.*
 - **Bank Secrecy Act / FinCEN AML:** 31 CFR Chapter X (e.g., § 1020.210 — bank AML program) [verify 2026-10-25]
+- **Unlicensed RF devices:** 47 CFR Part 15 (§§ 15.1, 15.5; 6 GHz GVP access points § 15.407(m)) [verify 2026-11-07]
+- **Radio interference:** 47 U.S.C. § 333; criminal penalties 47 U.S.C. § 501 [verify 2026-11-07]
+- **Export Administration Regulations:** 15 CFR Parts 730–774 (Commerce Control List: Supplement No. 1 to Part 774; EAR99: § 734.3(c)) [verify 2026-11-07]
 
 **European Union:**
 - **GDPR:** Regulation (EU) 2016/679 [verify 2026-10-25]
@@ -1136,6 +1169,9 @@ Example: "Subject's social media post suggests suicidal ideation. Should I notif
 - **DORA:** Regulation (EU) 2022/2554 [verify 2026-10-25]
 - **EU AI Act:** Regulation (EU) 2024/1689 [verify 2026-10-25]
 - **e-Evidence:** Regulation (EU) 2023/1543; Directive (EU) 2023/1544 [verify 2026-10-25]
+- **Radio Equipment Directive:** Directive 2014/53/EU [verify 2026-11-07]
+- **Cyber Resilience Act:** Regulation (EU) 2024/2847 (Article 14 reporting from September 11, 2026; general application December 11, 2027) [verify 2026-11-07]
+- **Dual-Use Regulation:** Regulation (EU) 2021/821 [verify 2026-11-07]
 
 **United Kingdom:**
 - **UK GDPR + Data Protection Act 2018** (as amended by the Data (Use and Access) Act 2025, c. 18) [verify 2026-10-29]
@@ -1143,6 +1179,7 @@ Example: "Subject's social media post suggests suicidal ideation. Should I notif
 - **Investigatory Powers Act 2016** (as amended by the Investigatory Powers (Amendment) Act 2024)
 - **Modern Slavery Act 2015** (§ 52 NRM duty; § 54 supply-chain transparency)
 - **Online Safety Act 2023**
+- **Wireless Telegraphy Act 2006** (§ 8 licensing; § 48 interception and disclosure; § 68 deliberate interference) [verify 2026-11-07]
 
 **International:**
 - **Budapest Convention on Cybercrime (CETS 185)** + Second Additional Protocol (CETS 224) [verify 2026-10-25]
@@ -1232,8 +1269,8 @@ Example: "Subject's social media post suggests suicidal ideation. Should I notif
 
 ---
 
-**Version:** 2.1
-**Last Updated:** 2026-11-04
+**Version:** 2.2
+**Last Updated:** 2026-11-07
 **Review Cycle:** Yearly (with quarterly check on fast-moving items: EU AI Act phase-in, US-state privacy tracker, DMCA § 1201 cycle, REPORT Act guidance)
 **Next Review:** 2027-04-26
 

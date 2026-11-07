@@ -61,7 +61,7 @@ file, so a SOP is only as fresh as its stalest claim.
 | Entity Dossier Guide | [[sop-entity-dossier]] | 2026-10-29 | 58 | 2026-10-18 | 20 | current |
 | Financial Crime & AML OSINT | [[sop-financial-aml-osint]] | 2026-10-29 | 51 | 2026-10-29 | 9 | current |
 | Image & Video OSINT | [[sop-image-video-osint]] | 2026-10-29 | 145 | 2026-10-29 | 9 | current |
-| Legal, Ethics & Data Governance for OSINT | [[sop-legal-ethics]] | 2026-11-04 | 132 | 2026-10-25 | 13 | current |
+| Legal, Ethics & Data Governance for OSINT | [[sop-legal-ethics]] | 2026-11-07 | 153 | 2026-10-25 | 13 | current |
 | Mixer & Privacy-Pool Tracing | [[sop-mixer-tracing]] | 2026-10-29 | 139 | 2026-10-29 | 9 | current |
 | OPSEC Planning for OSINT Investigations | [[sop-opsec-plan]] | 2026-10-29 | 187 | 2026-10-25 | 13 | current |
 | Reporting, Packaging & Disclosure | [[sop-reporting-packaging-disclosure]] | 2026-10-29 | 47 | 2026-10-18 | 20 | current |
@@ -98,7 +98,7 @@ file, so a SOP is only as fresh as its stalest claim.
 | Mobile Security (iOS & Android) | [[sop-mobile-security]] | 2026-09-20 | 21 | 2026-04-26 | 195 | current |
 | Vulnerability Research SOP | [[sop-vulnerability-research]] | 2026-10-31 | 85 | 2026-10-31 | 7 | current |
 | Web Application Security Testing SOP | [[sop-web-application-security]] | 2026-09-20 | 8 | 2026-04-25 | 196 | current |
-| Wireless & RF Pentesting (Authorized) | [[sop-wireless-rf-pentest]] | 2026-04-26 | 31 | 2026-04-26 | 195 | current |
+| Wireless & RF Pentesting (Authorized) | [[sop-wireless-rf-pentest]] | 2026-11-07 | 140 | 2026-11-07 | 0 | current |
 
 ---
 

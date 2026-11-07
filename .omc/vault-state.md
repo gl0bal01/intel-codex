@@ -35,7 +35,7 @@ generator: tools/build-vault-state.sh
 - `sop-entity-dossier` — Entity Dossier Guide (updated 2026-10-29)
 - `sop-financial-aml-osint` — Financial Crime & AML OSINT (updated 2026-10-29)
 - `sop-image-video-osint` — Image & Video OSINT (updated 2026-10-29)
-- `sop-legal-ethics` — Legal, Ethics & Data Governance for OSINT (updated 2026-11-04)
+- `sop-legal-ethics` — Legal, Ethics & Data Governance for OSINT (updated 2026-11-07)
 - `sop-mixer-tracing` — Mixer & Privacy-Pool Tracing (updated 2026-10-29)
 - `sop-opsec-plan` — OPSEC Planning for OSINT Investigations (updated 2026-10-29)
 - `sop-reporting-packaging-disclosure` — Reporting, Packaging & Disclosure (updated 2026-10-29)
@@ -68,7 +68,7 @@ generator: tools/build-vault-state.sh
 - `sop-mobile-security` — Mobile Security (iOS & Android) (updated 2026-09-20)
 - `sop-vulnerability-research` — Vulnerability Research SOP (updated 2026-10-31)
 - `sop-web-application-security` — Web Application Security Testing SOP (updated 2026-09-20)
-- `sop-wireless-rf-pentest` — Wireless & RF Pentesting (Authorized) (updated 2026-04-26)
+- `sop-wireless-rf-pentest` — Wireless & RF Pentesting (Authorized) (updated 2026-11-07)
 
 ## Counts
 
