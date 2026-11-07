@@ -639,6 +639,17 @@ intext:"target" filetype:xlsx
 
 Google retired the `cache:` operator in 2024; use the Wayback Machine (`https://web.archive.org/web/*/target.com`) for old versions of a page. Image work: [[sop-image-video-osint|Image & Video OSINT SOP]].
 
+### Newer Categories
+First moves for categories outside the classic six; each links the vault SOP that goes deeper.
+
+| Category | First moves | Go deeper |
+|---|---|---|
+| AI / LLM | Map what the model can see and call (system prompt, tools, retrieved documents) before attacking; change one thing per attempt and log what moved it | [[sop-ai-vulnerability-evasion-guide\|AI Red-Team Field Guide]] |
+| Blockchain / Web3 | Read the contract and the exact win condition the challenge checks; reproduce the attack locally first (Foundry `forge test`) before sending transactions | [[sop-smart-contract-audit\|Smart Contract Audit]] |
+| Cloud | Find out who you are and what you can read (`aws sts get-caller-identity`), then enumerate storage and IAM from that identity | [[sop-cloud-pentest\|Cloud Pentest]] |
+| Hardware / RF | Identify the file first: firmware → `binwalk` (see Forensics above); radio capture → inspect it in Inspectrum or Universal Radio Hacker | [[sop-wireless-rf-pentest\|Wireless & RF]], [[sop-firmware-reverse-engineering\|Firmware RE]] |
+| Mobile | Decompile and grep, as in Forensics → Phase 5 above (`apktool`, `jadx`) | [[sop-mobile-security\|Mobile Security]] |
+
 ---
 
 ## ⏱️ Time Management in Challenges

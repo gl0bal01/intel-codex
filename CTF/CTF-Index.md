@@ -54,6 +54,20 @@ updated: 2026-11-07
 - **Description**: Challenges that don't fit other categories
 - **Examples**: OSINT, programming puzzles, steganography, network analysis
 
+### 🧭 Newer Categories
+Many events now add categories beyond the classic six. The vault already has deep-dive SOPs for each; first moves are in [[CTF_Challenge_Methodology#Newer Categories|Methodology → Newer Categories]].
+
+| Category | Typical challenges | Go deeper |
+|---|---|---|
+| AI / LLM | Prompt injection, system-prompt or tool abuse, getting a guarded model to reveal a flag | [[sop-ai-vulnerability-evasion-guide\|AI Red-Team Field Guide]] |
+| Blockchain / Web3 | Vulnerable smart contracts on a challenge chain; on-chain tracing | [[sop-smart-contract-audit\|Smart Contract Audit]], [[sop-blockchain-investigation\|Blockchain Investigation]] |
+| Cloud | Misconfigured storage, over-permissive IAM, metadata endpoints | [[sop-cloud-pentest\|Cloud Pentest]], [[sop-cloud-forensics\|Cloud Forensics]] |
+| Hardware / RF | Radio captures to decode, firmware images to unpack | [[sop-wireless-rf-pentest\|Wireless & RF]], [[sop-firmware-reverse-engineering\|Firmware RE]] |
+| Mobile | APKs/IPAs hiding keys, logic or flags | [[sop-mobile-security\|Mobile Security]] |
+| OSINT | Geolocating photos, pivoting on domains, DNS and WHOIS | [[sop-image-video-osint\|Image & Video OSINT]], [[sop-web-dns-whois-osint\|Web, DNS & WHOIS OSINT]] |
+
+These SOPs are written for authorized real-world work. In a CTF, the challenge scope is your authorization: never attack the platform's own infrastructure or other players.
+
 ## Quick Start Steps
 
 ### 1. Setup Your Environment
