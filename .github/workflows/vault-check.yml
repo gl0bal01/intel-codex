@@ -22,7 +22,7 @@ jobs:
 
       # tools/check-vault.sh: front-matter, Legal & Ethics cross-references,
       # stale [verify] markers, wikilink targets, count parity, [[file#heading]]
-      # anchors. Exits 1 on any.
+      # anchors, in-file (#anchor) links. Exits 1 on any.
       - name: Lint the vault
         run: |
           set -euo pipefail

@@ -8,9 +8,10 @@
 #   1. Every sop-*.md has 'updated:' in YAML front matter
 #   2. Every sop-*.md cross-references Legal & Ethics
 #   3. [verify YYYY-MM-DD] markers older than the cadence in tools/verification-cadence.sh
-#   4. Wikilink targets resolve to real basenames in the vault
+#   4. Wikilink targets (in Investigations, Security, CTF) resolve to real basenames in the vault
 #   5. .omc/vault-state.md total count matches the filesystem
 #   6. [[file#heading]] wikilink anchors resolve (tools/wikianchor_check.py)
+#   7. In-file [text](#anchor) links resolve, e.g. TOC entries (tools/anchor_check.py)
 
 set -uo pipefail
 cd "$(dirname "$0")/.."
@@ -27,7 +28,7 @@ done < <({ find Investigations Security Cases CTF -name '*.md' -type f -printf '
             find . -maxdepth 1 -name '*.md' -type f -printf '%f\n' 2>/dev/null; } | sed 's/\.md$//')
 
 # 1. updated: in front matter
-echo "[1/6] Checking front-matter 'updated:' ..."
+echo "[1/7] Checking front-matter 'updated:' ..."
 while IFS= read -r f; do
   if ! grep -q "^updated:" "$f"; then
     warn "$f missing 'updated:' YAML field"
@@ -35,7 +36,7 @@ while IFS= read -r f; do
 done < <(find Investigations Security -name 'sop-*.md' -type f)
 
 # 2. Legal & Ethics cross-reference
-echo "[2/6] Checking Legal & Ethics cross-reference ..."
+echo "[2/7] Checking Legal & Ethics cross-reference ..."
 while IFS= read -r f; do
   # A heading saying "Legal & Ethics" is not a cross-reference; require the link.
   [[ "$(basename "$f")" == "sop-legal-ethics.md" ]] && continue
@@ -45,7 +46,7 @@ while IFS= read -r f; do
 done < <(find Investigations Security -name 'sop-*.md' -type f)
 
 # 3. [verify YYYY-MM-DD] older than the review cadence
-echo "[3/6] Checking [verify] marker freshness ..."
+echo "[3/7] Checking [verify] marker freshness ..."
 # shellcheck source=tools/verification-cadence.sh
 source tools/verification-cadence.sh
 cutoff=$(date -d "$VERIFY_CADENCE_DAYS days ago" +%Y%m%d 2>/dev/null || gdate -d "$VERIFY_CADENCE_DAYS days ago" +%Y%m%d 2>/dev/null || echo "")
@@ -65,7 +66,7 @@ else
 fi
 
 # 4. Wikilink targets exist
-echo "[4/6] Checking wikilink targets ..."
+echo "[4/7] Checking wikilink targets ..."
 while IFS= read -r f; do
   while read -r target; do
     [[ -z "$target" ]] && continue
@@ -92,10 +93,10 @@ while IFS= read -r f; do
         ;;
     esac
   done < <(awk 'BEGIN{in_fence=0} /^```/{in_fence=!in_fence; next} !in_fence' "$f" 2>/dev/null | grep -oE '\[\[[^]|#]+' | sed 's/^\[\[//')
-done < <(find Investigations Security -name '*.md' -type f)
+done < <(find Investigations Security CTF -name '*.md' -type f)
 
 # 5. vault-state.md count matches filesystem
-echo "[5/6] Checking vault-state.md count parity ..."
+echo "[5/7] Checking vault-state.md count parity ..."
 if [[ -f .omc/vault-state.md ]]; then
   fs_total=$(find Investigations Security -name 'sop-*.md' -type f | wc -l)
   vs_total=$(grep -E '\*\*Vault total\*\* \| \*\*[0-9]+\*\*' .omc/vault-state.md 2>/dev/null | grep -oE '[0-9]+' | tail -1)
@@ -107,9 +108,16 @@ else
 fi
 
 # 6. [[file#heading]] anchors resolve (headings carry framework IDs and get renamed)
-echo "[6/6] Checking wikilink anchors ..."
+echo "[6/7] Checking wikilink anchors ..."
 if ! out=$(python3 -I tools/wikianchor_check.py . 2>&1); then
   while IFS= read -r l; do warn "$l"; done <<<"$out"
+fi
+
+# 7. In-file [text](#anchor) links resolve (TOC entries break when headings are renamed)
+echo "[7/7] Checking in-file anchor links ..."
+mapfile -t md_files < <(find Investigations Security -name '*.md' -type f | sort)
+if ! out=$(python3 -I tools/anchor_check.py "${md_files[@]}" 2>&1); then
+  while IFS= read -r l; do warn "$l"; done < <(grep -v 'broken: none$' <<<"$out")
 fi
 
 if [[ "$WARN" -eq 0 ]]; then
