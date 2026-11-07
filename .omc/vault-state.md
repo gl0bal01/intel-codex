@@ -1,5 +1,5 @@
 ---
-generated: 2026-11-06
+generated: 2026-11-07
 generator: tools/build-vault-state.sh
 ---
 
@@ -60,8 +60,8 @@ generator: tools/build-vault-state.sh
 
 - `sop-ad-pentest` — Active Directory Pentesting SOP (Authorized) (updated 2026-11-05)
 - `sop-bug-bounty` — Bug Bounty Methodology SOP (updated 2026-04-25)
-- `sop-cloud-pentest` — Cloud Pentesting SOP (Authorized) (updated 2026-04-27)
-- `sop-container-k8s-pentest` — Container & Kubernetes Pentesting SOP (Authorized) (updated 2026-10-18)
+- `sop-cloud-pentest` — Cloud Pentesting SOP (Authorized) (updated 2026-11-07)
+- `sop-container-k8s-pentest` — Container & Kubernetes Pentesting SOP (Authorized) (updated 2026-11-07)
 - `sop-detection-evasion-testing` — Detection & Evasion Testing SOP (Purple Team) (updated 2026-10-18)
 - `sop-firmware-reverse-engineering` — Firmware Reverse Engineering (updated 2026-04-26)
 - `sop-linux-pentest` — Linux Pentesting SOP (Authorized) (updated 2026-11-05)
