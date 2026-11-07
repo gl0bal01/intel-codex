@@ -1,6 +1,13 @@
 ---
 title: "CTF Essential Tools Setup Guide"
-description: "Complete CTF tools setup: Kali Linux, Burp Suite, Ghidra, Wireshark, pwntools & more. Installation scripts for web, crypto, binary & forensics tools."
+description: "CTF tools setup for Kali, Debian 13 & Ubuntu 24.04: venv/pipx Python (PEP 668), Burp, sqlmap, Ghidra (JDK 25), pwndbg, ROP & libc helpers, binwalk v3, stego, memory & disk forensics, APK tools."
+tags:
+  - ctf
+  - tools
+  - setup
+  - environment
+  - guide
+updated: 2026-11-07
 ---
 
 # 🔧 CTF Essential Tools Setup Guide
@@ -8,13 +15,15 @@ description: "Complete CTF tools setup: Kali Linux, Burp Suite, Ghidra, Wireshar
 ## 🐧 Operating System Setup
 
 ### Recommended Distributions
-1. **Exegol** - Containerized environments for professionals, students, CTF players, bug hunters, researchers
+1. **Exegol** - Containerized environments for professionals, students, CTF players, bug hunters, researchers
 2. **Kali Linux** / **Parrot OS** - Pre-installed security tools
 3. **Ubuntu/Debian** - Build your own toolkit
 4. **Windows + WSL2** - For Windows users
 
+> Exegol and Kali already ship most tools below. Commands target Kali rolling, Debian 13 and Ubuntu 24.04; "Kali only" marks packages Debian/Ubuntu don't have.
+
 ### Virtual Machine Setup
-```bash
+```text
 # Recommended VM specs
 RAM: 8GB minimum, 16GB preferred
 Storage: 100GB minimum
@@ -31,10 +40,20 @@ mkdir -p ~/ctf/{tools,challenges,writeups,scripts}
 mkdir -p ~/ctf/challenges/{crypto,web,pwn,rev,forensics,misc}
 ```
 
-### Shell Configuration (.bashrc/.zshrc)
+### Python: one venv + pipx
+Debian 12+, Ubuntu 23.04+ and Kali block system-wide `pip install`, `--user` included (PEP 668, `externally-managed-environment`). Libraries go in one venv; standalone CLI tools go in `pipx`. Never `sudo pip`.
+
 ```bash
-https://github.com/gl0bal01/exegol-config/blob/master/my-resources/setup/zsh/aliases
+sudo apt install python3-venv python3-dev pipx build-essential libssl-dev libffi-dev
+python3 -m venv ~/ctf/venv
+. ~/ctf/venv/bin/activate          # add this line to ~/.zshrc / ~/.bashrc
+pipx ensurepath                    # puts ~/.local/bin on PATH (pipx tools, pwndbg, pwninit)
 ```
+
+Every `pip install` below assumes `~/ctf/venv` is active.
+
+### Shell Configuration (.bashrc/.zshrc)
+Aliases: [gl0bal01/exegol-config - zsh aliases](https://github.com/gl0bal01/exegol-config/blob/master/my-resources/setup/zsh/aliases)
 
 ---
 
@@ -42,36 +61,61 @@ https://github.com/gl0bal01/exegol-config/blob/master/my-resources/setup/zsh/ali
 
 ### Burp Suite Community
 ```bash
-# Download from https://portswigger.net/burp/communitydownload
-sudo sh burpsuite_community_linux_*.sh
+sudo apt install burpsuite        # Kali
+# Elsewhere: run the Linux installer from https://portswigger.net/burp/communitydownload
 ```
 
 ### OWASP ZAP
 ```bash
-sudo apt install zaproxy
-# Or download from https://www.zaproxy.org/download/
+sudo apt install zaproxy          # Kali only
+# Elsewhere: https://www.zaproxy.org/download/
 ```
 
 ### Web Utilities
 ```bash
 # Essential web tools
 sudo apt install curl wget httpie
-pip3 install requests beautifulsoup4 selenium
+pip install requests beautifulsoup4 selenium
 
-# Browser automation
-sudo apt install firefox chromium-browser
+# Browsers (Debian/Kali names; on Ubuntu, apt's firefox/chromium-browser only install the snap)
+sudo apt install firefox-esr chromium
 ```
 
-### Directory & File Discovery
+### SQL Injection
 ```bash
-# Gobuster
-sudo apt install gobuster
+sudo apt install sqlmap
+```
 
-# Dirb
-sudo apt install dirb
+### Directory & File Discovery / Fuzzing
+```bash
+sudo apt install gobuster dirb ffuf
 
-# Feroxbuster (Rust-based, fast)
-cargo install feroxbuster
+# Feroxbuster (Rust, recursive) - Kali: sudo apt install feroxbuster
+curl -sL https://raw.githubusercontent.com/epi052/feroxbuster/main/install-nix.sh | bash -s "$HOME/.local/bin"
+```
+
+### Wordlists
+```bash
+sudo apt install seclists        # Kali only -> /usr/share/seclists
+# Elsewhere: same path, from git
+sudo git clone --depth 1 https://github.com/danielmiessler/SecLists.git /usr/share/seclists
+```
+
+### Recon & Scanning
+```bash
+sudo apt install whatweb             # fingerprint the web stack
+
+# Nikto - Kali: sudo apt install nikto (2.6.1); Debian non-free / Ubuntu multiverse ship 2.1.5
+git clone https://github.com/sullo/nikto ~/ctf/tools/nikto
+~/ctf/tools/nikto/program/nikto.pl -h http://target.com
+```
+
+### JWT
+```bash
+# jwt_tool (no distro package; Kali's jwt-tools is libjwt's CLI, a different tool)
+git clone https://github.com/ticarpi/jwt_tool ~/ctf/tools/jwt_tool
+pip install -r ~/ctf/tools/jwt_tool/requirements.txt    # into ~/ctf/venv
+python3 ~/ctf/tools/jwt_tool/jwt_tool.py "$JWT"
 ```
 
 ---
@@ -81,14 +125,24 @@ cargo install feroxbuster
 ### CyberChef
 ```bash
 # Web-based: https://gchq.github.io/CyberChef/
-# Offline: git clone and serve locally
-git clone https://github.com/gchq/CyberChef.git
+sudo apt install cyberchef        # Kali: offline copy
+# Elsewhere offline: release zip from https://github.com/gchq/CyberChef/releases
 ```
 
 ### Python Crypto Libraries
 ```bash
-pip3 install pycryptodome cryptography sympy gmpy2
-pip3 install sage-math  # For advanced cryptography
+pip install pycryptodome cryptography sympy gmpy2
+
+# SageMath (there is no "sage-math" pip package)
+sudo apt install sagemath                  # Kali; not packaged in Debian 13 / Ubuntu 24.04
+conda create -n sage sage python=3.13      # elsewhere: conda-forge (official route)
+```
+
+### RsaCtfTool
+```bash
+git clone https://github.com/RsaCtfTool/RsaCtfTool ~/ctf/tools/RsaCtfTool
+cd ~/ctf/tools/RsaCtfTool && python3 -m venv venv && venv/bin/pip install -e .
+~/ctf/tools/RsaCtfTool/venv/bin/RsaCtfTool --help
 ```
 
 ### Command Line Tools
@@ -96,8 +150,11 @@ pip3 install sage-math  # For advanced cryptography
 # OpenSSL
 sudo apt install openssl
 
-# Hash tools
+# Hash cracking
 sudo apt install hashcat john
+
+# Hash identification: name-that-hash (`nth`) - Kali: sudo apt install name-that-hash
+pipx install name-that-hash
 ```
 
 ### Crypto Scripts
@@ -105,6 +162,7 @@ sudo apt install hashcat john
 # ~/ctf/scripts/crypto_utils.py
 import base64
 import binascii
+import urllib.parse
 from Crypto.Util.number import *
 from Crypto.Cipher import AES
 
@@ -112,29 +170,32 @@ def decode_common(data):
     """Try common encoding schemes"""
     encodings = [
         ('base64', base64.b64decode),
-        ('hex', binascii.unhexlify), 
+        ('hex', binascii.unhexlify),
         ('url', urllib.parse.unquote)
     ]
-    
+
     for name, decoder in encodings:
         try:
             result = decoder(data)
             print(f"{name}: {result}")
-        except:
+        except Exception:
             continue
 ```
 
 ---
 
-## 💾 Binary Analysis & Reverse Engineering  
+## 💾 Binary Analysis & Reverse Engineering
 
 ### Disassemblers
 ```bash
-# Ghidra (NSA's free tool)
-# Download from https://ghidra-sre.org/
+# Ghidra 12.2 needs JDK 25
+sudo apt install ghidra                    # Kali (pulls openjdk-25-jdk)
+# Elsewhere: JDK 25 + release zip from https://github.com/NationalSecurityAgency/ghidra/releases
+sudo apt install openjdk-25-jdk            # Debian 13, Ubuntu 24.04 (noble-updates)
+unzip ghidra_*_PUBLIC_*.zip -d ~/ctf/tools && ~/ctf/tools/ghidra_*_PUBLIC/ghidraRun
 
-# Radare2
-sudo apt install radare2
+# Radare2 - Kali/Ubuntu: sudo apt install radare2 (not in Debian 13); upstream recommends git
+git clone https://github.com/radareorg/radare2 ~/ctf/tools/radare2 && ~/ctf/tools/radare2/sys/install.sh
 
 # Binary Ninja (commercial, has free version)
 # Download from https://binary.ninja/
@@ -142,23 +203,53 @@ sudo apt install radare2
 
 ### Debuggers
 ```bash
-# GDB with enhancements
 sudo apt install gdb
-git clone https://github.com/pwndbg/pwndbg ~/pwndbg
-cd ~/pwndbg && ./setup.sh
 
-# Alternative: GEF
-git clone https://github.com/hugsy/gef ~/gef
-echo "source ~/gef/gef.py" >> ~/.gdbinit
+# pwndbg - official installer, user install; run `pwndbg` instead of `gdb`
+curl --proto '=https' --tlsv1.2 -LsSf 'https://install.pwndbg.re' | sh -s -- -t pwndbg-gdb -u
+
+# Alternative: GEF (loaded by plain gdb)
+wget -O ~/.gdbinit-gef.py -q https://gef.blah.cat/py
+echo source ~/.gdbinit-gef.py >> ~/.gdbinit
 ```
 
 ### Binary Utilities
 ```bash
-# Essential binary tools
-sudo apt install binutils file strings hexdump xxd
-sudo apt install ltrace strace  # System call tracers
-sudo apt install objdump readelf nm  # ELF analysis
+# binutils = strings, objdump, readelf, nm; bsdextrautils = hexdump
+sudo apt install binutils file bsdextrautils xxd
+sudo apt install ltrace strace  # Library / system call tracers
 pipx install binary-refinery
+```
+
+### Pwn Helpers
+```bash
+# ROP gadgets (pwntools already pulls ROPgadget into ~/ctf/venv)
+pipx install ROPGadget ropper
+
+# checksec (pwntools also ships `checksec` / `pwn checksec`); patchelf for swapping libc/ld
+sudo apt install checksec patchelf
+
+# pwninit: fetches matching ld + libc debug symbols, patchelfs the binary, writes solve.py
+curl -fL --create-dirs -o ~/.local/bin/pwninit https://github.com/io12/pwninit/releases/latest/download/pwninit
+chmod +x ~/.local/bin/pwninit
+
+# one_gadget (execve gadgets in libc), seccomp-tools (dump/disasm seccomp filters)
+sudo apt install ruby ruby-dev gcc make
+sudo gem install one_gadget seccomp-tools
+```
+
+### Symbolic Execution & Solvers
+```bash
+pip install z3-solver
+
+# angr: own venv (angr docs recommend isolation); Python >= 3.12
+python3 -m venv ~/ctf/venv-angr && ~/ctf/venv-angr/bin/pip install angr
+```
+
+### Android / APK
+```bash
+sudo apt install apktool           # decode/rebuild resources + smali
+sudo apt install jadx              # Kali; elsewhere zip from https://github.com/skylot/jadx/releases (Java 11+)
 ```
 
 ---
@@ -170,26 +261,32 @@ pipx install binary-refinery
 # File identification
 sudo apt install file
 
-# Hex editors
-sudo apt install hexedit bless
-sudo apt install ghex  # GUI hex editor
-
-# Binwalk for firmware analysis  
-sudo apt install binwalk
+# Hex editors (TUI / GUI)
+sudo apt install hexedit ghex
 
 # Foremost for file carving
 sudo apt install foremost
 ```
 
-### Image Forensics  
+### Binwalk
+```bash
+sudo apt install binwalk     # v2.x (2.4.3 Debian/Kali, 2.3.4 Ubuntu 24.04): binwalk -e fw.bin -> ./_fw.bin.extracted/
+sudo apt install binwalk3    # Kali: v3 (Rust rewrite), command is `binwalk3`
+cargo install binwalk        # v3 elsewhere; extractor dependencies not included
+```
+
+v3 (3.1.0): `-e` and `-Me` still extract, but output lands in `./extractions/fw.bin.extracted/` (`--directory` to change). Docs: [binwalk wiki](https://github.com/ReFirmLabs/binwalk/wiki).
+
+### Image Forensics
 ```bash
 # Steganography
-sudo apt install steghide
-pip3 install stegcracker
+sudo apt install steghide stegseek     # stegseek: fast steghide cracker (replaces stegcracker)
+sudo gem install zsteg                 # PNG/BMP LSB detection (needs ruby, see Pwn Helpers)
+# StegSolve (bit planes): Java GUI, needs a JRE; jar not packaged by Kali/Debian
 
 # Image analysis
-sudo apt install exiftool
-pip3 install pillow
+sudo apt install libimage-exiftool-perl   # provides `exiftool`
+pip install pillow
 
 # Audio steganography
 sudo apt install audacity
@@ -197,11 +294,20 @@ sudo apt install audacity
 
 ### Memory Analysis
 ```bash
-# Volatility Framework
-pip3 install volatility3
+# Volatility 3 - entrypoint is `vol`
+pipx install volatility3
 
-# Alternative: Download from GitHub
+# Alternative: development version from GitHub
 git clone https://github.com/volatilityfoundation/volatility3.git
+```
+
+### Disk Images
+```bash
+# The Sleuth Kit CLI (mmls, fls, icat, tsk_recover); apt's autopsy is the legacy 2.24 web UI
+sudo apt install sleuthkit autopsy
+
+# Partition recovery + file carving (testdisk ships photorec)
+sudo apt install testdisk
 ```
 
 ---
@@ -210,18 +316,19 @@ git clone https://github.com/volatilityfoundation/volatility3.git
 
 ### Wireshark
 ```bash
-sudo apt install wireshark tshark
-sudo usermod -a -G wireshark $USER  # Add user to wireshark group
+sudo apt install wireshark tshark    # answer "Yes" to "non-superusers capture packets?"
+sudo usermod -a -G wireshark $USER   # Add user to wireshark group, then log out/in
+sudo dpkg-reconfigure wireshark-common   # if you answered "No" or installed non-interactively
 ```
 
 ### Network Utilities
 ```bash
 # Scanning and enumeration
-sudo apt install nmap zenmap
-sudo apt install netcat socat
+sudo apt install nmap zenmap ncat    # ncat: nmap's netcat, has --exec / --sh-exec
+sudo apt install netcat-openbsd socat
 
-# DNS tools
-sudo apt install dnsutils
+# DNS tools (dig, nslookup)
+sudo apt install bind9-dnsutils
 ```
 
 ### Protocol Analysis
@@ -237,18 +344,19 @@ tshark -r capture.pcap -Y "dns" -T fields -e dns.qry.name
 
 ### Essential Libraries
 ```bash
+# In ~/ctf/venv (see Environment Setup)
 # Core libraries
-pip3 install requests urllib3 pycryptodome
-pip3 install numpy matplotlib pillow
+pip install requests urllib3 pycryptodome
+pip install numpy matplotlib pillow
 
-# CTF-specific
-pip3 install pwntools z3-solver angr
+# CTF-specific (angr: own venv, see Symbolic Execution)
+pip install pwntools z3-solver
 
-# Web scraping  
-pip3 install beautifulsoup4 selenium scrapy
+# Web scraping
+pip install beautifulsoup4 selenium scrapy
 
 # Data analysis
-pip3 install pandas jupyter
+pip install pandas jupyter
 ```
 
 ### Pwntools Setup
@@ -305,22 +413,24 @@ docker run -it kalilinux/kali-rolling
 docker run -it --rm \
     -v ~/ctf:/ctf \
     -p 8080:8080 \
-    ubuntu:20.04 /bin/bash
+    ubuntu:24.04 /bin/bash
 ```
 
 ### Docker CTF Images
 ```dockerfile
 # ~/ctf/Dockerfile
-FROM ubuntu:20.04
+FROM ubuntu:24.04
+ARG DEBIAN_FRONTEND=noninteractive
 
 RUN apt-get update && apt-get install -y \
-    python3 python3-pip \
+    python3 python3-venv python3-dev build-essential libssl-dev libffi-dev \
     curl wget git \
-    binutils file strings \
-    netcat socat \
+    binutils file bsdextrautils xxd \
+    netcat-openbsd socat \
     && rm -rf /var/lib/apt/lists/*
 
-RUN pip3 install pwntools requests pycryptodome
+RUN python3 -m venv /opt/venv && /opt/venv/bin/pip install pwntools requests pycryptodome
+ENV PATH="/opt/venv/bin:$PATH"
 
 WORKDIR /ctf
 CMD ["/bin/bash"]
@@ -331,8 +441,9 @@ CMD ["/bin/bash"]
 ## ⚡ Quick Setup Script
 
 ```bash
-#!/bin/bash
-# ~/ctf/setup.sh - Quick CTF environment setup
+#!/usr/bin/env bash
+# ~/ctf/setup.sh - Quick CTF environment setup (Kali / Debian 13 / Ubuntu 24.04)
+set -euo pipefail
 
 echo "Setting up CTF environment..."
 
@@ -340,34 +451,33 @@ echo "Setting up CTF environment..."
 mkdir -p ~/ctf/{tools,challenges,writeups,scripts}
 mkdir -p ~/ctf/challenges/{crypto,web,pwn,rev,forensics,misc}
 
-# Update system
-sudo apt update && sudo apt upgrade -y
-
-# Install essential packages
-sudo apt install -y \
-    python3 python3-pip \
+# Install essential packages (noninteractive: wireshark keeps root-only capture, see Wireshark section)
+sudo apt-get update
+sudo DEBIAN_FRONTEND=noninteractive apt-get install -y \
+    python3 python3-venv python3-dev pipx build-essential libssl-dev libffi-dev \
     git curl wget \
-    file binutils hexedit \
-    netcat socat \
-    nmap wireshark \
-    gobuster dirb \
-    hashcat john
+    file binutils bsdextrautils xxd hexedit \
+    netcat-openbsd socat \
+    nmap wireshark tshark \
+    gobuster dirb ffuf sqlmap \
+    hashcat john gdb
 
-# Install Python packages
-pip3 install --user \
+# Python packages in a venv (PEP 668)
+python3 -m venv ~/ctf/venv
+~/ctf/venv/bin/pip install \
     pwntools requests pycryptodome \
     beautifulsoup4 pillow \
     z3-solver
+pipx ensurepath
 
-# Install pwndbg
-git clone https://github.com/pwndbg/pwndbg ~/pwndbg
-cd ~/pwndbg && ./setup.sh
+# Install pwndbg (user install -> ~/.local/bin/pwndbg)
+curl --proto '=https' --tlsv1.2 -LsSf 'https://install.pwndbg.re' | sh -s -- -t pwndbg-gdb -u
 
 echo "CTF environment setup complete!"
 echo "Don't forget to:"
 echo "1. Download and install Burp Suite"
-echo "2. Download and install Ghidra"
-echo "3. Configure your shell aliases"
+echo "2. Install JDK 25 + Ghidra"
+echo "3. Configure your shell aliases and activate ~/ctf/venv"
 ```
 
 ---
@@ -378,31 +488,36 @@ echo "3. Configure your shell aliases"
 
 | Category | Primary Tools | Secondary Tools |
 |----------|---------------|-----------------|
-| **Crypto** | CyberChef, Python, OpenSSL | SageMath, Hashcat |
-| **Web** | Burp Suite, curl, Browser | ZAP, Gobuster, SQLmap |
-| **Pwn** | GDB, pwntools, Ghidra | Radare2, ROPgadget |
-| **Rev** | Ghidra, GDB, strings | IDA, Binary Ninja |
-| **Forensics** | Binwalk, Wireshark, file | Volatility, Steghide |
+| **Crypto** | CyberChef, Python, OpenSSL | SageMath, RsaCtfTool, Hashcat, John, name-that-hash |
+| **Web** | Burp Suite, curl, Browser | ZAP, ffuf, Gobuster, sqlmap, jwt_tool, WhatWeb, Nikto, SecLists |
+| **Pwn** | GDB + pwndbg, pwntools, Ghidra | ROPgadget, ropper, one_gadget, pwninit, patchelf, checksec, seccomp-tools |
+| **Rev** | Ghidra, GDB, strings | Radare2, IDA, Binary Ninja, angr, z3, jadx, apktool |
+| **Forensics** | Binwalk, Wireshark, file, exiftool | Volatility 3, Sleuth Kit/Autopsy, TestDisk/PhotoRec, steghide, stegseek, zsteg, StegSolve |
 | **Misc** | Python, Linux utils | Custom scripts |
 
 ### Installation Priority
 
 #### Phase 1 (Essential)
-- [ ] Python 3 + pip
+- [ ] Python 3 + venv + pipx
 - [ ] Git
-- [ ] Basic Linux utilities (file, strings, hexdump)
+- [ ] Basic Linux utilities (file, binutils, bsdextrautils, xxd)
 - [ ] Text editor (vim/nano/vscode)
 - [ ] Web browser with dev tools
 
-#### Phase 2 (Important)  
+#### Phase 2 (Important)
 - [ ] Burp Suite Community
 - [ ] GDB + pwndbg
-- [ ] Ghidra
+- [ ] Ghidra + JDK 25
 - [ ] Wireshark
-- [ ] Python libraries (pwntools, requests, crypto)
+- [ ] Python libraries (pwntools, requests, pycryptodome)
+- [ ] checksec, ROPgadget
 
 #### Phase 3 (Advanced)
-- [ ] Specialized tools per category
+- [ ] Web: sqlmap, ffuf
+- [ ] Pwn: one_gadget, pwninit, patchelf, seccomp-tools, ropper
+- [ ] Crypto: RsaCtfTool, SageMath
+- [ ] Forensics: stegseek, zsteg, Volatility 3, Sleuth Kit/Autopsy
+- [ ] Rev/mobile: angr, jadx, apktool
 - [ ] Commercial tools (if budget allows)
 - [ ] Custom automation scripts
 
@@ -418,12 +533,14 @@ echo "3. Configure your shell aliases"
 
 ### Documentation
 - **Pwntools**: https://docs.pwntools.com/
+- **pwndbg setup**: https://pwndbg.re/stable/setup/
 - **Radare2**: https://book.rada.re/
 - **GDB**: https://www.gnu.org/software/gdb/documentation/
+- **SageMath install**: https://doc.sagemath.org/html/en/installation/
+
+### Related Guides
+[[CTF_Challenge_Methodology|Methodology]] · [[CTF_Cheat_Sheets|Cheat Sheets]] · [[sop-reverse-engineering|RE SOP]] · [[sop-forensics-investigation|Forensics SOP]]
 
 ---
 
-*Last updated: `{{date}}`*
-
-## Tags
-#ctf #tools #setup #environment #guide
+**Last Updated:** 2026-11-07

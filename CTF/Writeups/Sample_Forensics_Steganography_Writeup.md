@@ -1,13 +1,22 @@
 ---
 title: "Sample Forensics Challenge: Hidden Image Data"
-description: "CTF writeup: LSB steganography & EXIF analysis. Extract hidden data from image pixels using Python, PIL & forensics tools for CTF forensics challenges."
+description: "CTF writeup: PNG text-chunk metadata clue and LSB steganography. Extract data hidden in PNG pixel bits with Python, Pillow, exiftool and zsteg."
+tags:
+  - ctf-writeup
+  - forensics
+  - steganography
+  - lsb
+  - image-analysis
+  - exif-data
+updated: 2026-11-07
 ---
 
 # 🕵️ Sample Forensics Challenge: Hidden Image Data
 
 **Challenge**: Picture Perfect
 **Category**: Forensics
-**Points**: 200  
+**Points**: 200
+**Time Spent**: 1.5 hours
 **Event**: Beginner CTF 2024
 **Team**: Team Example
 **Author**: CTF Guide
@@ -17,20 +26,22 @@ description: "CTF writeup: LSB steganography & EXIF analysis. Extract hidden dat
 
 ## 🎯 Challenge Summary
 
-**TL;DR**: Multi-layered steganography challenge involving EXIF data analysis and LSB (Least Significant Bit) extraction from an image file.
+**TL;DR**: Two-stage steganography challenge: a Base64 clue in a PNG text chunk, then LSB (Least Significant Bit) extraction from the image's red channel.
 
 ### Challenge Description
-```
-We intercepted this image from a suspicious communication channel. 
+```text
+We intercepted this image from a suspicious communication channel.
 Our analysts believe it contains hidden information, but they can't figure out how to extract it.
 Can you help us uncover the secret?
 
-File: suspicious_image.jpg
+File: suspicious_image.png
 Hint: Sometimes the most important information is in the details you can't see.
 ```
 
 ### Files & Services
-- `suspicious_image.jpg` - Image file suspected of containing hidden data
+- `suspicious_image.png` - Image file suspected of containing hidden data
+
+> **Reproducibility note:** every output below was produced by running the shown commands against a `suspicious_image.png` rebuilt to match this challenge (Pillow; clue in a `tEXt` chunk, payload in red-channel bit 0). Long outputs are abridged where marked.
 
 ---
 
@@ -40,113 +51,189 @@ Hint: Sometimes the most important information is in the details you can't see.
 Let's start by examining the image file:
 
 ```bash
-$ file suspicious_image.jpg
-suspicious_image.jpg: JPEG image data, JFIF standard 1.01, aspect ratio, density 1x1, segment length 16, baseline, precision 8, 1920x1080, components 3
+file suspicious_image.png
+ls -l suspicious_image.png
+```
 
-$ ls -la suspicious_image.jpg
--rw-r--r-- 1 user user 2,847,392 Jan 15 10:30 suspicious_image.jpg
+```text
+suspicious_image.png: PNG image data, 1024 x 768, 8-bit/color RGB, non-interlaced
+-rw-rw-r-- 1 dev dev 1524526 Jan 15  2024 suspicious_image.png
 ```
 
 ### Key Observations
-1. **File Type**: Standard JPEG image, 1920x1080 resolution
-2. **File Size**: 2.8MB - seems large for a simple image
+1. **File Type**: PNG, 1024x768, 8-bit RGB. PNG is **lossless**, so individual pixel bits survive saving - pixel-level LSB hiding is possible
+2. **File Size**: ~1.5 MB is normal for a photo-like lossless PNG, so size alone is not a signal here
 3. **Hint Analysis**: "details you can't see" suggests metadata or steganography
 
 Let's check for obvious strings:
 ```bash
-$ strings suspicious_image.jpg | grep -i flag
-# No obvious flags found
-
-$ strings suspicious_image.jpg | tail -20
-# Various binary data, no clear text
+strings suspicious_image.png | grep -i flag     # no output
+strings -n 8 suspicious_image.png | head -n 2
 ```
+
+```text
+DtEXtComment
+VGhlIGZpcnN0IGNsdWUgaXM6IGxvb2sgZGVlcGVyIGluIHRoZSBwaXhlbHM=$H
+```
+
+No flag in plain text, but `tEXt` + `Comment` right after the header is a PNG text chunk carrying a Base64-looking value. The stray characters are chunk framing that happens to be printable: `D` is the chunk length byte (0x44 = 68), `$H` the first two bytes of its CRC.
 
 ---
 
-## 💡 Solution Approach  
+## 💡 Solution Approach
 
 ### Method 1: Metadata Analysis
 
-1. **Step 1**: Extract EXIF data
+A PNG has no JPEG-style EXIF segment. Text metadata lives in **`tEXt`** (Latin-1), **`zTXt`** (compressed) or **`iTXt`** (UTF-8) chunks as keyword/value pairs; EXIF, if present, sits in an **`eXIf`** chunk. `exiftool` reads all of them.
+
+1. **Step 1**: Read the PNG metadata
    ```bash
-   $ exiftool suspicious_image.jpg
-   ExifTool Version Number         : 12.16
-   File Name                       : suspicious_image.jpg
-   Directory                       : .
-   File Size                       : 2.8 MiB
-   File Modification Date/Time     : 2024:01:15 10:30:00+01:00
-   File Access Date/Time          : 2024:01:15 10:35:00+01:00
-   File Permissions               : rw-r--r--
-   File Type                      : JPEG
-   File Type Extension            : jpg
-   MIME Type                      : image/jpeg
-   Image Width                    : 1920
-   Image Height                   : 1080
-   Encoding Process               : Baseline DCT, Huffman coding
-   Bits Per Sample                : 8
-   Color Components              : 3
-   Y Cb Cr Sub Sampling          : YCbCr4:2:0 (2 2)
-   Comment                       : VGhlIGZpcnN0IGNsdWUgaXM6IGxvb2sgZGVlcGVyIGluIHRoZSBwaXhlbHM=
+   exiftool suspicious_image.png
    ```
-   
-   🎯 **Interesting!** There's a Base64-encoded comment field.
+
+   Output (abridged: filesystem date/permission lines removed):
+   ```text
+   ExifTool Version Number         : 12.76
+   File Name                       : suspicious_image.png
+   File Size                       : 1525 kB
+   File Type                       : PNG
+   MIME Type                       : image/png
+   Image Width                     : 1024
+   Image Height                    : 768
+   Bit Depth                       : 8
+   Color Type                      : RGB
+   Compression                     : Deflate/Inflate
+   Filter                          : Adaptive
+   Interlace                       : Noninterlaced
+   Comment                         : VGhlIGZpcnN0IGNsdWUgaXM6IGxvb2sgZGVlcGVyIGluIHRoZSBwaXhlbHM=
+   Image Size                      : 1024x768
+   Megapixels                      : 0.786
+   ```
+
+   🎯 **Interesting!** A Base64-encoded `Comment`. `pngcheck -v` confirms which chunk holds it (`pngcheck -t` prints the text-chunk contents instead):
+   ```bash
+   pngcheck -v suspicious_image.png | head -n 5
+   ```
+
+   ```text
+   File: suspicious_image.png (1524526 bytes)
+     chunk IHDR at offset 0x0000c, length 13
+       1024 x 768 image, 24-bit RGB, non-interlaced
+     chunk tEXt at offset 0x00025, length 68, keyword: Comment
+     chunk IDAT at offset 0x00075, length 65536
+   ```
 
 2. **Step 2**: Decode the Base64 comment
    ```bash
-   $ echo "VGhlIGZpcnN0IGNsdWUgaXM6IGxvb2sgZGVlcGVyIGluIHRoZSBwaXhlbHM=" | base64 -d
+   echo "VGhlIGZpcnN0IGNsdWUgaXM6IGxvb2sgZGVlcGVyIGluIHRoZSBwaXhlbHM=" | base64 -d
+   ```
+
+   ```text
    The first clue is: look deeper in the pixels
    ```
-   
+
    This confirms our suspicion about steganography in the pixel data.
 
 3. **Step 3**: LSB Steganography Analysis
    ```python
    from PIL import Image
    import numpy as np
-   
+
    def extract_lsb_data(image_path):
-       img = Image.open(image_path)
+       img = Image.open(image_path).convert("RGB")
        data = np.array(img)
-       
+
        # Extract LSB from red channel
        red_channel = data[:, :, 0]
        lsb_bits = red_channel & 1  # Get only the LSB
-       
-       # Convert to binary string
+
+       # Convert to binary string (row-major pixel order)
        binary_string = ''.join(lsb_bits.flatten().astype(str))
-       
+
        return binary_string
-   
-   binary_data = extract_lsb_data('suspicious_image.jpg')
+
+   binary_data = extract_lsb_data('suspicious_image.png')
    print(f"LSB binary length: {len(binary_data)}")
-   print(f"First 100 bits: {binary_data[:100]}")
+   print(f"First 64 bits: {binary_data[:64]}")
+   print(f"As bytes (MSB-first): {bytes(int(binary_data[i:i+8], 2) for i in range(0, 64, 8))}")
    ```
-   
+
    **Results**:
+   ```text
+   LSB binary length: 786432
+   First 64 bits: 0110011001101100011000010110011101111011011100110111010001100101
+   As bytes (MSB-first): b'flag{ste'
    ```
-   LSB binary length: 2073600
-   First 100 bits: 0110011001101100011000010110011101111011011100110111010001100101011001110110000101101110...
-   ```
+
+   One bit per pixel (1024 x 768 = 786432), and the first eight bytes already read `flag{ste`.
+
+### Method 2: One-shot with zsteg
+
+For PNG/BMP, `zsteg` tries the common bit-plane/channel/order combinations in one go (`zsteg -a` tries all of them):
+
+```bash
+zsteg suspicious_image.png
+```
+
+Output (abridged: first 3 of many lines):
+```text
+meta Comment        .. text: "VGhlIGZpcnN0IGNsdWUgaXM6IGxvb2sgZGVlcGVyIGluIHRoZSBwaXhlbHM="
+imagedata           .. file: VAX-order 68k Blit mpx/mux executable
+b1,r,lsb,xy         .. text: "flag{steganography_is_everywhere_in_the_pixels_2024}"
+```
+
+`b1,r,lsb,xy` = 1 bit per pixel, red channel, pixels in `xy` (row-major) order. The other hits (`imagedata` "file:" guesses, random short strings, "OpenPGP key" matches in the full output) are noise from `file` magic on random bits. Dump the payload with `-E` to see where it ends:
+
+```bash
+zsteg -E b1,r,lsb,xy suspicious_image.png | head -c 53 | xxd
+```
+
+```text
+00000000: 666c 6167 7b73 7465 6761 6e6f 6772 6170  flag{steganograp
+00000010: 6879 5f69 735f 6576 6572 7977 6865 7265  hy_is_everywhere
+00000020: 5f69 6e5f 7468 655f 7069 7865 6c73 5f32  _in_the_pixels_2
+00000030: 3032 347d 00                             024}.
+```
+
+The `00` after `}` is the NUL terminator the solver script stops on.
 
 ---
 
 ## 🛠️ Technical Details
 
 ### Tools Used
-- **Primary Tools**: exiftool, Python PIL, numpy
-- **Secondary Tools**: hexedit, strings, binwalk  
+- **Primary Tools**: exiftool, pngcheck, Python (Pillow, numpy), zsteg
+- **Secondary Tools**: strings, xxd, base64
 
 ### Key Technical Concepts
-- **EXIF Data**: Metadata stored in image files
-- **LSB Steganography**: Hiding data in least significant bits of pixel values
+- **PNG text chunks**: `tEXt`/`zTXt`/`iTXt` keyword/value metadata; `eXIf` holds EXIF in PNG
+- **LSB Steganography**: Hiding data in the least significant bits of pixel values
 - **Base64 Encoding**: Common encoding scheme for binary data in text
 - **Binary to ASCII Conversion**: Converting binary data back to readable text
 
 ### LSB Extraction Process
-The challenge uses the red channel's least significant bit to store hidden data:
-1. Each pixel's red value has its LSB replaced with secret data
-2. The secret data is stored sequentially across all pixels
-3. The binary data needs to be converted back to ASCII text
+The challenge hides the payload in the red channel's least significant bit:
+1. Payload = flag bytes followed by one NUL byte (`0x00`) as terminator
+2. Each byte is split into 8 bits, **most significant bit first**
+3. Bit *i* replaces bit 0 of the red value of pixel *i*, pixels in row-major order (left to right, top to bottom)
+4. Green and blue are untouched; extraction reverses the steps and stops at the NUL
+
+### Why PNG, not JPEG
+LSB-in-pixels only works on **lossless** formats (PNG, BMP). JPEG stores quantised DCT coefficients, not pixel values, so encoding scrambles the low bits: re-saving this PNG as a quality-95 JPEG flips about half of the red LSBs (49.8% for this image), i.e. the bit plane becomes random. Running the same extraction on the JPEG shows it (the junk bytes differ from image to image):
+
+```python
+from PIL import Image
+from solve import binary_to_ascii, extract_lsb_steganography  # solve.py = Final Exploit below
+
+Image.open("suspicious_image.png").save("resaved.jpg", quality=95)
+print(binary_to_ascii(extract_lsb_steganography("resaved.jpg"))[:40])
+```
+
+```text
+Wbo+q.<q+z[:{1
+```
+
+JPEG challenges hide data in the DCT domain instead: `steghide` (passphrase-protected), `outguess`, and `stegseek` to crack a steghide passphrase with a wordlist. See the appendix.
 
 ---
 
@@ -157,133 +244,102 @@ The challenge uses the red channel's least significant bit to store hidden data:
 #!/usr/bin/env python3
 """
 Complete LSB Steganography Extraction Tool
-Extracts hidden data from the LSB of image pixels
+Reads the PNG text-chunk clue, then extracts data hidden in pixel LSBs.
 """
 
-from PIL import Image
-import numpy as np
 import base64
+import binascii
+import re
+
+import numpy as np
+from PIL import Image
+
 
 def extract_metadata(image_path):
-    """Extract and decode EXIF comment field"""
-    import subprocess
-    
-    result = subprocess.run(['exiftool', image_path], capture_output=True, text=True)
-    
-    for line in result.stdout.split('\n'):
-        if 'Comment' in line:
-            comment = line.split(':', 1)[1].strip()
-            try:
-                decoded = base64.b64decode(comment).decode('utf-8')
-                return decoded
-            except:
-                return comment
-    return None
+    """Return the PNG tEXt/iTXt 'Comment' value, Base64-decoded if possible."""
+    comment = Image.open(image_path).text.get("Comment")
+    if comment is None:
+        return None
+    try:
+        return base64.b64decode(comment, validate=True).decode("utf-8")
+    except (binascii.Error, UnicodeDecodeError):
+        return comment
+
 
 def extract_lsb_steganography(image_path, channel='red'):
-    """Extract LSB data from specified color channel"""
-    img = Image.open(image_path)
-    data = np.array(img)
-    
+    """Extract bit 0 of one colour channel, pixels in row-major order."""
+    data = np.array(Image.open(image_path).convert("RGB"))
+
     # Select channel (0=red, 1=green, 2=blue)
     channel_map = {'red': 0, 'green': 1, 'blue': 2}
     channel_data = data[:, :, channel_map[channel]]
-    
-    # Extract LSB
+
     lsb_bits = channel_data & 1
-    binary_string = ''.join(lsb_bits.flatten().astype(str))
-    
-    return binary_string
+    return ''.join(lsb_bits.flatten().astype(str))
+
 
 def binary_to_ascii(binary_string):
-    """Convert binary string to ASCII text"""
+    """Group bits into bytes (MSB first); stop at the NUL terminator."""
     ascii_chars = []
-    
-    # Process 8 bits at a time
+
     for i in range(0, len(binary_string), 8):
         byte = binary_string[i:i+8]
-        if len(byte) == 8:
-            ascii_value = int(byte, 2)
-            if 32 <= ascii_value <= 126:  # Printable ASCII range
-                ascii_chars.append(chr(ascii_value))
-            elif ascii_value == 0:  # Null terminator - end of message
-                break
-    
+        if len(byte) < 8:
+            break
+        ascii_value = int(byte, 2)
+        if ascii_value == 0:  # Null terminator - end of message
+            break
+        if 32 <= ascii_value <= 126:  # Keep printable ASCII only
+            ascii_chars.append(chr(ascii_value))
+
     return ''.join(ascii_chars)
 
+
 def find_flag_in_data(data):
-    """Search for flag pattern in extracted data"""
-    import re
-    
-    # Look for common flag patterns
-    flag_patterns = [
-        r'flag\{[^}]+\}',
-        r'FLAG\{[^}]+\}',
-        r'[A-Za-z0-9_]+\{[^}]+\}'
-    ]
-    
-    for pattern in flag_patterns:
-        matches = re.findall(pattern, data, re.IGNORECASE)
-        if matches:
-            return matches
-    
-    return None
+    """Search for a flag-format string such as flag{...}."""
+    return re.findall(r'[A-Za-z0-9_]+\{[^}]+\}', data)
+
 
 if __name__ == "__main__":
-    image_file = "suspicious_image.jpg"
-    
+    image_file = "suspicious_image.png"
+
     print("=== FORENSICS ANALYSIS REPORT ===")
     print(f"Analyzing: {image_file}")
-    
+
     # Step 1: Extract metadata
     print("\n[1] Extracting metadata...")
     metadata_clue = extract_metadata(image_file)
     if metadata_clue:
         print(f"Hidden comment found: {metadata_clue}")
-    
-    # Step 2: Try LSB extraction on different channels
+
+    # Step 2: Try LSB extraction on each colour channel
     print("\n[2] Extracting LSB data from color channels...")
-    
+
     for channel in ['red', 'green', 'blue']:
         print(f"\nTrying {channel} channel...")
-        
+
         binary_data = extract_lsb_steganography(image_file, channel)
         ascii_data = binary_to_ascii(binary_data)
-        
+
         print(f"Extracted {len(ascii_data)} ASCII characters")
         print(f"First 100 characters: {ascii_data[:100]}")
-        
-        # Look for flag
+
         flags = find_flag_in_data(ascii_data)
         if flags:
-            print(f"\n🏆 FLAG FOUND in {channel} channel: {flags[0]}")
-            
-            # Show more context around the flag
-            flag_pos = ascii_data.find(flags[0])
-            context_start = max(0, flag_pos - 50)
-            context_end = min(len(ascii_data), flag_pos + len(flags[0]) + 50)
-            print(f"Context: ...{ascii_data[context_start:context_end]}...")
-            
+            print(f"\n[+] FLAG FOUND in {channel} channel: {flags[0]}")
             break
     else:
-        print("\n❌ No flag found in LSB data")
-        
-        # Try alternative approaches
-        print("\n[3] Trying alternative steganography methods...")
-        
-        # Check for embedded files with binwalk
-        import subprocess
-        result = subprocess.run(['binwalk', image_file], capture_output=True, text=True)
-        if result.returncode == 0 and result.stdout:
-            print("Binwalk analysis:")
-            print(result.stdout)
+        print("\n[-] No flag in bit 0 of R/G/B - try other bit planes/orders: zsteg -a")
 ```
 
 ### Execution Output
 ```bash
-$ python3 solve.py
+python3 solve.py
+```
+
+```text
 === FORENSICS ANALYSIS REPORT ===
-Analyzing: suspicious_image.jpg
+Analyzing: suspicious_image.png
 
 [1] Extracting metadata...
 Hidden comment found: The first clue is: look deeper in the pixels
@@ -291,18 +347,17 @@ Hidden comment found: The first clue is: look deeper in the pixels
 [2] Extracting LSB data from color channels...
 
 Trying red channel...
-Extracted 1847 ASCII characters
-First 100 characters: flag{steganography_is_everywhere_in_the_pixels_2024}The secret message continues here with more
+Extracted 52 ASCII characters
+First 100 characters: flag{steganography_is_everywhere_in_the_pixels_2024}
 
-🏆 FLAG FOUND in red channel: flag{steganography_is_everywhere_in_the_pixels_2024}
-Context: ...flag{steganography_is_everywhere_in_the_pixels_2024}The secret message continues here with more hidden data that was embedded using LSB steganography techniques...
+[+] FLAG FOUND in red channel: flag{steganography_is_everywhere_in_the_pixels_2024}
 ```
 
 ---
 
 ## 🏁 Flag
 
-```
+```text
 flag{steganography_is_everywhere_in_the_pixels_2024}
 ```
 
@@ -314,47 +369,38 @@ flag{steganography_is_everywhere_in_the_pixels_2024}
 - Systematic approach to metadata analysis first
 - Correct identification of steganography technique
 - Successfully implemented LSB extraction algorithm
-- Found flag efficiently using pattern matching
+- Confirmed the result with an independent tool (zsteg)
 
-### Challenges Faced  
+### Challenges Faced
 - Initial confusion about which color channel contained data
-- Had to understand LSB encoding technique
+- Had to understand LSB encoding technique (bit order, terminator)
 - Needed to handle binary-to-ASCII conversion properly
 
 ### Learning Outcomes
-- **Image Forensics**: EXIF data can contain important clues
-- **LSB Steganography**: Common technique for hiding data in images
+- **Image Forensics**: Image metadata (PNG text chunks, EXIF) can contain important clues
+- **LSB Steganography**: Common technique for hiding data in images - only on lossless formats
 - **Base64 Encoding**: Often used for embedding text in metadata
-- **Systematic Testing**: Try different channels/approaches methodically
+- **Systematic Testing**: Try different channels/approaches methodically, or let `zsteg -a` sweep them
 
 ---
 
 ## 🔗 References
 
+### Related
+- [[sop-forensics-investigation|Forensics Investigation SOP]] - Digital forensics procedures
+- [[CTF_Cheat_Sheets]] - Forensics and stego quick reference
+- [[Writeups-Index]] - All sample writeups
+
 ### Documentation
-- [Steganography Techniques](https://en.wikipedia.org/wiki/Steganography) - Overview of hiding techniques
-- [LSB Steganography](https://www.researchgate.net/publication/220069844_LSB_Steganography) - Technical details  
-- [EXIF Metadata](https://exiftool.org/TagNames/) - Complete EXIF tag reference
+- [Steganography](https://en.wikipedia.org/wiki/Steganography) - Overview of hiding techniques
+- [PNG Specification (W3C, Third Edition)](https://www.w3.org/TR/png-3/) - Chunk layout, including `tEXt`/`zTXt`/`iTXt`/`eXIf`
+- [ExifTool PNG Tags](https://exiftool.org/TagNames/PNG.html) - What exiftool reads from PNG files
+- [zsteg](https://github.com/zed-0xff/zsteg) - PNG/BMP LSB detection and extraction
+- [StegSeek](https://github.com/RickdeJager/StegSeek) - steghide passphrase cracker for JPEG challenges
+- [Binwalk](https://github.com/ReFirmLabs/binwalk) - Embedded-file detection (v3 is a Rust rewrite; distro `binwalk` is still v2.4)
 
 ### Further Reading
-- [Digital Image Steganography Survey](https://arxiv.org/abs/1401.5561) - Academic overview
-- [Forensic Analysis Tools](https://forensicswiki.xyz/wiki/index.php?title=Tools) - Comprehensive tool list
-
----
-
-## 📷 Screenshots
-
-### Initial Analysis
-`![EXIF Analysis](path/to/exif_screenshot.png)`
-*Caption: ExifTool revealing Base64-encoded comment*
-
-### LSB Extraction Process  
-`![LSB Visualization](path/to/lsb_screenshot.png)`
-*Caption: Visual representation of LSB extraction from red channel*
-
-### Final Success
-`![Flag Discovery](path/to/flag_screenshot.png)`  
-*Caption: Flag found in extracted ASCII data*
+- [A Study of Various Steganographic Techniques Used for Information Hiding (arXiv:1401.5561)](https://arxiv.org/abs/1401.5561) - Academic overview
 
 ---
 
@@ -365,7 +411,7 @@ flag{steganography_is_everywhere_in_the_pixels_2024}
 
 ### External Help
 - ExifTool documentation for metadata extraction
-- PIL/numpy documentation for image processing
+- Pillow/numpy documentation for image processing
 
 ---
 
@@ -384,47 +430,55 @@ flag{steganography_is_everywhere_in_the_pixels_2024}
 
 ## 📚 Appendix
 
-### Alternative LSB Extraction
+### Bit-Plane Images
 ```python
-# Alternative approach using different bit planes
-def extract_bit_plane(image_path, bit_position=0):
-    """Extract specific bit plane from image"""
-    img = Image.open(image_path)
-    data = np.array(img)
-    
-    # Extract specified bit (0 = LSB, 7 = MSB)
-    red_channel = data[:, :, 0]
-    bit_plane = (red_channel >> bit_position) & 1
-    
-    return bit_plane
+from PIL import Image
+import numpy as np
 
-# Check multiple bit planes
+def extract_bit_plane(image_path, bit_position=0, channel=0):
+    """Return one bit plane (0 = LSB, 7 = MSB) of one channel (0=R, 1=G, 2=B)."""
+    data = np.array(Image.open(image_path).convert("RGB"))
+    return (data[:, :, channel] >> bit_position) & 1
+
+# Save each red bit plane as a black/white image and inspect it
 for bit in range(8):
-    plane = extract_bit_plane('suspicious_image.jpg', bit)
-    print(f"Bit plane {bit}: {np.sum(plane)} ones out of {plane.size} pixels")
+    plane = extract_bit_plane('suspicious_image.png', bit)
+    Image.fromarray((plane * 255).astype(np.uint8)).save(f'red_plane_{bit}.png')
 ```
+
+Visual inspection works best for large or image-shaped payloads; a 53-byte payload like this one is only a 424-pixel strip in the top row, so the scripted extraction or zsteg is faster.
 
 ### Steganography Detection Tools
 ```bash
-# StegSolve alternative
+# PNG/BMP pixel LSBs: sweep all bit planes, channels and orders in one shot
+zsteg -a suspicious_image.png
+# Dump one payload once zsteg names its parameters
+zsteg -E b1,r,lsb,xy suspicious_image.png > payload.bin
+
+# StegSolve is a Java GUI (no CLI): open the image, cycle colour planes with < >,
+# Analyse > Data Extract to dump chosen bits
 java -jar stegsolve.jar
 
-# Steghide for password-protected data
-steghide extract -sf suspicious_image.jpg
+# Embedded/appended files. Kali/Debian `binwalk` is v2.4; Kali packages v3 (Rust) as `binwalk3`
+binwalk suspicious_image.png      # signature scan
+binwalk -e suspicious_image.png   # v2: extract into ./_suspicious_image.png.extracted/
+binwalk3 -e suspicious_image.png  # v3: extract into ./extractions/suspicious_image.png.extracted/
 
-# Outguess detection
-outguess -r suspicious_image.jpg output.txt
-
-# Stegdetect for detection
-stegdetect suspicious_image.jpg
+# JPEG (DCT-domain) stego - these do not read PNG pixel LSBs
+steghide extract -sf image.jpg            # prompts for the passphrase
+stegseek image.jpg wordlist.txt           # crack a steghide passphrase
+outguess -r image.jpg output.txt
 ```
 
 ---
 
+**Challenge**: `Picture Perfect`
+**Points**: `200`
 **Completion Time**: `1.5 hours`
 **Team Size**: `1 member`
-**First Blood**: `NO` 
+**First Blood**: `NO`
 **Published**: `2024-01-15`
 
-## Tags
-#ctf-writeup #forensics #steganography #lsb #image-analysis #exif-data
+---
+
+**Last Updated:** 2026-11-07

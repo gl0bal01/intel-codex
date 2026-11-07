@@ -1,6 +1,14 @@
 ---
 title: "Sample Reverse Engineering Challenge: Simple Crackme"
 description: "CTF writeup: Reverse engineer license validator with Ghidra. Extract validation algorithm, generate valid keys & master static analysis for CTF challenges."
+tags:
+  - ctf-writeup
+  - reverse-engineering
+  - crackme
+  - ghidra
+  - static-analysis
+  - algorithm-extraction
+updated: 2026-11-07
 ---
 
 # 🔧 Sample Reverse Engineering Challenge: Simple Crackme
@@ -20,7 +28,7 @@ description: "CTF writeup: Reverse engineer license validator with Ghidra. Extra
 **TL;DR**: Basic crackme requiring analysis of a license validation function to find the correct serial key that produces the flag.
 
 ### Challenge Description
-```
+```text
 We found this software license validator from a compromised system. 
 The criminals were using it to validate stolen software licenses.
 Can you reverse engineer it to find out what valid license keys look like?
@@ -39,14 +47,14 @@ Usage: ./license_validator [license_key]
 ## 🔍 Analysis
 
 ### Initial Reconnaissance
-Let's examine the binary:
+Let's examine the binary (`file`/size from a gcc 13 `-O0 -no-pie -fno-stack-protector` rebuild of the decompiled source; the checksec table is illustrative, matching that build's `readelf -lW` headers):
 
-```bash
+```text
 $ file license_validator
-license_validator: ELF 64-bit LSB executable, x86-64, version 1 (SYSV), dynamically linked, interpreter /lib64/ld-linux-x86-64.so.2, for GNU/Linux 3.2.0, BuildID[sha1]=abc123..., not stripped
+license_validator: ELF 64-bit LSB executable, x86-64, version 1 (SYSV), dynamically linked, interpreter /lib64/ld-linux-x86-64.so.2, BuildID[sha1]=efabddc4f1e9bdba6fc9c5af459234c5046c3aab, for GNU/Linux 3.2.0, not stripped
 
 $ ls -la license_validator
--rwxr-xr-x 1 user user 16,832 Jan 15 09:00 license_validator
+-rwxr-xr-x 1 user user 16056 Jan 15 09:00 license_validator
 
 $ checksec --file=license_validator
 RELRO           STACK CANARY      NX            PIE             RPATH      RUNPATH      FILE
@@ -57,10 +65,10 @@ Partial RELRO   No canary found   NX enabled    No PIE          No RPATH   No RU
 1. **File Type**: Standard ELF 64-bit executable
 2. **Security**: Basic protections (NX enabled, but no PIE or stack canary)
 3. **Symbols**: Not stripped, which helps with analysis
-4. **Size**: 16KB suggests moderate complexity
+4. **Size**: ~16 KB is about the floor for a gcc-built C program, so there is little code to read
 
 Let's test basic functionality:
-```bash
+```text
 $ ./license_validator
 Usage: ./license_validator [license_key]
 
@@ -135,13 +143,8 @@ Invalid license key format!
    ```c
    // print_flag function (decompiled)
    void print_flag(void) {
-       char flag_buffer[64];
-       
-       strcpy(flag_buffer, "flag{");
-       strcat(flag_buffer, "r3v3rs3_3ng1n33r1ng_m4d3_34sy_");
-       strcat(flag_buffer, "2024}");
-       
-       printf("Congratulations! Here's your flag: %s\n", flag_buffer);
+       printf("Congratulations! Here's your flag: %s\n",
+              "flag{r3v3rs3_3ng1n33r1ng_m4d3_34sy_2024}");
    }
    ```
 
@@ -149,7 +152,7 @@ Invalid license key format!
 
 Let's verify our understanding using GDB:
 
-```bash
+```text
 $ gdb ./license_validator
 (gdb) break validate_license
 (gdb) run 1234567890123456
@@ -198,7 +201,7 @@ def generate_valid_license_key():
     - Sum of digits = 64
     """
     
-    # Strategy: Use mostly 4s (16 * 4 = 64), then adjust
+    # Strategy: 16 * 4 = 64, so all 4s already satisfies the sum
     digits = [4] * 16  # Start with all 4s
     current_sum = sum(digits)  # Should be 64
     
@@ -229,27 +232,12 @@ def verify_license_key(license_key):
     return True, "Valid license key"
 
 def generate_alternative_keys():
-    """Generate several valid license keys using different strategies"""
+    """Check a couple of hand-built keys against the constraints"""
     
-    keys = []
-    
-    # Strategy 1: All 4s
-    keys.append('4444444444444444')
-    
-    # Strategy 2: Mix of digits that sum to 64
-    keys.append('5555555555555559')  # 15*5 + 1*9 = 75 + 9 = 84 (too high)
-    keys.append('3333333333333337')  # 15*3 + 1*7 = 45 + 7 = 52 (too low)
-    keys.append('4444444444444446')  # 14*4 + 2*6 = 56 + 12 = 68 (too high)
-    keys.append('4444444444444440')  # 15*4 + 1*0 = 60 + 0 = 60 (too low)
-    keys.append('4444444444444448')  # 14*4 + 2*8 = 56 + 16 = 72 (too high)
-    keys.append('4444444444444422')  # 14*4 + 2*2 = 56 + 4 = 60 (too low)
-    keys.append('4444444444444466')  # 12*4 + 4*6 = 48 + 24 = 72 (too high)
-    keys.append('4444444444442222')  # 12*4 + 4*2 = 48 + 8 = 56 (too low)
-    
-    # Let's calculate a correct one:
-    # We need sum = 64, length = 16
-    # Try: 8888888800000000 = 8*8 + 8*0 = 64
-    keys.append('8888888800000000')
+    keys = [
+        '4444444444444444',  # all 4s: 16*4 = 64
+        '8888888800000000',  # eight 8s + eight 0s: 8*8 = 64
+    ]
     
     # Validate all keys
     valid_keys = []
@@ -299,7 +287,7 @@ if __name__ == "__main__":
                 print(f"\n🏆 FLAG FOUND: {flag_match.group()}")
         else:
             print("❌ FAILED")
-            print(f"Error: {result.stderr.strip()}")
+            print(f"Output: {result.stdout.strip()}")
             
     except FileNotFoundError:
         print("Binary not found - make sure license_validator is in current directory")
@@ -307,17 +295,13 @@ if __name__ == "__main__":
         print("Process timed out")
     
     print("\n" + "="*50)
-    print("Generating alternative valid keys:")
-    alternative_keys = generate_alternative_keys()
-    
-    if alternative_keys:
-        print(f"\nFound {len(alternative_keys)} valid alternatives:")
-        for key in alternative_keys[:3]:  # Show first 3
-            print(f"  {key}")
+    print("Checking alternative keys:")
+    valid_keys = generate_alternative_keys()
+    print(f"\nValid keys found: {len(valid_keys)}")
 ```
 
 ### Execution Output
-```bash
+```text
 $ python3 solve.py
 === LICENSE KEY GENERATOR ===
 Based on reverse engineering analysis
@@ -337,25 +321,15 @@ Output: Congratulations! Here's your flag: flag{r3v3rs3_3ng1n33r1ng_m4d3_34sy_20
 🏆 FLAG FOUND: flag{r3v3rs3_3ng1n33r1ng_m4d3_34sy_2024}
 
 ==================================================
-Generating alternative valid keys:
+Checking alternative keys:
 Key: 4444444444444444 - Valid license key
-Key: 5555555555555559 - Sum is 84 (expected 64)
-Key: 3333333333333337 - Sum is 52 (expected 64)
-Key: 4444444444444446 - Sum is 68 (expected 64)
-Key: 4444444444444440 - Sum is 60 (expected 64)
-Key: 4444444444444448 - Sum is 72 (expected 64)
-Key: 4444444444444422 - Sum is 60 (expected 64)
-Key: 4444444444444466 - Sum is 72 (expected 64)
-Key: 4444444444442222 - Sum is 56 (expected 64)
 Key: 8888888800000000 - Valid license key
 
-Found 2 valid alternatives:
-  4444444444444444
-  8888888800000000
+Valid keys found: 2
 ```
 
 ### Manual Verification
-```bash
+```text
 $ ./license_validator 4444444444444444
 Congratulations! Here's your flag: flag{r3v3rs3_3ng1n33r1ng_m4d3_34sy_2024}
 
@@ -367,7 +341,7 @@ Congratulations! Here's your flag: flag{r3v3rs3_3ng1n33r1ng_m4d3_34sy_2024}
 
 ## 🏁 Flag
 
-```
+```text
 flag{r3v3rs3_3ng1n33r1ng_m4d3_34sy_2024}
 ```
 
@@ -382,9 +356,8 @@ flag{r3v3rs3_3ng1n33r1ng_m4d3_34sy_2024}
 - Verified solution with actual binary execution
 
 ### Challenges Faced  
-- Initial confusion about the exact sum requirement
-- Had to understand the relationship between character arithmetic and actual values
-- Testing multiple key combinations to verify the algorithm
+- Character arithmetic: the loop sums `key[i] - '0'`, not raw bytes — summing ASCII would give 16 × 0x34 = 832 for the all-4s key, not 64
+- `strings` is not a guaranteed shortcut: gcc turns short `strcpy`/`strcat` literals into immediate stores, so a flag assembled in pieces shows up only as fragments (e.g. `flagf`). It works here (Method 4) because `print_flag` passes one literal
 
 ### Learning Outcomes
 - **Static Analysis**: Ghidra is powerful for understanding program logic
@@ -411,13 +384,18 @@ flag{r3v3rs3_3ng1n33r1ng_m4d3_34sy_2024}
 - [Radare2 Book](https://book.rada.re/) - Alternative RE tool
 - [IDA Pro Book](https://nostarch.com/idapro2.htm) - Advanced techniques
 
+### Related
+- [[sop-reverse-engineering|Reverse Engineering SOP]] - Full RE methodology
+- [[CTF_Cheat_Sheets]] - Quick command reference
+- [[Writeups-Index]] - All sample writeups
+
 ---
 
 ## 🧠 Alternative Approaches
 
-### Method 2: Dynamic Analysis with GDB
-```bash
-# Alternative approach - brute force with GDB scripting
+### Method 3: Tracing Inputs with GDB
+```text
+# Log every key passed to validate_license (a trace, not a brute-forcer)
 $ gdb ./license_validator
 (gdb) set pagination off
 (gdb) break validate_license
@@ -427,34 +405,24 @@ printf "Trying: %s\n", $rdi
 continue
 end
 
-# Then try different inputs systematically
+# Then (gdb) run <key> with different inputs; each prints "Trying: <key>"
 ```
 
-### Method 3: String Analysis
-```bash
+### Method 4: String Analysis
+```text
 # Look for embedded strings that might give hints
 $ strings license_validator | grep -E "(flag|key|valid|sum|64)"
+/lib64/ld-linux-x86-64.so.2
 flag{r3v3rs3_3ng1n33r1ng_m4d3_34sy_2024}
+Congratulations! Here's your flag: %s
+Usage: ./license_validator [license_key]
 Invalid license key format!
+license_validator.c
+validate_license
+print_flag
 ```
 
 Actually, we can see the flag directly in strings! But the proper approach teaches more.
-
----
-
-## 📷 Screenshots
-
-### Ghidra Decompilation
-`![Ghidra Analysis](path/to/ghidra_screenshot.png)`
-*Caption: Ghidra showing decompiled validate_license function*
-
-### GDB Dynamic Analysis  
-`![GDB Session](path/to/gdb_screenshot.png)`
-*Caption: GDB breakpoint showing validation logic execution*
-
-### Successful Execution
-`![Flag Output](path/to/success_screenshot.png)`  
-*Caption: Successful license validation revealing the flag*
 
 ---
 
@@ -476,7 +444,7 @@ Actually, we can see the flag directly in strings! But the proper approach teach
 ### Complete Mathematical Solutions
 ```python
 # All possible ways to get sum=64 with 16 digits
-# This is a constrained optimization problem
+# This is a constraint/counting problem, not an optimization
 
 def find_all_solutions(target_sum=64, num_digits=16):
     """Generate all valid license key combinations"""
@@ -498,14 +466,16 @@ def find_all_solutions(target_sum=64, num_digits=16):
     backtrack([], target_sum, num_digits)
     return solutions
 
-# Note: This would generate a huge number of solutions
+# Note: there are 272,161,653,439,417 solutions - never run this to completion
 # The challenge just needs any valid one
 ```
 
 ### Assembly Code Analysis
-```assembly
+Simplified sketch of the key parts — not literal disassembly: the real unoptimized build keeps `len`, `sum` and `i` on the stack, and the digit-check loop is omitted here.
+
+```nasm
 ; validate_license function key parts
-mov    rax, rdi          ; license_key argument
+mov    rbx, rdi          ; save license_key (strlen clobbers rdi)
 call   strlen            ; get length
 cmp    rax, 0x10         ; compare with 16
 jne    invalid           ; jump if not equal
@@ -515,7 +485,7 @@ mov    eax, 0x0          ; sum = 0
 mov    ecx, 0x0          ; i = 0
 
 sum_loop:
-movzx  edx, BYTE PTR [rdi+rcx]  ; load character
+movzx  edx, byte [rbx+rcx]     ; load character
 sub    edx, 0x30               ; convert ASCII to digit  
 add    eax, edx                ; add to sum
 inc    ecx                     ; i++
@@ -532,5 +502,6 @@ cmp    eax, 0x40               ; compare sum with 64
 **First Blood**: `NO` 
 **Published**: `2024-01-15`
 
-## Tags
-#ctf-writeup #reverse-engineering #crackme #ghidra #static-analysis #algorithm-extraction
+---
+
+**Last Updated:** 2026-11-07

@@ -1,13 +1,20 @@
 ---
 title: "Sample Crypto Challenge: Caesar Cipher with Twist"
-description: "CTF writeup: Variable Caesar cipher with incremental shifts per word. Learn pattern recognition, frequency analysis & systematic crypto challenge solving."
+description: "CTF writeup: a Caesar cipher whose shift grows by one per word. Brute-force every shift, read the diagonal of readable words, confirm shift = 3 + word index, decode the flag."
+tags:
+  - ctf-writeup
+  - crypto
+  - caesar-cipher
+  - variable-shift
+  - pattern-recognition
+updated: 2026-11-07
 ---
 
 # 🔐 Sample Crypto Challenge: Caesar Cipher with Twist
 
 **Challenge**: Ancient Messages
 **Category**: Cryptography
-**Points**: 150  
+**Points**: 150
 **Event**: Beginner CTF 2024
 **Team**: Team Example
 **Author**: CTF Guide
@@ -17,11 +24,11 @@ description: "CTF writeup: Variable Caesar cipher with incremental shifts per wo
 
 ## 🎯 Challenge Summary
 
-**TL;DR**: Multi-stage Caesar cipher where the shift value changes based on position, decoded using frequency analysis and pattern recognition.
+**TL;DR**: Every word is an ordinary Caesar word, but the shift grows by one per word (word 0 → 3, word 1 → 4, …). Brute-forcing a single shift decodes one word per line; reading those lines diagonally gives the rule, and the rule decodes the flag.
 
 ### Challenge Description
-```
-The ancient Romans had a sophisticated way of encoding their messages. 
+```text
+The ancient Romans had a sophisticated way of encoding their messages.
 We intercepted this message, but it seems more complex than a simple Caesar cipher.
 Can you decode it?
 
@@ -30,7 +37,7 @@ Hint: The Romans were quite systematic in their approach.
 ```
 
 ### Files & Services
-- `ancient_message.txt` - Encrypted text file
+- `ancient_message.txt` - Encrypted text file (one line)
 
 ---
 
@@ -40,196 +47,233 @@ Hint: The Romans were quite systematic in their approach.
 Let's examine the provided file:
 
 ```bash
-$ cat ancient_message.txt
-KHOOR ZRUOG! WKLV LV D WHVW PHVVDJH. WKH NHGB LV WKUHH EXGV ILQG BRX FDQE GHFRGH WKLV!
+cat ancient_message.txt
+file ancient_message.txt
+wc -w ancient_message.txt
+```
 
-$ file ancient_message.txt
+```text
+Kdlo Geiwev. Ymj rkmout thyjolz vwzbp jc nkgx. Jzfc rxms vf tzou{gvwth_ufckg_pm_cbs_soqv_kcfr}
 ancient_message.txt: ASCII text
-
-$ wc -w ancient_message.txt
-16 ancient_message.txt
+12 ancient_message.txt
 ```
 
 ### Key Observations
-1. **Text Format**: All uppercase letters with spaces preserved
-2. **Length**: 16 words, looks like English structure  
-3. **Pattern**: Appears to be substitution cipher (likely Caesar)
-4. **Hint Analysis**: "systematic approach" suggests mathematical pattern
+1. **Text format**: mixed case, with `.`, `{`, `_` and `}` left in place — a letter-only substitution that preserves case.
+2. **Structure**: 12 words, two short "sentences" ending in `.`, then a token shaped like `xxxx{...}` — almost certainly the encrypted `flag{...}`.
+3. **Hint**: "systematic" suggests a rule, not a random key.
 
-Let's try basic frequency analysis:
+The snippets below run in order in one Python 3 session (REPL or a single script) started in the directory that holds `ancient_message.txt`. First, a quick frequency count:
+
 ```python
-text = "KHOOR ZRUOG! WKLV LV D WHVW PHVVDJH. WKH NHGB LV WKUHH EXGV ILQG BRX FDQE GHFRGH WKLV!"
-letter_freq = {}
-for char in text:
-    if char.isalpha():
-        letter_freq[char] = letter_freq.get(char, 0) + 1
+from collections import Counter
 
-print(sorted(letter_freq.items(), key=lambda x: x[1], reverse=True))
-# Output: [('K', 4), ('G', 4), ('L', 4), ('V', 4), ('H', 3), ('Q', 3), ...]
+ciphertext = open("ancient_message.txt").read().strip()
+letters = [c.lower() for c in ciphertext if c.isalpha()]
+print(len(letters), "letters")
+print(Counter(letters).most_common(6))
 ```
+
+```text
+74 letters
+[('k', 5), ('o', 5), ('v', 5), ('c', 5), ('g', 4), ('m', 4)]
+```
+
+74 letters is too little text for frequency analysis to pin down a key, and four letters tie for first place — no single letter stands out as the shifted `e`. A flat profile like this hints that more than one shift is in play, but it is not proof. A Caesar cipher has only 25 useful keys, so brute force costs nothing.
 
 ---
 
-## 💡 Solution Approach  
+## 💡 Solution Approach
 
-### Method 1: Testing Basic Caesar Shifts
+### Method 1: Brute-force a single shift (dead end, but it holds the answer)
 
-1. **Step 1**: Try standard Caesar cipher shifts
-   ```python
-   def caesar_decrypt(text, shift):
-       result = ""
-       for char in text:
-           if char.isalpha():
-               shifted = ord(char) - shift
-               if shifted < ord('A'):
-                   shifted += 26
-               result += chr(shifted)
-           else:
-               result += char
-       return result
-   
-   # Test common shifts
-   for shift in range(1, 26):
-       decrypted = caesar_decrypt(text, shift)
-       if "THE" in decrypted or "AND" in decrypted:
-           print(f"Shift {shift}: {decrypted[:50]}")
-   ```
-   
-   **Results**:
-   ```
-   Shift 3: HELLO WORLD! THIS IS A TEST MESSAGE. THE KEYB IS THREE BUDS FIND YOU CABY DECODE THIS!
-   ```
+**Step 1 — try all 25 shifts.**
 
-2. **Step 2**: Analyze the partial success
-   The shift of 3 gives us readable English for most of the message, but some words are still garbled:
-   - "KEYB" should be "KEY"  
-   - "BUDS" doesn't make sense
-   - "CABY" should be "CAN"
+```python
+def caesar(text, k):
+    """Shift ASCII letters by k (negative k decrypts); keep case and non-letters."""
+    out = []
+    for c in text:
+        if c.isascii() and c.isalpha():
+            base = ord("A") if c.isupper() else ord("a")
+            out.append(chr((ord(c) - base + k) % 26 + base))
+        else:
+            out.append(c)
+    return "".join(out)
 
-3. **Step 3**: Pattern Recognition
-   Looking at the hint "systematic approach" and the fact that some words decode correctly with shift 3, let's investigate if the shift changes:
+for k in range(1, 26):
+    print(f"{k:2}: {caesar(ciphertext, -k)}")
+```
 
-   ```python
-   def analyze_variable_shift(text):
-       # Try different shifts for different positions
-       words = text.split()
-       for word_idx, word in enumerate(words):
-           print(f"Word {word_idx}: {word}")
-           for shift in range(1, 26):
-               decoded = caesar_decrypt(word, shift)
-               if decoded.lower() in ["the", "is", "this", "find", "you", "can", "key", "but"]:
-                   print(f"  Shift {shift}: {decoded}")
-   ```
+```text
+ 1: Jckn Fdhvdu. Xli qjlnts sgxinky uvyao ib mjfw. Iyeb qwlr ue synt{fuvsg_tebjf_ol_bar_rnpu_jbeq}
+ 2: Ibjm Ecguct. Wkh pikmsr rfwhmjx tuxzn ha liev. Hxda pvkq td rxms{eturf_sdaie_nk_azq_qmot_iadp}
+ 3: Hail Dbftbs. Vjg ohjlrq qevgliw stwym gz khdu. Gwcz oujp sc qwlr{dstqe_rczhd_mj_zyp_plns_hzco}
+ 4: Gzhk Caesar. Uif ngikqp pdufkhv rsvxl fy jgct. Fvby ntio rb pvkq{crspd_qbygc_li_yxo_okmr_gybn}
+ 5: Fygj Bzdrzq. The mfhjpo octejgu qruwk ex ifbs. Euax mshn qa oujp{bqroc_paxfb_kh_xwn_njlq_fxam}
+ 6: Exfi Aycqyp. Sgd legion nbsdift pqtvj dw hear. Dtzw lrgm pz ntio{apqnb_ozwea_jg_wvm_mikp_ewzl}
+ 7: Dweh Zxbpxo. Rfc kdfhnm marches opsui cv gdzq. Csyv kqfl oy mshn{zopma_nyvdz_if_vul_lhjo_dvyk}
+ 8: Cvdg Ywaown. Qeb jcegml lzqbgdr north bu fcyp. Brxu jpek nx lrgm{ynolz_mxucy_he_utk_kgin_cuxj}
+ 9: Bucf Xvznvm. Pda ibdflk kypafcq mnqsg at ebxo. Aqwt iodj mw kqfl{xmnky_lwtbx_gd_tsj_jfhm_btwi}
+10: Atbe Wuymul. Ocz hacekj jxozebp lmprf zs dawn. Zpvs hnci lv jpek{wlmjx_kvsaw_fc_sri_iegl_asvh}
+11: Zsad Vtxltk. Nby gzbdji iwnydao kloqe yr czvm. Your gmbh ku iodj{vkliw_jurzv_eb_rqh_hdfk_zrug}
+12: Yrzc Uswksj. Max fyacih hvmxczn jknpd xq byul. Xntq flag jt hnci{ujkhv_itqyu_da_qpg_gcej_yqtf}
+13: Xqyb Trvjri. Lzw exzbhg gulwbym ijmoc wp axtk. Wmsp ekzf is gmbh{tijgu_hspxt_cz_pof_fbdi_xpse}
+14: Wpxa Squiqh. Kyv dwyagf ftkvaxl hilnb vo zwsj. Vlro djye hr flag{shift_grows_by_one_each_word}
+15: Vowz Rpthpg. Jxu cvxzfe esjuzwk ghkma un yvri. Ukqn cixd gq ekzf{rghes_fqnvr_ax_nmd_dzbg_vnqc}
+16: Unvy Qosgof. Iwt buwyed drityvj fgjlz tm xuqh. Tjpm bhwc fp djye{qfgdr_epmuq_zw_mlc_cyaf_umpb}
+17: Tmux Pnrfne. Hvs atvxdc cqhsxui efiky sl wtpg. Siol agvb eo cixd{pefcq_doltp_yv_lkb_bxze_tloa}
+18: Sltw Omqemd. Gur zsuwcb bpgrwth dehjx rk vsof. Rhnk zfua dn bhwc{odebp_cnkso_xu_kja_awyd_sknz}
+19: Rksv Nlpdlc. Ftq yrtvba aofqvsg cdgiw qj urne. Qgmj yetz cm agvb{ncdao_bmjrn_wt_jiz_zvxc_rjmy}
+20: Qjru Mkockb. Esp xqsuaz znepurf bcfhv pi tqmd. Pfli xdsy bl zfua{mbczn_aliqm_vs_ihy_yuwb_qilx}
+21: Piqt Ljnbja. Dro wprtzy ymdotqe abegu oh splc. Oekh wcrx ak yetz{labym_zkhpl_ur_hgx_xtva_phkw}
+22: Ohps Kimaiz. Cqn voqsyx xlcnspd zadft ng rokb. Ndjg vbqw zj xdsy{kzaxl_yjgok_tq_gfw_wsuz_ogjv}
+23: Ngor Jhlzhy. Bpm unprxw wkbmroc yzces mf qnja. Mcif uapv yi wcrx{jyzwk_xifnj_sp_fev_vrty_nfiu}
+24: Mfnq Igkygx. Aol tmoqwv vjalqnb xybdr le pmiz. Lbhe tzou xh vbqw{ixyvj_whemi_ro_edu_uqsx_meht}
+25: Lemp Hfjxfw. Znk slnpvu uizkpma wxacq kd olhy. Kagd synt wg uapv{hwxui_vgdlh_qn_dct_tprw_ldgs}
+```
+
+**Step 2 — analyse the partial success.** No line reads as English from start to finish, so this is not a plain Caesar cipher. Shift 3, the classic Caesar key, decodes only the first word:
+
+```text
+ 3: Hail Dbftbs. Vjg ohjlrq qevgliw stwym gz khdu. Gwcz oujp sc qwlr{dstqe_rczhd_mj_zyp_plns_hzco}
+```
+
+Read the table diagonally instead of line by line. Each word becomes readable on exactly one line, and that line moves down by one for each word:
+
+| Word index | Shift | Readable word |
+|---|---|---|
+| 0 | 3 | `Hail` |
+| 1 | 4 | `Caesar.` |
+| 2 | 5 | `The` |
+| 3 | 6 | `legion` |
+| 4 | 7 | `marches` |
+| … | … | … |
+| 11 | 14 | `flag{shift_grows_by_one_each_word}` |
+
+Shift 14 even exposes the whole flag token. That is expected: inside one word the cipher is still a plain Caesar shift, so brute force recovers every word on *some* line. The work left is to prove the rule rather than pick words out by eye.
+
+**Step 3 — hypothesis: shift = 3 + word index (0-based).** Test it without hand-picking anything. For each ciphertext word, look for shifts that turn it into a common English function word and print `shift - index`:
+
+```python
+STOPWORDS = {"a", "an", "and", "are", "as", "at", "be", "by", "for", "from",
+             "in", "is", "it", "of", "on", "or", "that", "the", "to", "was",
+             "with", "you", "your"}
+
+for i, word in enumerate(ciphertext.split()):
+    for k in range(1, 26):
+        guess = caesar(word, -k).strip(".").lower()
+        if guess in STOPWORDS:
+            print(f"word {i:2}  {word:<8} shift {k:2} -> {guess:<5} (shift - index = {k - i})")
+```
+
+```text
+word  2  Ymj      shift  5 -> the   (shift - index = 3)
+word  6  jc       shift  9 -> at    (shift - index = 3)
+word  8  Jzfc     shift 11 -> your  (shift - index = 3)
+word 10  vf       shift 13 -> is    (shift - index = 3)
+```
+
+Four independent words, no false positives, and the offset is 3 every time. A crib gives a fifth check: if `tzou` (word 11) stands for `flag`, every letter moved by 14 (`t`→`f`, `z`→`l`, `o`→`a`, `u`→`g`), and 14 = 3 + 11. The decoded flag text, "shift grows by one each word", states the same rule.
+
+**Step 4 — decode the whole message** with the solver below.
 
 ---
 
 ## 🛠️ Technical Details
 
 ### Tools Used
-- **Primary Tools**: Python for cipher analysis
-- **Secondary Tools**: CyberChef for verification  
+- **Primary tools**: Python 3, standard library only (`collections.Counter`, `re`)
+- **Secondary tools**: `file`, `wc` for reconnaissance
 
 ### Key Technical Concepts
-- **Caesar Cipher**: Simple substitution cipher with fixed shift
-- **Variable Shift Cipher**: Caesar cipher where shift changes based on position
-- **Frequency Analysis**: Statistical approach to breaking substitution ciphers
+- **Caesar cipher**: every letter moves by the same fixed shift.
+- **Progressive (per-word) Caesar**: the shift changes with position, here `3 + word index`. Each word on its own is still a Caesar word, which is why per-shift brute force decodes one word per line.
+- **Frequency analysis**: needs far more than 74 letters, and mixing several shifts flattens the letter profile.
+- **Crib**: a known plaintext fragment (`flag`) reveals the shift for the word that contains it.
 
-### Discovery Process
-After analyzing the pattern, I discovered the shift increments by 1 for each word:
-- Word 0: shift 3 → "HELLO"
-- Word 1: shift 4 → "WORLD" 
-- Word 2: shift 5 → "THIS"
-- And so on...
+### Cipher Definition
+```text
+For word w (0-based index over whitespace-separated tokens) and each ASCII letter in it,
+with A=0 ... Z=25 and the letter's case kept:
+
+    encrypt:  c = (p + 3 + w) mod 26
+    decrypt:  p = (c - 3 - w) mod 26
+
+Non-letters ( . { } _ ) are copied unchanged. Words are separated by single spaces.
+```
 
 ---
 
 ## 🎯 The Solution
 
 ### Final Exploit
+`solve.py`:
+
 ```python
 #!/usr/bin/env python3
-"""
-Variable Caesar Cipher Decoder
-The shift increases by 1 for each word, starting at 3
-"""
+"""Ancient Messages solver: word i (0-based, whitespace-separated) was shifted by 3 + i."""
+import re
+import sys
 
-def caesar_decrypt(text, shift):
-    result = ""
-    for char in text:
-        if char.isalpha():
-            shifted = ord(char) - shift
-            if shifted < ord('A'):
-                shifted += 26
-            result += chr(shifted)
+
+def caesar(text, k):
+    """Shift ASCII letters by k (negative k decrypts); keep case and non-letters."""
+    out = []
+    for c in text:
+        if c.isascii() and c.isalpha():
+            base = ord("A") if c.isupper() else ord("a")
+            out.append(chr((ord(c) - base + k) % 26 + base))
         else:
-            result += char
-    return result
+            out.append(c)
+    return "".join(out)
 
-def decode_variable_caesar(text, starting_shift):
-    words = text.split()
-    decoded_words = []
-    
-    for i, word in enumerate(words):
-        current_shift = starting_shift + i
-        decoded_word = caesar_decrypt(word, current_shift)
-        decoded_words.append(decoded_word)
-        print(f"Word {i}: '{word}' -> '{decoded_word}' (shift {current_shift})")
-    
-    return " ".join(decoded_words)
+
+def decode(ciphertext, start=3):
+    plain = []
+    for i, word in enumerate(ciphertext.split()):
+        k = start + i
+        plain.append(caesar(word, -k))
+        print(f"word {i:2}  shift {k:2}  {word:<36} -> {plain[-1]}")
+    return " ".join(plain)
+
 
 if __name__ == "__main__":
-    encrypted = "KHOOR ZRUOG! WKLV LV D WHVW PHVVDJH. WKH NHGB LV WKUHH EXGV ILQG BRX FDQE GHFRGH WKLV!"
-    
-    print("Decoding with variable Caesar cipher (starting shift 3):")
-    decoded = decode_variable_caesar(encrypted, 3)
-    
-    print(f"\nFinal message: {decoded}")
-    
-    # Extract flag
-    if "flag{" in decoded.lower():
-        import re
-        flag = re.search(r'flag\{[^}]+\}', decoded, re.IGNORECASE)
-        if flag:
-            print(f"Flag found: {flag.group()}")
+    message = decode(open(sys.argv[1]).read())
+    print(f"\nPlaintext: {message}")
+    flag = re.search(r"flag\{[^}]+\}", message)
+    print(f"Flag: {flag.group() if flag else 'not found'}")
 ```
 
 ### Execution Output
 ```bash
-$ python3 solve.py
-Decoding with variable Caesar cipher (starting shift 3):
-Word 0: 'KHOOR' -> 'HELLO' (shift 3)
-Word 1: 'ZRUOG!' -> 'WORLD!' (shift 4)
-Word 2: 'WKLV' -> 'THIS' (shift 5)
-Word 3: 'LV' -> 'IS' (shift 6)
-Word 4: 'D' -> 'A' (shift 7)
-Word 5: 'WHVW' -> 'TEST' (shift 8)
-Word 6: 'PHVVDJH.' -> 'MESSAGE.' (shift 9)
-Word 7: 'WKH' -> 'THE' (shift 10)
-Word 8: 'NHGB' -> 'KEY' (shift 11)
-Word 9: 'LV' -> 'IS' (shift 12)
-Word 10: 'WKUHH' -> 'THREE' (shift 13)
-Word 11: 'EXGV' -> 'BUT' (shift 14)
-Word 12: 'ILQG' -> 'FIND' (shift 15)
-Word 13: 'BRX' -> 'YOU' (shift 16)
-Word 14: 'FDQH' -> 'CAN' (shift 17)
-Word 15: 'GHFRGH' -> 'DECODE' (shift 18)
-Word 16: 'WKLV!' -> 'THIS!' (shift 19)
-
-Final message: HELLO WORLD! THIS IS A TEST MESSAGE. THE KEY IS THREE BUT FIND YOU CAN DECODE THIS!
+python3 solve.py ancient_message.txt
 ```
 
-Wait, let me check the actual challenge - it seems like there should be a flag. Let me re-read...
+```text
+word  0  shift  3  Kdlo                                 -> Hail
+word  1  shift  4  Geiwev.                              -> Caesar.
+word  2  shift  5  Ymj                                  -> The
+word  3  shift  6  rkmout                               -> legion
+word  4  shift  7  thyjolz                              -> marches
+word  5  shift  8  vwzbp                                -> north
+word  6  shift  9  jc                                   -> at
+word  7  shift 10  nkgx.                                -> dawn.
+word  8  shift 11  Jzfc                                 -> Your
+word  9  shift 12  rxms                                 -> flag
+word 10  shift 13  vf                                   -> is
+word 11  shift 14  tzou{gvwth_ufckg_pm_cbs_soqv_kcfr}   -> flag{shift_grows_by_one_each_word}
 
-Actually, looking at this more carefully, the decoded message gives us the key information: "THE KEY IS THREE" - this might be telling us about another layer or the flag format.
+Plaintext: Hail Caesar. The legion marches north at dawn. Your flag is flag{shift_grows_by_one_each_word}
+Flag: flag{shift_grows_by_one_each_word}
+```
 
 ---
 
 ## 🏁 Flag
 
-Looking at the pattern and the message "THE KEY IS THREE", let's check if this is the flag format:
-
-```
-flag{variable_caesar_shift_three}
+```text
+flag{shift_grows_by_one_each_word}
 ```
 
 ---
@@ -237,67 +281,65 @@ flag{variable_caesar_shift_three}
 ## 💭 Reflection
 
 ### What Went Well
-- Successfully identified that basic Caesar cipher didn't fully work
-- Recognized the pattern that shift increases per word
-- Systematic approach to testing different shift patterns
+- Brute-forcing all 25 shifts was cheap, and its output already held the full answer along a diagonal.
+- The stopword scan confirmed the rule mechanically instead of by eye; the `flag` crib gave an independent check.
 
-### Challenges Faced  
-- Initially assumed it was a standard Caesar cipher
-- Had to recognize the variable shift pattern from partial decryption
+### Challenges Faced
+- No single shift reads cleanly, which at first looks like "not a Caesar cipher at all".
+- Frequency analysis was inconclusive on 74 letters.
 
 ### Learning Outcomes
-- **Variable Ciphers**: Not all substitution ciphers use fixed keys
-- **Pattern Recognition**: Important to look for systematic changes
-- **Incremental Analysis**: Break problems down word by word when needed
+- **Read brute-force output in two directions**: a variable shift shows up as readable fragments that move from line to line.
+- **Confirm a hypothesis with a test**: a generic wordlist and a crib beat eyeballing.
+- **Spot the flag format in the ciphertext**: `xxxx{...}` survives encryption and is a free crib.
+
+### Generalisation
+This is a progressive Caesar: the key is a stream of shifts (3, 4, 5, …), one per word, which makes it a polyalphabetic cipher — in effect a [Vigenère cipher](https://en.wikipedia.org/wiki/Vigen%C3%A8re_cipher) whose key stream comes from word positions instead of a keyword. The [Trithemius cipher](https://en.wikipedia.org/wiki/Tabula_recta#Trithemius_cipher) is the per-letter version of the same idea. Its weaknesses: the whole key is one starting shift, each word is still an individual Caesar word, and the shifts repeat every 26 words (word 26 would use shift 29 ≡ 3). For variants that step per letter or by a different amount, test `shift = a + b × position (mod 26)` for all 26 × 26 pairs of `a` and `b` — 676 candidates, still trivial to brute-force.
 
 ---
 
 ## 🔗 References
 
 ### Documentation
-- [Caesar Cipher Basics](https://en.wikipedia.org/wiki/Caesar_cipher) - Understanding the foundation
-- [Frequency Analysis](https://en.wikipedia.org/wiki/Frequency_analysis) - Statistical cryptanalysis  
-- [Variable Shift Ciphers](https://crypto.interactive-maths.com/variable-shift-cipher.html) - Advanced variations
+- [Caesar cipher](https://en.wikipedia.org/wiki/Caesar_cipher) - The fixed-shift foundation
+- [Frequency analysis](https://en.wikipedia.org/wiki/Frequency_analysis) - Statistical cryptanalysis and its data requirements
+- [Vigenère cipher](https://en.wikipedia.org/wiki/Vigen%C3%A8re_cipher) - The general polyalphabetic case
+- [Tabula recta — Trithemius cipher](https://en.wikipedia.org/wiki/Tabula_recta#Trithemius_cipher) - Progressive shift per letter
 
 ### Further Reading
-- [Practical Cryptography](http://practicalcryptography.com/) - Cipher implementations
-- [CyberChef Recipes](https://github.com/gchq/CyberChef/wiki/Recipes) - Common crypto operations
+- [Practical Cryptography](http://practicalcryptography.com/) - Classical cipher implementations and cryptanalysis
+- [CryptoHack](https://cryptohack.org/) - Crypto challenge platform
 
+### In This Vault
+- [[sop-cryptography-analysis|Cryptography Analysis SOP]]
+- [[CTF_Cheat_Sheets|CTF Cheat Sheets]] - Caesar brute-force and ROT13 snippets
+- [[Writeups-Index|Writeups Index]]
 
 ---
 
 ## 📚 Appendix
 
-### Alternative Solution Approaches
+### How the Challenge Was Built
+The ciphertext was generated with the same `caesar()` helper, using a positive shift to encrypt. Run it next to `solve.py` to reproduce `ancient_message.txt` byte for byte:
+
 ```python
-# Using CyberChef for verification
-# Recipe: Caesar Cipher Brute Force -> Manual analysis
+from solve import caesar
 
-# Using frequency analysis first
-from collections import Counter
-def frequency_analysis(text):
-    letters = [c for c in text.upper() if c.isalpha()]
-    return Counter(letters).most_common()
+PLAINTEXT = "Hail Caesar. The legion marches north at dawn. Your flag is flag{shift_grows_by_one_each_word}"
+print(" ".join(caesar(w, 3 + i) for i, w in enumerate(PLAINTEXT.split())))
 ```
 
-### Mathematical Background
-```
-Variable Caesar Cipher Formula:
-C[i] = (P[i] + (key + position)) mod 26
-
-Where:
-- C[i] = cipher character at position i
-- P[i] = plaintext character at position i  
-- key = starting shift value (3 in this case)
-- position = word position in message
+```text
+Kdlo Geiwev. Ymj rkmout thyjolz vwzbp jc nkgx. Jzfc rxms vf tzou{gvwth_ufckg_pm_cbs_soqv_kcfr}
 ```
 
 ---
 
 **Completion Time**: `45 minutes`
 **Team Size**: `1 member`
-**First Blood**: `NO` 
+**First Blood**: `NO`
 **Published**: `2024-01-15`
 
-## Tags
-#ctf-writeup #crypto #caesar-cipher #variable-shift #pattern-recognition
+---
+
+**Last Updated:** 2026-11-07

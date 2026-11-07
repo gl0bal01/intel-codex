@@ -1,6 +1,15 @@
 ---
+type: index
 title: "CTF Getting Started Guide"
-description: "Beginner's guide to Capture The Flag competitions: categories, tools, practice platforms & essential skills. Start your cybersecurity CTF journey today."
+description: "Beginner's hub for Capture The Flag competitions: categories, practice platforms, methodology, tools, sample writeups & AI-assisted solving."
+tags:
+  - index
+  - ctf
+  - cybersecurity
+  - cryptography
+  - reverse-engineering
+  - forensics
+updated: 2026-11-07
 ---
 
 # CTF Getting Started Guide
@@ -49,7 +58,7 @@ description: "Beginner's guide to Capture The Flag competitions: categories, too
 
 ### 1. Setup Your Environment
 - **VM**: Ubuntu/Debian + Exegol, Kali Linux, Parrot Security
-- **Essential Tools**: See [CTF_Tools](CTF_Tools.md)
+- **Essential Tools**: See [[CTF_Tools|CTF Tools]]
 
 ### 2. Learn the Basics
 - Understand common file types and encodings
@@ -79,7 +88,7 @@ If competing with a team, see [[CTF_Team_Coordination]] for:
 - Keep detailed notes of what you tried
 - Screenshot important findings
 - Write writeups after solving challenges
-- See [[Writeups/Writeups-Index|Writeups Index]] for structure
+- See [[Writeups-Index|Writeups Index]] for structure
 
 ## Essential Skills to Develop
 
@@ -104,26 +113,51 @@ If competing with a team, see [[CTF_Team_Coordination]] for:
 - ❌ **Ignoring file metadata** - Run `file`, `strings`, `exiftool` on everything
 - ❌ **Skipping documentation** - Write notes even when you fail
 - ❌ **Working in isolation** - Join communities, ask for hints (not solutions)
+- ❌ **Ignoring the flag format** - Match the event's exact format; some events cap or rate-limit wrong submissions
+
+## 🤖 AI-Assisted Solving
+
+- **Rules first** - Some CTFs ban or restrict LLM use, others allow it. Read the event's rules before you start; if unclear, ask the organizers.
+- **Good uses** - Explaining unfamiliar code, assembly or crypto math; rubber-ducking a stuck approach.
+- **Verify everything** - LLMs invent tool flags, misread disassembly and get math confidently wrong. Test every claim before relying on it.
+- **Mind the data** - If the rules forbid it, don't paste live-event challenge files, flags or infrastructure details into third-party services.
+- **Write your own writeup** - The reasoning should be yours; that's where the learning sticks.
 
 ## Resources
+
+### Practice Platforms
+
+| Platform | Best for |
+|---|---|
+| [CyLab Security Academy](https://cylabacademy.org/) (formerly picoCTF.org) | Beginners - free CMU platform; self-paced CTF challenges and live competitions |
+| [OverTheWire](https://overthewire.org/wargames/) | Wargames over SSH - Linux basics (Bandit), web (Natas), binary (Narnia, Behemoth) |
+| [Hack The Box](https://www.hackthebox.com/) | Vulnerable machines plus category challenges |
+| [TryHackMe](https://tryhackme.com/) | Guided learning paths, labs run in your browser |
+| [CryptoHack](https://cryptohack.org/) | Cryptography - from encodings to RSA and elliptic curves |
+| [pwn.college](https://pwn.college/) | Binary exploitation and systems security, structured course |
+| [PortSwigger Web Security Academy](https://portswigger.net/web-security) | Web vulnerabilities - free labs built around Burp Suite |
+| [CTFtime](https://ctftime.org/) | Live event calendar, team rankings and writeup archive |
+
+More platforms: [Tired of Boring Security Training? Try These 20+ Engaging CTF Platforms](https://gl0bal01.com/blog/ctf-platforms-training)
 
 ### Communities
 - Discord servers for major CTF platforms
 - Reddit: r/securityCTF, r/netsec
 - CTF team channels
-- Twitter CTF community
 
-### Learning & Practice
-- [CTF101](https://ctf101.org) - CTF fundamentals
-- [LiveOverflow YouTube](https://youtube.com/liveoverflow) - Binary exploitation
-- [IppSec YouTube](https://youtube.com/ippsec) - HackTheBox walkthroughs
+### Learning
+- [LiveOverflow YouTube](https://www.youtube.com/@LiveOverflow) - Binary exploitation
+- [IppSec YouTube](https://www.youtube.com/@ippsec) - HackTheBox walkthroughs
 - [Trail of Bits CTF Guide](https://trailofbits.github.io/ctf/)
-- https://gl0bal01.com/blog/ctf-platforms-training
 
-### References
-- [CTF_Tools](CTF_Tools.md) - Essential CTF tools
-- [[CTF_Cheat_Sheets]] - Quick reference for common techniques
-- [[CTF_Team_Coordination]] - Working with teams
+## Sample Writeups
+
+Worked examples - read them after attempting a similar challenge. Template and structure: [[Writeups-Index|Writeups Index]].
+
+- [[Sample_Crypto_Caesar_Writeup|Crypto - Caesar cipher]]
+- [[Sample_Web_SQLi_Writeup|Web - SQL injection]]
+- [[Sample_RevEng_Crackme_Writeup|Reverse Engineering - crackme]]
+- [[Sample_Forensics_Steganography_Writeup|Forensics - steganography]]
 
 ## Tips for Success
 
@@ -134,3 +168,21 @@ If competing with a team, see [[CTF_Team_Coordination]] for:
 - ✅ Participate in live CTFs for experience
 - ✅ Join or form a team for collaborative learning
 - ✅ Focus on understanding, not just solving
+
+## Where to Next
+
+| Need | Page |
+|---|---|
+| A step-by-step approach to any challenge | [[CTF_Challenge_Methodology\|Challenge Methodology]] |
+| What to install and when to use it | [[CTF_Tools\|Tools]] |
+| Commands and payloads at a glance | [[CTF_Cheat_Sheets\|Cheat Sheets]] |
+| Playing as a team | [[CTF_Team_Coordination\|Team Coordination]] |
+| Worked solutions and a writeup template | [[Writeups-Index\|Writeups]] |
+
+---
+
+**Navigation:** [🏠 Home](https://lecodex.xyz) | [[CTF_Challenge_Methodology|📖 Methodology]] | [[CTF_Tools|🛠️ Tools]] | [[CTF_Cheat_Sheets|📋 Cheat Sheets]] | [[CTF_Team_Coordination|🤝 Team]] | [[Writeups-Index|📝 Writeups]]
+
+---
+
+**Last Updated:** 2026-11-07
