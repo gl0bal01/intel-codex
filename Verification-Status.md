@@ -95,7 +95,7 @@ file, so a SOP is only as fresh as its stalest claim.
 | Detection & Evasion Testing SOP (Purple Team) | [[sop-detection-evasion-testing]] | 2026-10-18 | 67 | 2026-10-18 | 21 | current |
 | Firmware Reverse Engineering | [[sop-firmware-reverse-engineering]] | 2026-04-26 | 39 | 2026-04-26 | 196 | current |
 | Linux Pentesting SOP (Authorized) | [[sop-linux-pentest]] | 2026-11-05 | 69 | 2026-11-05 | 3 | current |
-| Mobile Security (iOS & Android) | [[sop-mobile-security]] | 2026-09-20 | 21 | 2026-04-26 | 196 | current |
+| Mobile Security (iOS & Android) | [[sop-mobile-security]] | 2026-11-08 | 134 | 2026-11-08 | 0 | current |
 | Vulnerability Research SOP | [[sop-vulnerability-research]] | 2026-10-31 | 85 | 2026-10-31 | 8 | current |
 | Web Application Security Testing SOP | [[sop-web-application-security]] | 2026-11-08 | 11 | 2026-04-25 | 197 | current |
 | Wireless & RF Pentesting (Authorized) | [[sop-wireless-rf-pentest]] | 2026-11-07 | 140 | 2026-11-07 | 1 | current |
