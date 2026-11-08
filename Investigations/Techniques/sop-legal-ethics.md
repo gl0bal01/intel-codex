@@ -3,7 +3,7 @@ type: sop
 title: Legal, Ethics & Data Governance for OSINT
 description: "Essential legal & ethical boundaries for OSINT: GDPR/CPRA/state-privacy compliance, authorization, cross-border transfer, sensitive-data handling & responsible disclosure."
 created: 2025-10-05
-updated: 2026-11-07
+updated: 2026-11-08
 template_version: 2026-04-26
 tags: [sop, legal, ethics, compliance, gdpr, privacy, data-governance]
 ---
@@ -66,6 +66,8 @@ tags: [sop, legal, ethics, compliance, gdpr, privacy, data-governance]
 - **Cybercrime Directive (2013/40/EU):** Harmonizes member-state criminal law on attacks against information systems (analogue to CFAA) [verify 2026-10-25].
 - **NIS2 Directive ((EU) 2022/2555):** Network and information security; member-state transposition deadline October 17, 2024 [verify 2026-10-25].
 - **DORA (Digital Operational Resilience Act, (EU) 2022/2554):** Applies to financial-sector entities from January 17, 2025 [verify 2026-10-25].
+- **Cyber Resilience Act (Regulation (EU) 2024/2847):** since September 11, 2026, manufacturers of products with digital elements must report actively exploited vulnerabilities and severe incidents through ENISA's CRA Single Reporting Platform: an early warning within 24 hours of becoming aware, a full notification within 72 hours, and a final report no later than 14 days after a corrective measure is available (Article 14; https://digital-strategy.ec.europa.eu/en/policies/cra-reporting) [verify 2026-11-08].
+- **CRA and coordinated disclosure:** the clock runs from when the manufacturer becomes aware of an actively exploited vulnerability, so if your report carries evidence that a flaw is being exploited, EU vendors may ask about it and act on a shorter timeline than the program's default; disclosure mechanics are in [[sop-reporting-packaging-disclosure|Reporting & Disclosure]] and [[sop-bug-bounty|Bug Bounty]].
 - **EU AI Act (Regulation (EU) 2024/1689):** In force August 1, 2024. Prohibited-practices ban from February 2, 2025; GPAI obligations August 2, 2025; general application (incl. Article 50 transparency) August 2, 2026. The Digital Omnibus on AI (Regulation (EU) 2026/1744) moved Annex III high-risk obligations to December 2, 2027 and Annex I (product-safety) high-risk obligations to August 2, 2028, added Article 5 bans on AI generation of non-consensual intimate imagery and CSAM from December 2, 2026, and gave generative systems already on the market before August 2, 2026 until December 2, 2026 to meet the Article 50(2) marking duty [verify 2026-10-29]. Article 50 transparency obligations are relevant to synthetic-media OSINT.
 - **e-Evidence Regulation ((EU) 2023/1543) and Directive ((EU) 2023/1544):** Cross-border production/preservation orders for electronic evidence; staged application from August 18, 2026 [verify 2026-10-25].
 - **EU–US Data Privacy Framework (DPF):** European Commission adequacy decision adopted July 10, 2023, replacing the Schrems-II-invalidated Privacy Shield. Self-certification via dataprivacyframework.gov; subject to ongoing CJEU review [verify 2026-10-25].
@@ -430,7 +432,7 @@ Wireless and RF testing (Wi-Fi, Bluetooth/BLE, 802.15.4, sub-GHz, SDR) is regula
 **European Union:**
 - **Radio Equipment Directive 2014/53/EU:** sets the rules for making radio equipment available on the market and putting it into service (Article 1(1)), including that it be built to use spectrum efficiently "in order to avoid harmful interference" (Article 3(2)). Member states must allow compliant equipment to be put into service and used when "properly installed, maintained and used for its intended purpose"; without prejudice to "the conditions attached to authorisations for the use of frequencies", they may add requirements only for reasons related to effective and efficient spectrum use, "the avoidance of harmful interference", electromagnetic disturbances or public health (Article 7) [verify 2026-11-07]
 - **Interception:** Directive 2013/40/EU Article 6 requires member states to criminalize intercepting, "by technical means", non-public transmissions of computer data, "including electromagnetic emissions from an information system carrying such computer data", when done "intentionally and without right", at least for cases that are not minor; "without right" means not authorized by the owner or another right holder of the system or of part of it, or not permitted under national law (Article 2(d)). A client can authorize only systems it owns or holds rights in. See the Cybercrime Directive entry under [Regulatory Framework](#regulatory-framework) [verify 2026-11-07]
-- **Cyber Resilience Act (Regulation (EU) 2024/2847):** since September 11, 2026, manufacturers must notify actively exploited vulnerabilities in their products to the coordinator CSIRT and ENISA, with an early warning within 24 hours of becoming aware (Article 14(1)–(2), Article 71(2)). Relevant when you disclose an exploited wireless-product flaw to the vendor: [[sop-reporting-packaging-disclosure|Reporting & Disclosure]] [verify 2026-11-07]
+- **Cyber Resilience Act (Regulation (EU) 2024/2847):** since September 11, 2026, manufacturers must notify actively exploited vulnerabilities in their products to the coordinator CSIRT and ENISA, with an early warning within 24 hours of becoming aware (Article 14(1)–(2), Article 71(2)); full timings under [Regulatory Framework](#regulatory-framework). Relevant when you disclose an exploited wireless-product flaw to the vendor: [[sop-reporting-packaging-disclosure|Reporting & Disclosure]] [verify 2026-11-07]
 
 **Export controls (SDR and RF test hardware):**
 - **US:** the EAR (15 CFR Parts 730–774) govern export, reexport and in-country transfer; items subject to the EAR but not listed on the Commerce Control List (Supplement No. 1 to Part 774) are designated EAR99 (§ 734.3(c)). EAR99 items need no license "in most situations" but "may require a license if destined for a prohibited or restricted end user, end use or destination of concern" (BIS, https://www.bis.gov/licensing/classify-your-item) [verify 2026-11-07]
@@ -1270,7 +1272,7 @@ Example: "Subject's social media post suggests suicidal ideation. Should I notif
 ---
 
 **Version:** 2.2
-**Last Updated:** 2026-11-07
+**Last Updated:** 2026-11-08
 **Review Cycle:** Yearly (with quarterly check on fast-moving items: EU AI Act phase-in, US-state privacy tracker, DMCA § 1201 cycle, REPORT Act guidance)
 **Next Review:** 2027-04-26
 

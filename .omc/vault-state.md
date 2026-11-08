@@ -1,5 +1,5 @@
 ---
-generated: 2026-11-07
+generated: 2026-11-08
 generator: tools/build-vault-state.sh
 ---
 
@@ -35,7 +35,7 @@ generator: tools/build-vault-state.sh
 - `sop-entity-dossier` — Entity Dossier Guide (updated 2026-10-29)
 - `sop-financial-aml-osint` — Financial Crime & AML OSINT (updated 2026-10-29)
 - `sop-image-video-osint` — Image & Video OSINT (updated 2026-10-29)
-- `sop-legal-ethics` — Legal, Ethics & Data Governance for OSINT (updated 2026-11-07)
+- `sop-legal-ethics` — Legal, Ethics & Data Governance for OSINT (updated 2026-11-08)
 - `sop-mixer-tracing` — Mixer & Privacy-Pool Tracing (updated 2026-10-29)
 - `sop-opsec-plan` — OPSEC Planning for OSINT Investigations (updated 2026-10-29)
 - `sop-reporting-packaging-disclosure` — Reporting, Packaging & Disclosure (updated 2026-10-29)
@@ -59,7 +59,7 @@ generator: tools/build-vault-state.sh
 ### Security/Pentesting (11 SOPs)
 
 - `sop-ad-pentest` — Active Directory Pentesting SOP (Authorized) (updated 2026-11-05)
-- `sop-bug-bounty` — Bug Bounty Methodology SOP (updated 2026-04-25)
+- `sop-bug-bounty` — Bug Bounty Methodology SOP (updated 2026-11-08)
 - `sop-cloud-pentest` — Cloud Pentesting SOP (Authorized) (updated 2026-11-07)
 - `sop-container-k8s-pentest` — Container & Kubernetes Pentesting SOP (Authorized) (updated 2026-11-07)
 - `sop-detection-evasion-testing` — Detection & Evasion Testing SOP (Purple Team) (updated 2026-10-18)
@@ -67,7 +67,7 @@ generator: tools/build-vault-state.sh
 - `sop-linux-pentest` — Linux Pentesting SOP (Authorized) (updated 2026-11-05)
 - `sop-mobile-security` — Mobile Security (iOS & Android) (updated 2026-09-20)
 - `sop-vulnerability-research` — Vulnerability Research SOP (updated 2026-10-31)
-- `sop-web-application-security` — Web Application Security Testing SOP (updated 2026-09-20)
+- `sop-web-application-security` — Web Application Security Testing SOP (updated 2026-11-08)
 - `sop-wireless-rf-pentest` — Wireless & RF Pentesting (Authorized) (updated 2026-11-07)
 
 ## Counts
