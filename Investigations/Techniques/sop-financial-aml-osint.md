@@ -3,7 +3,7 @@ type: sop
 title: Financial Crime & AML OSINT
 description: "Financial intelligence techniques: cryptocurrency tracing, sanctions screening, AML investigation & blockchain analysis for financial crime detection."
 tags: [sop, finance, aml, sanctions]
-updated: 2026-10-29
+updated: 2026-11-09
 ---
 
 # Financial Crime & AML OSINT
@@ -346,6 +346,7 @@ OPSEC for the investigator (separation of attribution, network egress, wallet/ac
 |----------|------|-----|
 | OpenCorporates | Global company search | [opencorporates.com](https://opencorporates.com) [verify 2026-10-29] |
 | Companies House (UK) | UK registry | [find-and-update.company-information.service.gov.uk](https://find-and-update.company-information.service.gov.uk/) |
+| GSXT (China) | China official company register (国家企业信用信息公示系统); search by exact Chinese legal name or 18-char Unified Social Credit Code, not an English trading name; may not load from outside China (HTTP 521 on 2026-11-09) | [gsxt.gov.cn](https://www.gsxt.gov.cn/) [verify 2026-11-09] |
 | Open Ownership BODS data | Beneficial ownership bulk datasets (Register closed 2024-11-29) | [bods-data.openownership.org](https://bods-data.openownership.org/) [verify 2026-10-29] |
 | OCCRP Aleph | Investigative document graph | [aleph.occrp.org](https://aleph.occrp.org/) [verify 2026-10-29] |
 | C4ADS Horizons | Investigative document search (access on request; terms not published — confirm with C4ADS) | [Horizons](https://horizons.c4ads.org/about) |
@@ -419,4 +420,4 @@ OPSEC for the investigator (separation of attribution, network egress, wallet/ac
 
 ---
 
-**Last Updated:** 2026-10-29
+**Last Updated:** 2026-11-09

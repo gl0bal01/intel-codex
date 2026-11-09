@@ -14,7 +14,7 @@ tags:
   - entity
   - osint
 created: 2025-10-05
-updated: 2026-10-29
+updated: 2026-11-09
 analyst:
 case_id:
 ---
@@ -287,6 +287,7 @@ Run every named entity (person, company, wallet, vessel) against the canonical l
 |--------|-----|-------|
 | OpenCorporates | `opencorporates.com` | Largest open-data corporate registry index [verify 2026-10-29] |
 | UK Companies House — People with Significant Control (PSC) | `find-and-update.company-information.service.gov.uk` | Public; director/PSC identity verification a legal requirement since 18 Nov 2025 (ECCT Act 2023) — existing directors verify at next confirmation statement, PSCs within a 14-day window `[verify 2026-10-29]` |
+| China GSXT (National Enterprise Credit Information Publicity System) | `gsxt.gov.cn` | Official register (国家企业信用信息公示系统); search by exact Chinese legal name or 18-char Unified Social Credit Code, not an English trading name; may not load from outside China (HTTP 521 on 2026-11-09) [verify 2026-11-09] |
 | US FinCEN Beneficial Ownership Information (BOI) | `fincen.gov/boi` | Scope narrowed by the March 2025 interim final rule, then fixed by **FinCEN's final rule (issued 11 Aug 2026, effective 14 Aug 2026)**: U.S. companies and U.S.-person beneficial owners exempt; only foreign reporting companies report `[verify 2026-10-29]` |
 | EU UBO registers (5AMLD/6AMLD) | per-member-state portal | **CJEU C-37/20 + C-601/20 (Nov 2022)** invalidated unrestricted public access; most member states now require "legitimate interest" — document the access pathway used `[verify 2026-10-29]` |
 | ICIJ OffshoreLeaks | `offshoreleaks.icij.org` | Offshore Leaks / Panama / Bahamas / Paradise / Pandora Papers [verify 2026-10-29] |
@@ -729,5 +730,5 @@ Canonical text lives in [[sop-legal-ethics|Legal & Ethics]]. Dossier-specific re
 
 **Analyst:** gl0bal01
 **Date Created:** 2025-10-05
-**Last Updated:** 2026-10-29
+**Last Updated:** 2026-11-09
 **Review Cycle:** Yearly (slow-rot anchor SOP per CLAUDE.md watchlist)

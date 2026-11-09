@@ -1,5 +1,5 @@
 ---
-generated: 2026-11-08
+generated: 2026-11-09
 generator: tools/build-vault-state.sh
 ---
 
@@ -32,8 +32,8 @@ generator: tools/build-vault-state.sh
 - `sop-blockchain-investigation` — Blockchain Investigation (updated 2026-10-29)
 - `sop-collection-log` — OSINT Collection Log & Chain of Custody (updated 2026-10-29)
 - `sop-darkweb-investigation` — Darkweb Investigation (updated 2026-10-29)
-- `sop-entity-dossier` — Entity Dossier Guide (updated 2026-10-29)
-- `sop-financial-aml-osint` — Financial Crime & AML OSINT (updated 2026-10-29)
+- `sop-entity-dossier` — Entity Dossier Guide (updated 2026-11-09)
+- `sop-financial-aml-osint` — Financial Crime & AML OSINT (updated 2026-11-09)
 - `sop-image-video-osint` — Image & Video OSINT (updated 2026-10-29)
 - `sop-legal-ethics` — Legal, Ethics & Data Governance for OSINT (updated 2026-11-08)
 - `sop-mixer-tracing` — Mixer & Privacy-Pool Tracing (updated 2026-10-29)
